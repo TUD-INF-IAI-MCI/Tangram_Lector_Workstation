@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AC154CDA-2256-4A66-8D90-16B8BB41E275}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZoomingComparisonTest</RootNamespace>
+    <AssemblyName>ZoomingComparisonTest</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\EXT\SpecializedScriptFunctionProxies\ZoomingComparisonTest\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\EXT\SpecializedScriptFunctionProxies\ZoomingComparisonTest\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ZoomingComparisonTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\BrailleIO\BrailleIO\BrailleIO.csproj">
+      <Project>{623E618C-F034-473E-A5AF-280B20A5BA8F}</Project>
+      <Name>BrailleIO</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\BrailleIO\BrailleIO_Interfaces\BrailleIO_Interfaces.csproj">
+      <Project>{168EC2F2-7E4A-493A-AB4A-9FB1B45DAB64}</Project>
+      <Name>BrailleIO_Interfaces</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\AudioRenderer\AudioRenderer.csproj">
+      <Project>{C0F2D4E2-FC99-4218-B877-1D217FBF0437}</Project>
+      <Name>AudioRenderer</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\LanguageLocalization\LanguageLocalization.csproj">
+      <Project>{F5BA9F00-FDBE-4329-9155-4CB3EADBC772}</Project>
+      <Name>LanguageLocalization</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Logger\Logger.csproj">
+      <Project>{7283A0E4-F653-4097-B5F5-660BC570DCBD}</Project>
+      <Name>Logger</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\TANGRAM OOo Draw Extension\TANGRAM OOo Draw Extension.csproj">
+      <Project>{D84EBB20-A5F8-448F-8FB4-56219C300917}</Project>
+      <Name>TANGRAM OOo Draw Extension</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\TangramLector\TangramLector.csproj">
+      <Project>{C854EDF7-4F33-4F01-9764-9A744070EACA}</Project>
+      <Name>TangramLector</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Tangram_InteractionManger\Tangram_InteractionManger.csproj">
+      <Project>{7F263560-43D0-4B51-8D48-B46F3B0329FC}</Project>
+      <Name>Tangram_InteractionManger</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Tangram_Interfaces\Tangram_Interfaces.csproj">
+      <Project>{C4724649-0889-491A-BFBD-CF9BF7BA2E1E}</Project>
+      <Name>Tangram_Interfaces</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

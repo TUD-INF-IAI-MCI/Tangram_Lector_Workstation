@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A83FB6E1-70CA-4A10-9AAD-8D5929640518}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>tud.mci.tangram.TangramLector</RootNamespace>
+    <AssemblyName>Tangram_OoManipulation</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugLibre|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DebugLibre\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LIBRE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleasLibre|AnyCPU'">
+    <OutputPath>bin\ReleasLibre\</OutputPath>
+    <DefineConstants>TRACE;LIBRE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccDomWalker.cs" />
+    <Compile Include="OoElementSpeaker.cs" />
+    <Compile Include="OpenOfficeDrawShapeManipulator.cs" />
+    <Compile Include="OpenOfficeDrawShapeManipulator_InteractionEvents.cs" />
+    <Compile Include="OpenOfficeDrawShapeManipulator_ShapeEdit.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\Language.xml">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Submodules\BrailleIO\BrailleIO\BrailleIO.csproj">
+      <Project>{623e618c-f034-473e-a5af-280b20a5ba8f}</Project>
+      <Name>BrailleIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\BrailleIO\BrailleIO_Interfaces\BrailleIO_Interfaces.csproj">
+      <Project>{168ec2f2-7e4a-493a-ab4a-9fb1b45dab64}</Project>
+      <Name>BrailleIO_Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
+      <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
+      <Name>AudioRenderer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\DotNet_Logger\Logger.csproj">
+      <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_LanguageLocalization\LanguageLocalization.csproj">
+      <Project>{f5ba9f00-fdbe-4329-9155-4cb3eadbc772}</Project>
+      <Name>LanguageLocalization</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\Tangram_Interfaces\Tangram_Interfaces.csproj">
+      <Project>{c4724649-0889-491a-bfbd-cf9bf7ba2e1e}</Project>
+      <Name>Tangram_Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Tangram_InteractionManger.csproj">
+      <Project>{7f263560-43d0-4b51-8d48-b46f3b0329fc}</Project>
+      <Name>Tangram_InteractionManger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TANGRAM OOo Draw Extension\TANGRAM OOo Draw Extension.csproj">
+      <Project>{d84ebb20-a5f8-448f-8fb4-56219c300917}</Project>
+      <Name>TANGRAM OOo Draw Extension</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

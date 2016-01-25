@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D84EBB20-A5F8-448F-8FB4-56219C300917}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>tud.mci.tangram</RootNamespace>
+    <AssemblyName>TANGRAM_Extention</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>TANGRAM OOo Draw Extension.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugLibre|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DebugLibre\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LIBRE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseLibre|x86'">
+    <OutputPath>bin\x86\ReleaseLibre\</OutputPath>
+    <DefineConstants>TRACE;LIBRE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="cli_basetypes, Version=1.0.20.0, Culture=neutral, PublicKeyToken=ce2cb7e279207b9e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\cli_basetypes.dll</HintPath>
+    </Reference>
+    <Reference Include="cli_cppuhelper, Version=1.0.23.0, Culture=neutral, PublicKeyToken=ce2cb7e279207b9e, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\cli_cppuhelper.dll</HintPath>
+    </Reference>
+    <Reference Include="cli_oootypes, Version=1.0.9.0, Culture=neutral, PublicKeyToken=ce2cb7e279207b9e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\cli_oootypes.dll</HintPath>
+    </Reference>
+    <Reference Include="cli_uretypes, Version=1.0.9.0, Culture=neutral, PublicKeyToken=ce2cb7e279207b9e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\cli_uretypes.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Conversion.v3.5" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Accessibility\OoAccComponent.cs" />
+    <Compile Include="Accessibility\OoAccessibility.cs" />
+    <Compile Include="Accessibility\OoAccessibleDocWnd.cs" />
+    <Compile Include="Accessibility\OoAccessibleDocWnd_Meta.cs" />
+    <Compile Include="Classes\DRAW\AbstarctDrawDocBase.cs" />
+    <Compile Include="Classes\AbstractDocBase.cs" />
+    <Compile Include="Classes\DescriptionMapper.cs" />
+    <Compile Include="Classes\DRAW\LayerContextMenuInterceptor.cs" />
+    <Compile Include="controller\observer\OoDrawAccessibilityObserver.cs" />
+    <Compile Include="controller\observer\OoDrawPageObserver.cs" />
+    <Compile Include="controller\observer\OoDrawPagesObserver.cs" />
+    <Compile Include="controller\observer\OoPolygonPointObserver.cs" />
+    <Compile Include="controller\observer\OoEventArgs.cs" />
+    <Compile Include="controller\observer\OoSelectionObserver.cs" />
+    <Compile Include="controller\observer\OoShapeObserver.cs" />
+    <Compile Include="controller\observer\OoShapeObserver_DomTree.cs" />
+    <Compile Include="controller\observer\OoShapeObserver_Properties.cs" />
+    <Compile Include="controller\observer\OoTopWindowObserver.cs" />
+    <Compile Include="models\dialogs\AbstactUnoDialogBase.cs" />
+    <Compile Include="models\dialogs\ModalDialog.cs" />
+    <Compile Include="models\dialogs\NonModalDialog.cs" />
+    <Compile Include="models\dialogs\ScrollableContainer.cs" />
+    <Compile Include="models\documents\DocumentBase.cs" />
+    <Compile Include="models\documents\DrawLayerManager.cs" />
+    <Compile Include="models\documents\WriterDocument.cs" />
+    <Compile Include="models\eventForwarder\XTopWindowListener_Forwarder.cs" />
+    <Compile Include="models\Interfaces\AbstractStorableSettingsBase.cs" />
+    <Compile Include="Examples\menu\ContextMenuInterceptor.cs" />
+    <Compile Include="models\eventForwarder\XAccessibleEventListener_Forwarder.cs" />
+    <Compile Include="models\eventForwarder\AbstractXEventListener_Forwarder.cs" />
+    <Compile Include="models\eventForwarder\XSelectionListener_Forwarder.cs" />
+    <Compile Include="models\eventForwarder\XWindowListener2_Forwarder.cs" />
+    <Compile Include="models\Interfaces\IAccessibleCounterpart.cs" />
+    <Compile Include="models\Interfaces\IResetable.cs" />
+    <Compile Include="models\Interfaces\IUpdateable.cs" />
+    <Compile Include="models\menus\AbstractContextMenuInterceptorBase.cs" />
+    <Compile Include="models\menus\MenueBase.cs" />
+    <Compile Include="models\menus\ToolBar.cs" />
+    <Compile Include="models\Any.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="util\CommandUrlHelper.cs" />
+    <Compile Include="util\Debug.cs" />
+    <Compile Include="util\FunctionHelper.cs" />
+    <Compile Include="util\Oo.cs" />
+    <Compile Include="util\OoDrawUtils.cs" />
+    <Compile Include="util\OoUtils.cs" />
+    <Compile Include="util\TimeLimitExecutor.cs" />
+    <Compile Include="util\UnoCallHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="TANGRAM OOo Draw Extension.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 und x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Submodules\DotNet_Logger\Logger.csproj">
+      <Project>{7283A0E4-F653-4097-B5F5-660BC570DCBD}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\cli_basetypes.dll" />
+    <Content Include="lib\cli_cppuhelper.dll" />
+    <Content Include="lib\cli_oootypes.dll" />
+    <Content Include="lib\cli_ure.dll" />
+    <Content Include="lib\cli_uretypes.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

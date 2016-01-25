@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C854EDF7-4F33-4F01-9764-9A744070EACA}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>tud.mci.tangram.TangramLector</RootNamespace>
+    <AssemblyName>TangramLector</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugLibre|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\DebugLibre\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LIBRE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>TangramT.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseLibre|x86'">
+    <OutputPath>bin\x86\ReleaseLibre\</OutputPath>
+    <DefineConstants>TRACE;LIBRE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationClient" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_ZoomingComparisonTestFunctions.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_FeedbackReceiver.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_SpecializedFunctionProxy.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_TopMostSpFProxy.cs" />
+    <Compile Include="BrailleIO\View\GUI_Menu.cs" />
+    <Compile Include="BrailleIO\View\ImageData.cs" />
+    <Compile Include="OO\BrailleTextView.cs" />
+    <Compile Include="OO\DrawDocumentRendererHook.cs" />
+    <Compile Include="OO\OoObserver_FocusHandling.cs" />
+    <Compile Include="OO\OoObserver_SpecializedFunctionProxy.cs" />
+    <Compile Include="OO\OpenOfficeDrawShapeManipulator\FocusRendererHook.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\BlinkTimer.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_Eventhandling.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_Functions.cs" />
+    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_LNDW_Functions.cs" />
+    <Compile Include="BrailleIO\LectorBIO.cs" />
+    <Compile Include="BrailleIO\Screencapture.cs" />
+    <Compile Include="BrailleIO\Utils.cs" />
+    <Compile Include="OO\OOConnector.cs" />
+    <Compile Include="OO\OoObserver.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="program\DesktopOverlayWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="program\DesktopOverlayWindow.Designer.cs">
+      <DependentUpon>DesktopOverlayWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="program\LectorApplicationContext.cs" />
+    <Compile Include="program\TransparentOverlayPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="program\TransparentOverlayPictureBox.Designer.cs">
+      <DependentUpon>TransparentOverlayPictureBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="program\DesktopOverlayWindow.resx">
+      <DependentUpon>DesktopOverlayWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="program\TransparentOverlayPictureBox.resx">
+      <DependentUpon>TransparentOverlayPictureBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="config\tables\de-chardefs8.cti">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="config\tables\digits6DotsPlusDot6.uti">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="config\tables\unicode.dis">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config\pics\tactile_logo.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Language.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="TangramT.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 und x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Submodules\BrailleIO\BrailleIO\BrailleIO.csproj">
+      <Project>{623e618c-f034-473e-a5af-280b20a5ba8f}</Project>
+      <Name>BrailleIO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\BrailleIO\BrailleIO_Interfaces\BrailleIO_Interfaces.csproj">
+      <Project>{168ec2f2-7e4a-493a-ab4a-9fb1b45dab64}</Project>
+      <Name>BrailleIO_Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\BrailleIO\BrailleRenderer\BrailleRenderer.csproj">
+      <Project>{fc472e01-7c5a-4982-9825-59589aaadccb}</Project>
+      <Name>BrailleRenderer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
+      <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
+      <Name>AudioRenderer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\DotNet_Logger\Logger.csproj">
+      <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognizer\GestureRecognizer.csproj">
+      <Project>{73bd1f41-ce19-40de-a0ec-a70a9f003dec}</Project>
+      <Name>GestureRecognizer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_Extensibility\Extensibility.csproj">
+      <Project>{099822ce-b83a-4275-80ef-ab2d8c5792cd}</Project>
+      <Name>Extensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_LanguageLocalization\LanguageLocalization.csproj">
+      <Project>{f5ba9f00-fdbe-4329-9155-4cb3eadbc772}</Project>
+      <Name>LanguageLocalization</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\Tangram_Interfaces\Tangram_Interfaces.csproj">
+      <Project>{c4724649-0889-491a-bfbd-cf9bf7ba2e1e}</Project>
+      <Name>Tangram_Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Tangram_InteractionManger.csproj">
+      <Project>{7f263560-43d0-4b51-8d48-b46f3b0329fc}</Project>
+      <Name>Tangram_InteractionManger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TANGRAM OOo Draw Extension\TANGRAM OOo Draw Extension.csproj">
+      <Project>{d84ebb20-a5f8-448f-8fb4-56219c300917}</Project>
+      <Name>TANGRAM OOo Draw Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tangram_OoManipulation\Tangram_OoManipulation.csproj">
+      <Project>{a83fb6e1-70ca-4a10-9aad-8d5929640518}</Project>
+      <Name>Tangram_OoManipulation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UiaPicker\UiaPicker.csproj">
+      <Project>{e202fc54-0603-4494-a24b-6e9f34756e66}</Project>
+      <Name>UiaPicker</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>mkdir "$(SolutionDir)EXT"
+XCOPY "$(SolutionDir)EXT" "$(TargetDir)Extensions" /H /S /Y /C /I /Q /R</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <!-- Clean the output dir with all the already copied extensions -->
+  <Target Name="SpicNSpan" AfterTargets="Clean">
+    <RemoveDir Directories="$(OUTDIR)" />
+  </Target>
+</Project>
