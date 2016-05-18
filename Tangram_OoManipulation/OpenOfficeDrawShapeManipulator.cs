@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using BrailleIO;
-using BrailleIO.Interface;
-using BrailleIO.Renderer;
 using TangramLector.OO;
 using tud.mci.tangram.controller.observer;
 using tud.mci.LanguageLocalization;

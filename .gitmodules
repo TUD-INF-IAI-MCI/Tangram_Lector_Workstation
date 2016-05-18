@@ -1,12 +1,3 @@
-[submodule "Submodules/BrailleIO"]
-	path = Submodules/BrailleIO
-	url = https://github.com/TUD-INF-IAI-MCI/BrailleIO.git
-[submodule "Submodules/DotNet_AudioRenderer"]
-	path = Submodules/DotNet_AudioRenderer
-	url = https://github.com/TUD-INF-IAI-MCI/DotNet_AudioRenderer.git
-[submodule "Submodules/DotNet_Logger"]
-	path = Submodules/DotNet_Logger
-	url = https://github.com/TUD-INF-IAI-MCI/DotNet_Logger.git
 [submodule "Submodules/Tangram_InteractionManger"]
 	path = Submodules/Tangram_InteractionManger
 	url = https://github.com/TUD-INF-IAI-MCI/Tangram_InteractionManger.git

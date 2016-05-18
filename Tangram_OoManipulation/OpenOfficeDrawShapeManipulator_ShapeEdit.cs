@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using BrailleIO;
 using tud.mci.tangram.audio;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
@@ -12,7 +11,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     public partial class OpenOfficeDrawShapeManipulator : AbstractSpecializedFunctionProxyBase
     {
 
-        #region Modification Mode Carusel
+        #region Modification Mode Carousel
 
         private readonly int _maxMode = Enum.GetValues(typeof(ModificationMode)).Cast<int>().Max();
 

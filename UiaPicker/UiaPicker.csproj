@@ -66,12 +66,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
-      <Project>{C0F2D4E2-FC99-4218-B877-1D217FBF0437}</Project>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
+      <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
       <Name>AudioRenderer</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Submodules\DotNet_Logger\Logger.csproj">
-      <Project>{7283A0E4-F653-4097-B5F5-660BC570DCBD}</Project>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_Logger\Logger.csproj">
+      <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
       <Name>Logger</Name>
     </ProjectReference>
   </ItemGroup>

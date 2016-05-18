@@ -186,17 +186,17 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Submodules\DotNet_Logger\Logger.csproj">
-      <Project>{7283A0E4-F653-4097-B5F5-660BC570DCBD}</Project>
-      <Name>Logger</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="lib\cli_basetypes.dll" />
     <Content Include="lib\cli_cppuhelper.dll" />
     <Content Include="lib\cli_oootypes.dll" />
     <Content Include="lib\cli_ure.dll" />
     <Content Include="lib\cli_uretypes.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_Logger\Logger.csproj">
+      <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
