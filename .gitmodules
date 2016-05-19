@@ -1,3 +1,4 @@
 [submodule "Submodules/Tangram_InteractionManger"]
 	path = Submodules/Tangram_InteractionManger
 	url = https://github.com/TUD-INF-IAI-MCI/Tangram_InteractionManger.git
+	branch = master
