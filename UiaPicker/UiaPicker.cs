@@ -57,6 +57,12 @@ namespace tud.mci.tangram.Uia
                 {
                     var typeName = element.Current.ControlType.ProgrammaticName;
                     string type = ll.GetTrans("Name." + (String.IsNullOrWhiteSpace(typeName) ? "ControlType.unknown" : typeName));
+
+                    if (String.IsNullOrWhiteSpace(type))
+                    {
+                        System.Diagnostics.Debug.WriteLine("ATTENTION: Unknown ControlType requested for UIA.SpeakElement: '" + typeName + "'");
+                    }
+                    
                     AudioRenderer.Instance.PlaySoundImmediately(type + " " + element.Current.Name);
                 }
                 catch (Exception)
