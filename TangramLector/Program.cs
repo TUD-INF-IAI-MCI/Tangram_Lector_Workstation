@@ -65,9 +65,9 @@ namespace tud.mci.tangram.TangramLector
 #endif
             if (unoPath != null)
             {
-                System.Diagnostics.Debug.WriteLine("Setting UNO_Path Envirnment Variable: SET UNO_PATH=\"" + unoPath + "\"");
+                System.Diagnostics.Debug.WriteLine("Setting UNO_Path Environment Variable: SET UNO_PATH=\"" + unoPath + "\"");
                 System.Environment.SetEnvironmentVariable("UNO_PATH", unoPath);
-                System.Diagnostics.Debug.WriteLine("Setting URE_BOOTSTRAP Envirnment Variable: SET URE_BOOTSTRAP=\"" + "vnd.sun.star.pathname:" + unoPath + "\\fundamental.ini" + "\"");
+                System.Diagnostics.Debug.WriteLine("Setting URE_BOOTSTRAP Environment Variable: SET URE_BOOTSTRAP=\"" + "vnd.sun.star.pathname:" + unoPath + "\\fundamental.ini" + "\"");
                 System.Environment.SetEnvironmentVariable("URE_BOOTSTRAP", "vnd.sun.star.pathname:" + unoPath + "\\fundamental.ini");
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + ";" + unoPath + "\\..\\URE\\bin");
@@ -91,7 +91,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 Application.Run(LectorApplicationContext);
             }
-            catch (OutOfMemoryException ex)
+            catch (OutOfMemoryException)
             {
                 GC.Collect();
             }

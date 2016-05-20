@@ -8,6 +8,7 @@ using BrailleIO;
 using tud.mci.tangram.TangramLector.OO;
 using tud.mci.tangram.util;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.Uia;
 
 namespace tud.mci.tangram.TangramLector
 {
