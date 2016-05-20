@@ -11,7 +11,7 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// The captured image
         /// </summary>
-        /// <value>The img.</value>
+        /// <value>The screen capture.</value>
         public Image Img { get; private set; }
         public CaptureChangedEventArgs(Image image)
         {
@@ -71,26 +71,35 @@ namespace tud.mci.tangram.TangramLector
         #region Timer
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            using (Image sc = capture())
+            if (Changed != null)
             {
-                if (sc != null && !sc.Equals(_lastCap))
+                using (Image sc = capture())
                 {
-                    _lastCap = sc;
-                    if (Changed != null)
+                    if (sc != null && !sc.Equals(_lastCap))
                     {
+                        _lastCap = sc;
+
                         try
                         {
                             using (Bitmap img = sc.Clone() as Bitmap)
                             {
-                                Changed.DynamicInvoke(this, new CaptureChangedEventArgs(img));
+                                Changed.Invoke(this, new CaptureChangedEventArgs(img));
                             }
                         }
                         catch { }
+                        finally { 
+                           /* FIXME: prevent Memory Exceptions when no one is taking over 
+                            * the produced image. The GC is never called at all until the 
+                            * memory runs out!
+                            * So we have to force the GC to do his job
+                            * */
+                            GC.Collect(); 
+                        }
                     }
-                }
-                else
-                {
-                    //TODO: what happens if the Image is null?
+                    else
+                    {
+                        //TODO: what happens if the Image is null?
+                    }
                 }
             }
         }
