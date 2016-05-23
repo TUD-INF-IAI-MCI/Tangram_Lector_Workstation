@@ -68,6 +68,7 @@ namespace tud.mci.tangram.TangramLector
         public event CaptureChangedEventHandler Changed;
         #endregion
 
+        int captureCount = 0;
         #region Timer
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -93,7 +94,12 @@ namespace tud.mci.tangram.TangramLector
                             * memory runs out!
                             * So we have to force the GC to do his job
                             * */
-                            GC.Collect(); 
+                            captureCount++;
+                            if (captureCount > 20)
+                            {
+                                new System.Threading.Tasks.Task(() => { GC.Collect(); });
+                                captureCount = 0;
+                            }                            
                         }
                     }
                     else
