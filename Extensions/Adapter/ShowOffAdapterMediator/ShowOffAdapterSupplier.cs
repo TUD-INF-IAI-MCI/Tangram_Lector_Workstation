@@ -76,10 +76,10 @@ namespace ShowOffAdapterMediator
             return false;
         }
 
-        bool IBrailleIOAdapterSupplier.IsMonitor(out List<Type> monitoringAdapter)
+        bool IBrailleIOAdapterSupplier.IsMonitor(out List<String> monitoringAdapter)
         {
-           // monitoringAdapter = new List<Type>() { typeof(BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet) };
-            monitoringAdapter = new List<Type>();
+            monitoringAdapter = new List<String>() { "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet" };
+            //monitoringAdapter = new List<Type>();
             return true;
         }
 

@@ -52,7 +52,7 @@ namespace tud.mci.tangram.TangramLector
         {
             try
             {
-                logger.Priority = LogPriority.DEBUG;
+                logger.Priority = LogPriority.IMPORTANT;
 #if DEBUG
                 logger.Priority = LogPriority.DEBUG;
 #endif
@@ -67,9 +67,6 @@ namespace tud.mci.tangram.TangramLector
                     windowManager.Disposing += new EventHandler(windowManager_Disposing);
                 }
 
-                // TODO only for Lange Nacht der Wissenschaften
-                //windowManager.InteractionForLNDW();
-
                 if (functionProxy != null)
                 {
                     functionProxy.Initialize(interactionManager);
@@ -78,13 +75,6 @@ namespace tud.mci.tangram.TangramLector
                 }
 
                 logger.Log(LogPriority.OFTEN, this, "[NOTICE] LGui loaded successfully");
-
-                #region EDIT DIALOG (TEXT) --> REMOVE
-
-                //tud.mci.tangram.TangramDrawing.ObjectCreationMenu ocm = new tud.mci.tangram.TangramDrawing.ObjectCreationMenu(io, functionProxy);
-
-                #endregion
-
             }
             catch (System.Exception ex)
             {
@@ -379,18 +369,19 @@ namespace tud.mci.tangram.TangramLector
                 {
                     if (supplier != null)
                     {
-                        List<Type> monitorables;
+                        List<String> monitorables;
                         if (supplier.IsMonitor(out monitorables))
                         {
                             if (monitorables != null && monitorables.Count > 0)
                             {
-                                foreach (Type monitorable in monitorables)
+                                foreach (String monitorable in monitorables)
                                 {
-                                    if (monitorable != null)
+                                    if (!String.IsNullOrWhiteSpace(monitorable))
                                     {
                                         foreach (var adapter in adapters)
                                         {
-                                            if (adapter.GetType() == monitorable)
+                                            String name = adapter.GetType().FullName;
+                                            if (adapter.GetType().FullName.Equals(monitorable))
                                             {
                                                 supplier.StartMonitoringAdapter(adapter);
                                             }
