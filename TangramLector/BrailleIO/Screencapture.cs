@@ -47,6 +47,25 @@ namespace tud.mci.tangram.TangramLector
             refreshTimer = new Timer(interval);
             refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
         }
+
+        int tickMod = 1;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScreenObserver" /> class.
+        /// This Observer generates screen shots of the main screen desktop window.
+        /// </summary>
+        /// <param name="timer">The timer to listen to.</param>
+        /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be handled if the result is 0. Default is 1.</param>
+        /// <exception cref="System.ArgumentNullException">Timer has to be not NULL</exception>
+        public ScreenObserver(Timer timer, int tickMod = 1)
+        {
+            if (timer == null) throw new ArgumentNullException("Timer has to be not NULL", "timer");
+
+            this.tickMod = tickMod;
+            refreshTimer = timer;
+            refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
+        }
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver"/> class.
         /// This Observer generates screen shots of the given application/window.
@@ -68,12 +87,14 @@ namespace tud.mci.tangram.TangramLector
         public event CaptureChangedEventHandler Changed;
         #endregion
 
+        int _runs = 0;
         int captureCount = 0;
         #region Timer
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (Changed != null)
+            if (Changed != null && (_runs % tickMod == 0))
             {
+                _runs = 0;
                 using (Image sc = capture())
                 {
                     if (sc != null && !sc.Equals(_lastCap))
@@ -97,7 +118,8 @@ namespace tud.mci.tangram.TangramLector
                             captureCount++;
                             if (captureCount > 20)
                             {
-                                new System.Threading.Tasks.Task(() => { GC.Collect(); });
+                                var t = new System.Threading.Tasks.Task(() => { GC.Collect(); });
+                                t.Start();
                                 captureCount = 0;
                             }                            
                         }
@@ -108,6 +130,7 @@ namespace tud.mci.tangram.TangramLector
                     }
                 }
             }
+            else _runs++;
         }
 
         /// <summary>

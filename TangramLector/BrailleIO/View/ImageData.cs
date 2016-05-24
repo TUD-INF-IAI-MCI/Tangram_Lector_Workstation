@@ -103,7 +103,7 @@ namespace tud.mci.tangram.TangramLector
                     break;
             }
 
-            audioRenderer.PlaySound(LL.GetTrans("tangram.lector.image_data.generic_property_value", speak, propertiesDic[activeProperty.ToString().ToLower()]));
+            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.image_data.generic_property_value", speak, propertiesDic[activeProperty.ToString().ToLower()]));
         }
 
         public const string TITLE_DESC_VIEW_NAME = "imageData";
@@ -315,7 +315,7 @@ namespace tud.mci.tangram.TangramLector
                     break;
             }
             UnderLiningHook.selectedString = command;
-            AudioRenderer.Instance.PlaySound(LL.GetTrans("tangram.lector.oo_observer.selected", command));
+            AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.selected", command));
             Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] save dialog switch to " + command);
         }
 
@@ -355,7 +355,7 @@ namespace tud.mci.tangram.TangramLector
                 //command += " eingeben";
                 command = LL.GetTrans("tangram.lector.image_data.enter_property", command);
             }
-            AudioRenderer.Instance.PlaySound(command);
+            AudioRenderer.Instance.PlaySoundImmediately(command);
             Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] show " + property.ToString() + ": " + content);
         }
 
@@ -511,8 +511,8 @@ namespace tud.mci.tangram.TangramLector
         public void NewSelectionHandling(object newSelectedShape)
         {
             audioRenderer.PlayWaveImmediately(StandardSounds.Error);
-            if (_shape != null) audioRenderer.PlaySound(LL.GetTrans("tangram.lector.image_data.save_element_before", _shape.Name));
-            else audioRenderer.PlaySound(LL.GetTrans("tangram.lector.image_data.save_before"));
+            if (_shape != null) audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.image_data.save_element_before", _shape.Name));
+            else audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.image_data.save_before"));
 
             // open save dialog
             if (saveMenu == SaveDialog.NonActive)
@@ -524,9 +524,9 @@ namespace tud.mci.tangram.TangramLector
                         new List<string>() { "crc" }));
             }
             // speak current selected option if save dialog is already open 
-            else if (saveMenu == SaveDialog.Save) AudioRenderer.Instance.PlaySound(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.save")));
-            else if (saveMenu == SaveDialog.NotSave) AudioRenderer.Instance.PlaySound(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.not_save")));
-            else if (saveMenu == SaveDialog.Abort) AudioRenderer.Instance.PlaySound(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.cancel")));
+            else if (saveMenu == SaveDialog.Save) AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.save")));
+            else if (saveMenu == SaveDialog.NotSave) AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.not_save")));
+            else if (saveMenu == SaveDialog.Abort) AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.cancel")));
         }
 
         #region Events
@@ -743,6 +743,7 @@ namespace tud.mci.tangram.TangramLector
                     start = start * 3; // each letter has 3 dot * 5
                     end = end * 3;
                     int underlinePos = 4; // underline 4 & 8
+
                     for (int i = start; i < end; i++)
                     {
                         if (result.GetLength(0) > underlinePos)
@@ -777,6 +778,7 @@ namespace tud.mci.tangram.TangramLector
         {
             boolBlink = !boolBlink;
         }
+
         public void PreRenderHook(ref IViewBoxModel view, ref object content, params object[] additionalParams)
         {
             if (boolBlink && content != null && content is String)

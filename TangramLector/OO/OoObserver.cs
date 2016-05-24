@@ -179,6 +179,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 catch (System.Exception ex)
                 {
                     _shape = null;
+                    Logger.Instance.Log(LogPriority.OFTEN, this, "[DRAW INTERACTION] new DOM focus error --> shape is null", ex);
                 }
                 if (BrailleDomFocusRenderer != null)
                 {

@@ -657,7 +657,9 @@ namespace tud.mci.tangram.TangramLector
         {
             if (ScreenObserver == null)
             {
-                ScreenObserver = new ScreenObserver(100);
+               // ScreenObserver = new ScreenObserver(100);
+                ScreenObserver = new ScreenObserver(blinkTimer.timer, 2);
+
                 // so_Changed event handles the rendering of the bitmap
                 ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
             }
