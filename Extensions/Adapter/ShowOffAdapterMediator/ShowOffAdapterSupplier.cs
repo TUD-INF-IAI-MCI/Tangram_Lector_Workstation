@@ -101,7 +101,7 @@ namespace ShowOffAdapterMediator
         /// </summary>
         /// <param name="adapter">The adapter to monitor.</param>
         /// <returns>
-        /// 	<c>true</c> if the specified adapter monitoring was stoped; otherwise, <c>false</c>.
+        /// 	<c>true</c> if the specified adapter monitoring was stopped; otherwise, <c>false</c>.
         /// </returns>
         bool IBrailleIOAdapterSupplier.StopMonitoringAdapter(BrailleIO.Interface.IBrailleIOAdapter adapter)
         {
@@ -253,9 +253,16 @@ namespace ShowOffAdapterMediator
                             {
                                 interactionManager = item as InteractionManager;
                             }
-                            else if (item is BrailleIO.BrailleIOMediator)
+                            else if (item.GetType().FullName.Equals("BrailleIO.BrailleIOMediator")) // is BrailleIO.BrailleIOMediator)
                             {
                                 io = item as BrailleIO.BrailleIOMediator;
+                                if (io == null)
+                                {
+                                    throw new NullReferenceException(
+                                        @"The referenced Type 'BrailleIO.BrailleIOMediator' seems to be the same but a type conversion wasn't possible. 
+                                        This can be caused by adding the type defining reference (dll) twice to the project. 
+                                        Build the extension without local copies of overhanded types.");
+                                }
                                 DebugMonitorTextRenderer dbmtr = new DebugMonitorTextRenderer(monitor, io);
                             }
                         }
@@ -267,18 +274,6 @@ namespace ShowOffAdapterMediator
                 }
                 registerToEvents();
             }
-
-            //System.Windows.Forms.MessageBox.Show(
-            //   "Message from " + this 
-            //   + "\nBrailleIOMediator Hash: " + (io != null ? io.GetHashCode().ToString() : "IO is NULL") 
-            //   + "\nAppDomain:" + AppDomain.CurrentDomain + "\nAppDomain Hash: " 
-            //   + AppDomain.CurrentDomain.GetHashCode()
-            //   + "\nAudioRenderer Hash" + AudioRenderer.Instance.GetHashCode(),
-            //   "Domain Check from " + this,
-            //   System.Windows.Forms.MessageBoxButtons.OK,
-            //   System.Windows.Forms.MessageBoxIcon.Information
-            //   );
-
             return success;
         }
 

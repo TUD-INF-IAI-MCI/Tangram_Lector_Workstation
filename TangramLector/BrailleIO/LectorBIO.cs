@@ -114,7 +114,7 @@ namespace tud.mci.tangram.TangramLector
             io = BrailleIOMediator.Instance;
             if (io != null)
             {
-                List<IBrailleIOAdapter> adapters = LoadAvailableAdpaters(io.AdapterManager,
+                List<IBrailleIOAdapter> adapters = LoadAvailableAdapters(io.AdapterManager,
                     this.windowManager,
                     this.interactionManager,
                     this.audioRenderer,
@@ -250,7 +250,14 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         public const string ADAPTER_DIR_NAME = EXTENSION_DIR_NAME + "\\Adapter";
 
-        public static List<IBrailleIOAdapter> LoadAvailableAdpaters(IBrailleIOAdapterManager manager, params object[] iniObjects)
+
+        /// <summary>
+        /// Loads the available <see cref="IBrailleIOAdapter"/> from the adapter extension folder.
+        /// </summary>
+        /// <param name="manager">The manager.</param>
+        /// <param name="iniObjects">The objects sent for initialization.</param>
+        /// <returns>List of <see cref="IBrailleIOAdapter"/> from the adapter extension folder.</returns>
+        public static List<IBrailleIOAdapter> LoadAvailableAdapters(IBrailleIOAdapterManager manager, params object[] iniObjects)
         {
             List<IBrailleIOAdapter> adapters = new List<IBrailleIOAdapter>();
 
@@ -444,7 +451,6 @@ namespace tud.mci.tangram.TangramLector
             return path;
         }
 
-
         static List<IInteractionContextProxy> loadAllSpecializedScriptFunctionProxyExtension(string path)
         {
             List<IInteractionContextProxy> ssfp = new List<IInteractionContextProxy>();
@@ -489,7 +495,6 @@ namespace tud.mci.tangram.TangramLector
 
             return ssfp;
         }
-
 
         #endregion
 
