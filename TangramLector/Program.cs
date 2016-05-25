@@ -66,11 +66,18 @@ namespace tud.mci.tangram.TangramLector
             if (unoPath != null)
             {
                 System.Diagnostics.Debug.WriteLine("Setting UNO_Path Environment Variable: SET UNO_PATH=\"" + unoPath + "\"");
-                System.Environment.SetEnvironmentVariable("UNO_PATH", unoPath);
+                System.Environment.SetEnvironmentVariable("UNO_PATH", unoPath, EnvironmentVariableTarget.Process);
                 System.Diagnostics.Debug.WriteLine("Setting URE_BOOTSTRAP Environment Variable: SET URE_BOOTSTRAP=\"" + "vnd.sun.star.pathname:" + unoPath + "\\fundamental.ini" + "\"");
                 System.Environment.SetEnvironmentVariable("URE_BOOTSTRAP", "vnd.sun.star.pathname:" + unoPath + "\\fundamental.ini");
+
                 string pathvar = System.Environment.GetEnvironmentVariable("PATH");
                 System.Environment.SetEnvironmentVariable("PATH", pathvar + ";" + unoPath + "\\..\\URE\\bin");
+
+                // LibreOffice5 does not have a URE directory anymore!!
+                if (unoPath.Contains("LibreOffice 5"))
+                {
+                    Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + @";" + unoPath, EnvironmentVariableTarget.Process);
+                }
             }
 
             try

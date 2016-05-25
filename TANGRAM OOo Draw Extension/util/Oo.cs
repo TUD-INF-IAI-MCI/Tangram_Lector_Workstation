@@ -13,10 +13,8 @@
 // ***********************************************************************
 
 using System;
-using tud.mci.tangram.models;
 using uno.util;
 using unoidl.com.sun.star.awt;
-using unoidl.com.sun.star.beans;
 using unoidl.com.sun.star.frame;
 using unoidl.com.sun.star.lang;
 using unoidl.com.sun.star.uno;
@@ -52,9 +50,9 @@ namespace tud.mci.tangram.util
                     {
                         bool success = false;
                         //TODO: timeout
-                        success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(5000,
-                             () =>
-                             {
+                        //success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(5000,
+                        //     () =>
+                        //     {
                                  try
                                  {
                                      _context = Bootstrap.bootstrap();
@@ -70,9 +68,9 @@ namespace tud.mci.tangram.util
                                      System.Diagnostics.Debug.WriteLine("[FATAL ERROR]  cannot get Bootstrap: " + ex);
                                      Logger.Instance.Log(LogPriority.IMPORTANT, "OO", "[FATAL ERROR] Can not get connection to OpenOffec by bootstap: " + ex);
                                  }
-                             },
-                             "Bootstrap-ContextLoader"
-                             );
+                             //},
+                             //"Bootstrap-ContextLoader"
+                             //);
 
                         if (!success)
                         {

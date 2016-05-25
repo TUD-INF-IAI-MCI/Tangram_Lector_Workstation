@@ -111,7 +111,6 @@
     <Compile Include="Classes\DRAW\AbstarctDrawDocBase.cs" />
     <Compile Include="Classes\AbstractDocBase.cs" />
     <Compile Include="Classes\DescriptionMapper.cs" />
-    <Compile Include="Classes\DRAW\LayerContextMenuInterceptor.cs" />
     <Compile Include="controller\observer\OoDrawAccessibilityObserver.cs" />
     <Compile Include="controller\observer\OoDrawPageObserver.cs" />
     <Compile Include="controller\observer\OoDrawPagesObserver.cs" />
@@ -131,7 +130,6 @@
     <Compile Include="models\documents\WriterDocument.cs" />
     <Compile Include="models\eventForwarder\XTopWindowListener_Forwarder.cs" />
     <Compile Include="models\Interfaces\AbstractStorableSettingsBase.cs" />
-    <Compile Include="Examples\menu\ContextMenuInterceptor.cs" />
     <Compile Include="models\eventForwarder\XAccessibleEventListener_Forwarder.cs" />
     <Compile Include="models\eventForwarder\AbstractXEventListener_Forwarder.cs" />
     <Compile Include="models\eventForwarder\XSelectionListener_Forwarder.cs" />
@@ -183,20 +181,32 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="lib\cli_basetypes.dll" />
-    <Content Include="lib\cli_cppuhelper.dll" />
-    <Content Include="lib\cli_oootypes.dll" />
-    <Content Include="lib\cli_ure.dll" />
-    <Content Include="lib\cli_uretypes.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_Logger\Logger.csproj">
       <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
       <Name>Logger</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\DebugLibre\cli_basetypes.dll" />
+    <Content Include="lib\DebugLibre\cli_cppuhelper.dll" />
+    <Content Include="lib\DebugLibre\cli_oootypes.dll" />
+    <Content Include="lib\DebugLibre\cli_ure.dll" />
+    <Content Include="lib\DebugLibre\cli_uretypes.dll" />
+    <Content Include="lib\Debug\cli_basetypes.dll" />
+    <Content Include="lib\Debug\cli_cppuhelper.dll" />
+    <Content Include="lib\Debug\cli_oootypes.dll" />
+    <Content Include="lib\Debug\cli_ure.dll" />
+    <Content Include="lib\Debug\cli_uretypes.dll" />
+    <Content Include="lib\ReleaseLibre\cli_basetypes.dll" />
+    <Content Include="lib\ReleaseLibre\cli_cppuhelper.dll" />
+    <Content Include="lib\ReleaseLibre\cli_oootypes.dll" />
+    <Content Include="lib\ReleaseLibre\cli_ure.dll" />
+    <Content Include="lib\ReleaseLibre\cli_uretypes.dll" />
+    <Content Include="lib\Release\cli_basetypes.dll" />
+    <Content Include="lib\Release\cli_cppuhelper.dll" />
+    <Content Include="lib\Release\cli_oootypes.dll" />
+    <Content Include="lib\Release\cli_ure.dll" />
+    <Content Include="lib\Release\cli_uretypes.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
