@@ -651,7 +651,7 @@ namespace tud.mci.tangram.util
         }
 
         /// <summary>
-        /// Adds a shape to a draw page or an other shape groupe.
+        /// Adds a shape to a draw page or an other shape group.
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="page">The page.</param>
@@ -1029,18 +1029,11 @@ namespace tud.mci.tangram.util
                         }                        
                     }
                 }
-                catch (System.Exception e)
-                {
-
-                }
+                catch (System.Exception){}
             }
-
             return m;
         }
     }
-
-
-
 
     #region Enums
 

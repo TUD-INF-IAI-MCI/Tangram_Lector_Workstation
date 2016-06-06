@@ -166,10 +166,7 @@ namespace tud.mci.tangram.Accessibility
                             {
                                 return AccCont.getAccessibleName();
                             }
-                            catch (System.Exception ex)
-                            {
-
-                            }
+                            catch (System.Exception){}
                         }
                     }
                     return String.Empty;

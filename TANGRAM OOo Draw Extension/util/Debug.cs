@@ -114,7 +114,7 @@ namespace tud.mci.tangram.util
                         }
                     }, "GetAllServices");
                 }
-                catch (unoidl.com.sun.star.lang.DisposedException de) { OO.CheckConnection(); }                   
+                catch (unoidl.com.sun.star.lang.DisposedException) { OO.CheckConnection(); }                   
                 catch (Exception e)
                 {
                     System.Diagnostics.Debug.WriteLine("Can't get services of Object: " + e);
@@ -257,7 +257,7 @@ namespace tud.mci.tangram.util
                         {
                             System.Diagnostics.Debug.WriteLine("\tProperty: " + name + " = " + element);
                         }
-                        catch (System.Exception ex)
+                        catch (System.Exception)
                         {
                             System.Diagnostics.Debug.WriteLine("Can't get property - " + name);
                         }

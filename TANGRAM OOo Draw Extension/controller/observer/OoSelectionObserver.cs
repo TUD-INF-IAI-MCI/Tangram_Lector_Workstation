@@ -67,27 +67,27 @@ namespace tud.mci.tangram.controller
 
             //FIXME: make this dead
             return;
-            if (aEvent.Source != null)
-            {
+            //if (aEvent.Source != null)
+            //{
 
-                System.Diagnostics.Debug.WriteLine("################ SELECTION CHANGE");
+            //    System.Diagnostics.Debug.WriteLine("################ SELECTION CHANGE");
 
-                try
-                {
-                    if (aEvent.Source is XSelectionSupplier)
-                    {
-                        TimeLimitExecutor.ExecuteWithTimeLimit(2000, () =>
-                        {
-                            XSelectionSupplier sSupl = aEvent.Source as XSelectionSupplier;
-                            fireSelectionChangedEvent(sSupl, aEvent.Source);
-                        }, "SelectionChendeEventHanlder");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Logger.Instance.Log(LogPriority.DEBUG, this, "Exception in XSelectionChangeListener.selectionChanged\r\n" + e);
-                }
-            }
+            //    try
+            //    {
+            //        if (aEvent.Source is XSelectionSupplier)
+            //        {
+            //            TimeLimitExecutor.ExecuteWithTimeLimit(2000, () =>
+            //            {
+            //                XSelectionSupplier sSupl = aEvent.Source as XSelectionSupplier;
+            //                fireSelectionChangedEvent(sSupl, aEvent.Source);
+            //            }, "SelectionChendeEventHanlder");
+            //        }
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Logger.Instance.Log(LogPriority.DEBUG, this, "Exception in XSelectionChangeListener.selectionChanged\r\n" + e);
+            //    }
+            //}
         }
 
         /// <summary>

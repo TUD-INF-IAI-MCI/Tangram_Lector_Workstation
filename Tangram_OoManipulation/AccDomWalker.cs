@@ -69,107 +69,6 @@ namespace TangramLector.OO
         
         #region Public General Tree Movement Commands
 
-        //#region Deterministic [DEPRECATED]
-
-        ///// <summary>
-        ///// [DEPRECATED] Moves to next observed Shape in the page tree.
-        ///// </summary>
-        ///// <param name="shape">The shape.</param>
-        ///// <returns>the next observed shape (first child, next sibling or parents next sibling)</returns>
-        //public static OoShapeObserver MoveDeterministicToNext(OoShapeObserver shape, bool handleChildren = false)
-        //{
-        //    if (shape != null)
-        //    {
-        //        // TODO remove false to use search in accessibility tree again. Currently accessing the page AccessibleShape element during search crashes openoffice!
-        //        if (false && shape.IsValid())
-        //        {
-        //            OoAccComponent comp = shape.AccComponent;
-
-        //            while (true)
-        //            {
-        //                OoAccComponent next = moveDeterministicToNextComponent(comp, handleChildren);
-
-        //                if (next == null || next == comp)
-        //                {
-        //                    if (shape.Page != null)
-        //                    {
-        //                        var firstChild = shape.Page.GetFirstChild();
-        //                        if (firstChild != null)
-        //                        {
-        //                            return firstChild;
-        //                        }
-        //                        else
-        //                        {
-        //                            Logger.Instance.Log(LogPriority.IMPORTANT, "AccDomWalker", "[ERROR] First child of current page is empty!");
-        //                        }
-        //                    }
-        //                    return null;
-        //                }
-
-        //                if (acceptAsUsableShape(next))
-        //                    return getObserverForAccessible(next, shape.Page);
-        //                else
-        //                    comp = next;
-        //            }
-
-        //        }
-        //        else
-        //        {
-        //            //go through the dom and not the accessible tree
-        //            return moveToNextShape(shape);
-
-        //        }
-        //    }
-        //    return null;
-        //}
-
-        ///// <summary>
-        ///// [DEPRECATED] Moves to the previous element on the page.
-        ///// </summary>
-        ///// <param name="shape">The shape to start.</param>
-        ///// <returns>the previous element if available otherwise the element itself</returns>
-        //public static OoShapeObserver MoveDeterministicToPrev(OoShapeObserver shape, bool handleChildren = false)
-        //{
-        //    // TODO remove false to use search in accessibility tree again. Currently accessing the page AccessibleShape element during search crashes openoffice!
-        //    if (false && shape != null)
-        //    {
-        //        OoAccComponent comp = shape.AccComponent;
-
-        //        while (true)
-        //        {
-        //            OoAccComponent prev = moveDeterministicToPrevComponent(comp, handleChildren);
-
-        //            if (prev == null || prev == comp)
-        //            {
-        //                if (shape.Page != null)
-        //                {
-        //                    var lastChild = shape.Page.GetLastChild();
-        //                    if (lastChild != null)
-        //                    {
-        //                        return lastChild;
-        //                    }
-        //                    else
-        //                    {
-        //                        Logger.Instance.Log(LogPriority.IMPORTANT, "AccDomWalker", "[ERROR] Last child of current page is empty!");
-        //                    }
-        //                }
-        //                return null;
-        //            }
-
-        //            if (acceptAsUsableShape(prev))
-        //                return getObserverForAccessible(prev, shape.Page);
-        //            else
-        //                comp = prev;
-        //        }
-
-        //    }
-        //    //TODO: do this with dom
-
-        //    return null;
-        //}
-
-        //#endregion
-
         /// <summary>
         /// Moves to the next element.
         /// </summary>
@@ -315,7 +214,7 @@ namespace TangramLector.OO
         /// Moves to a child element.
         /// </summary>
         /// <param name="shape">The parent shape to get the child of.</param>
-        /// <param name="index">The index of the child to get (infitit loop by modulo child count).</param>
+        /// <param name="index">The index of the child to get (infinite loop by modulo child count).</param>
         /// <returns>
         /// The child shape on the screen if possible otherwise the child in the DOM if possible otherwise <c>null</c>
         /// </returns>

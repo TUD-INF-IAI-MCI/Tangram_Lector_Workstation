@@ -270,7 +270,7 @@ namespace tud.mci.tangram.util
                         reset();
                     }
                 }
-                catch (System.Exception ex)
+                catch (System.Exception)
                 {
                     reset();
                 }
@@ -317,9 +317,7 @@ namespace tud.mci.tangram.util
                 {
                     BaseObjectDisposed.DynamicInvoke(obj, new EventArgs());
                 }
-                catch (System.Exception ex)
-                {
-                }
+                catch (System.Exception){}
             }
         }
 
@@ -343,8 +341,7 @@ namespace tud.mci.tangram.util
                 addListener(GetContext());
 
             }
-            catch (System.Exception ex)
-            { }
+            catch (System.Exception){ }
         }
 
         private static void kill()

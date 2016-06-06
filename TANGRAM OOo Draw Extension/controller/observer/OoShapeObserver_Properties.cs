@@ -252,17 +252,14 @@ namespace tud.mci.tangram.controller.observer
         /// <returns></returns>
         public string GetLineStyleName()
         {
-            if (LineStyle != null)
+            if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.SOLID)) return "solid";
+            else if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.DASH))
             {
-                if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.SOLID)) return "solid";
-                else if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.DASH))
+                LineDash lineDash = GetProperty("LineDash") as LineDash;
+                if (lineDash != null)
                 {
-                    LineDash lineDash = GetProperty("LineDash") as LineDash;
-                    if (lineDash != null)
-                    {
-                        if (lineDash.Dots == 0) return "dashed_line";
-                        else if (lineDash.Dots == 1) return "dotted_line";
-                    }
+                    if (lineDash.Dots == 0) return "dashed_line";
+                    else if (lineDash.Dots == 1) return "dotted_line";
                 }
             }
             return "";
@@ -495,9 +492,9 @@ namespace tud.mci.tangram.controller.observer
                 {
                     return OoUtils.ElementSupportsService(Shape, OO.Services.DRAW_SHAPE_TEXT);
                 }
-                catch (System.Threading.ThreadAbortException e) { }
+                catch (System.Threading.ThreadAbortException) { }
                 catch (unoidl.com.sun.star.lang.DisposedException) { Dispose(); }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //TODO: invalidate
                     return false;
@@ -882,11 +879,13 @@ namespace tud.mci.tangram.controller.observer
 
                 unoidl.com.sun.star.awt.Point[] poly = new unoidl.com.sun.star.awt.Point[points.Count];
 
-                Parallel.For(0,points.Count, 
-                    (i)=>{
+                Parallel.For(0, points.Count,
+                    (i) =>
+                    {
                         var p = points[(int)i];
                         Point pP = new Point();
-                        if(p != null){
+                        if (p != null)
+                        {
                             pP.X = p.P.X;
                             pP.Y = p.P.Y;
                         }

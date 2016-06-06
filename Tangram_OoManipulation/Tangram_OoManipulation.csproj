@@ -95,6 +95,7 @@
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_Logger\Logger.csproj">
       <Project>{7283a0e4-f653-4097-b5f5-660bc570dcbd}</Project>
       <Name>Logger</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\Tangram_Interfaces\Tangram_Interfaces.csproj">
       <Project>{c4724649-0889-491a-bfbd-cf9bf7ba2e1e}</Project>

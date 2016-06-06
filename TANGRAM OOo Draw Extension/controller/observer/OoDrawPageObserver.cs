@@ -128,10 +128,7 @@ namespace tud.mci.tangram.controller.observer
                     }
                 }
             }
-            catch (Exception ex)
-            {
-
-            }
+            catch (Exception){}
         }
 
         private volatile bool _pageUpdating = false;

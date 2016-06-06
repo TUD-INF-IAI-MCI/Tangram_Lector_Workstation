@@ -123,7 +123,7 @@ namespace ShowOffAdapterMediator
                         monitor.SetPictureOverlay(im);
                     }
                 }
-                catch (System.Exception ex)
+                catch (System.Exception)
                 {
                     return;
                 }

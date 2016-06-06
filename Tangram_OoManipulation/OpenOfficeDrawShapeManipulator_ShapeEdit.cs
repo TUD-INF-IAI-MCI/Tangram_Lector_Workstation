@@ -334,15 +334,15 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "Application folder: " + appData);
 #if LIBRE
-                var foundDirs = Directory.GetDirectories(appData + "\\LibreOffice", "TangramToolbar_LO.oxt", SearchOption.AllDirectories);
+                var foundDirs = Directory.GetDirectories(appData + "\\LibreOffice", "TangramToolbar_LO*.oxt", SearchOption.AllDirectories);
 #else
-                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_OO.oxt", SearchOption.AllDirectories);
+                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_OO*.oxt", SearchOption.AllDirectories);
 #endif
 
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "directories inside application folder: " + (foundDirs != null ? foundDirs.Length.ToString() : "null"));
                 if (foundDirs != null && foundDirs.Length > 0)
                 {
-                    var openOfficePath = foundDirs[0];
+                    var openOfficePath = foundDirs[foundDirs.Length-1];
                     Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "used directory: " + openOfficePath);
                     arrPatterns = Directory.GetFiles(openOfficePath, "*.png", SearchOption.AllDirectories);
                     //remove files named name_TS.png

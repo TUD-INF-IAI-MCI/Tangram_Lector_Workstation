@@ -374,7 +374,7 @@ namespace tud.mci.tangram.Accessibility
                         catch (unoidl.com.sun.star.lang.DisposedException) { Dispose(); return; }
                         catch (System.Exception e)
                         {
-                            Logger.Instance.Log(LogPriority.ALWAYS, this, "can't add document listener");
+                            Logger.Instance.Log(LogPriority.ALWAYS, this, "can't add document listener", e);
                         }
                     }
                 }
@@ -792,7 +792,7 @@ namespace tud.mci.tangram.Accessibility
                                 }
                             }
                         }
-                        catch (System.Exception ex)
+                        catch (System.Exception)
                         {
                             Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] Could not add selection listener to documents' controler");
                         }

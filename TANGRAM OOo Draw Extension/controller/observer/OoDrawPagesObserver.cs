@@ -376,7 +376,7 @@ namespace tud.mci.tangram.controller.observer
                     }
                     catch (System.Exception e)
                     {
-                        Logger.Instance.Log(LogPriority.ALWAYS, this, "can't add document listener");
+                        Logger.Instance.Log(LogPriority.ALWAYS, this, "can't add document listener: ", e);
                     }
                 }
             }
@@ -823,11 +823,7 @@ namespace tud.mci.tangram.controller.observer
                         }
                     }
                 }
-                catch (System.Exception ex)
-                {
-
-                }
-
+                catch (System.Exception){}
             }
             return null;
         }
@@ -958,7 +954,7 @@ namespace tud.mci.tangram.controller.observer
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] Can't remove property listener for 'VisibleArea'");
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] Can't remove property listener for 'VisibleArea'", ex);
                     }
                     try
                     {
@@ -987,9 +983,7 @@ namespace tud.mci.tangram.controller.observer
                         // It is suggested to allow multiple registration of the same listener, thus for each time a listener is added, it has to be removed.
                         ((XPropertySet)Controller).removePropertyChangeListener("VisibleArea", eventForwarder);
                     }
-                    catch (Exception ex)
-                    {
-                    }
+                    catch (Exception){}
                 }
             }
         }
@@ -1132,18 +1126,18 @@ namespace tud.mci.tangram.controller.observer
             //TODO: maybe do this softer?!
 
             try { shapes[name] = obs; }
-            catch (Exception e) { }
+            catch (Exception) { }
             if (cont != null)
             {
                 try { accshapes[cont] = obs; }
-                catch (Exception e) { }
+                catch (Exception) { }
             }
             else
             {
                 // search for a relation?
             }
             try { domshapes[shape] = obs; }
-            catch (Exception e) { }
+            catch (Exception) { }
 
         }
 

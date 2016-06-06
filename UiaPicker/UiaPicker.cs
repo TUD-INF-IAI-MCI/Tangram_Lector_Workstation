@@ -63,7 +63,7 @@ namespace tud.mci.tangram.Uia
                         System.Diagnostics.Debug.WriteLine("ATTENTION: Unknown ControlType requested for UIA.SpeakElement: '" + typeName + "'");
                     }
                     
-                    AudioRenderer.Instance.PlaySoundImmediately(type + " " + element.Current.Name);
+                    AudioRenderer.Instance.PlaySoundImmediately(type + " " + (String.IsNullOrWhiteSpace(element.Current.Name) ? element.Current.ClassName : element.Current.Name));
                 }
                 catch (Exception)
                 {

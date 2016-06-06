@@ -7,6 +7,7 @@ using tud.mci.LanguageLocalization;
 using tud.mci.tangram.TangramLector.OO;
 using tud.mci.tangram.audio;
 using tud.mci.tangram.TangramLector.Extension;
+using System.Configuration;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -53,6 +54,19 @@ namespace tud.mci.tangram.TangramLector
             try
             {
                 logger.Priority = LogPriority.IMPORTANT;
+                try
+                {
+                    // set log priority by config
+                    String appConfigLogPriority = ConfigurationManager.AppSettings["DefaultLogPriority"];
+                    if (!String.IsNullOrWhiteSpace(appConfigLogPriority))
+                    {
+                        LogPriority p = (LogPriority)Enum.Parse(typeof(LogPriority), appConfigLogPriority, true);
+                        logger.Priority = p;
+                    }
+                }
+                catch{ }
+
+
 #if DEBUG
                 logger.Priority = LogPriority.DEBUG;
 #endif

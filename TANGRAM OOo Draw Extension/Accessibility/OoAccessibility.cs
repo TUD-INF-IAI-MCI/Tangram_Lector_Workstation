@@ -329,7 +329,7 @@ namespace tud.mci.tangram.Accessibility
                         }
                     }
                 }
-                catch (DisposedException ex) { }
+                catch (DisposedException) { }
             }
             return false;
         }

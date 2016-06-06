@@ -357,7 +357,7 @@ namespace tud.mci.tangram.models.dialogs
                 #endregion
 
             }
-            catch (System.Exception ex) { }
+            catch (System.Exception) { }
         }
 
         #region Add Elements
@@ -655,7 +655,7 @@ namespace tud.mci.tangram.models.dialogs
                     updateScrollBar(VerticalScrlBar, InnerHeight, Height, InnerPosY);
                 }
             }
-            catch (System.Exception ex) { }
+            catch (System.Exception) { }
         }
 
         void updateHorizontalScrollBar()
@@ -667,7 +667,7 @@ namespace tud.mci.tangram.models.dialogs
                     updateScrollBar(HorizontalScrlBar, InnerWidth, Width, InnerPosX);
                 }
             }
-            catch (System.Exception ex) { }
+            catch (System.Exception) { }
         }
 
 
@@ -679,7 +679,7 @@ namespace tud.mci.tangram.models.dialogs
 
                 //object scrVal = OoUtils.GetProperty(xsb, "ScrollValue");
 
-                int val = Math.Min(svm, (scrVal is int) ? (int)scrVal : 0);
+                int val = Math.Min(svm, scrVal);
 
                 OoUtils.SetProperty(xsb, "ScrollValueMax", svm);
                 OoUtils.SetProperty(xsb, "ScrollValue", val);
@@ -700,7 +700,7 @@ namespace tud.mci.tangram.models.dialogs
                 }
 
             }
-            catch (System.Exception ex) { }
+            catch (System.Exception) { }
 
             return true;
         }
@@ -846,33 +846,21 @@ namespace tud.mci.tangram.models.dialogs
 
             if (MXDlgModelNameContainer != null)
             {
-
                 try
                 {
                     OuterScrlContr.dispose();
                 }
-                catch (System.Exception ex)
-                {
-
-                }
+                catch (System.Exception) { }
                 try
                 {
                     (VerticalScrlBar as XControl).dispose();
-
                 }
-                catch (System.Exception ex)
-                {
-
-                }
+                catch (System.Exception) { }
                 try
                 {
                     (HorizontalScrlBar as XControl).dispose();
                 }
-                catch (System.Exception ex)
-                {
-
-                }
-
+                catch (System.Exception) { }
             }
         }
     }
