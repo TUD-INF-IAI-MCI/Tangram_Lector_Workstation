@@ -337,6 +337,39 @@ namespace tud.mci.tangram.TangramLector
             return path;
         }
 
+
+        private static List<String> _blocked = new List<string>();
+        /// <summary>
+        /// Gets the blocked extension list.
+        /// </summary>
+        /// <returns>list of all configured extension (folder) names, that should be blocked while loading</returns>
+        public static List<String> GetBlockedExtensionList(){
+
+            if (_blocked.Count < 1)
+            {
+                try
+                {
+                    // set log priority by config
+                    String blockedString = ConfigurationManager.AppSettings["BlockedEXT"];
+                    if (!String.IsNullOrWhiteSpace(blockedString))
+                    {
+                        string[] b = blockedString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (b.Length > 0)
+                        {
+                            foreach (string item in b)
+                            {
+                                _blocked.Add("EXT_" + item.Trim());
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            return _blocked;
+        }
+       
+
         static List<IBrailleIOAdapterSupplier> loadAllAdpaterSuppliers(string path)
         {
             List<IBrailleIOAdapterSupplier> suppliers = new List<IBrailleIOAdapterSupplier>();
@@ -350,12 +383,16 @@ namespace tud.mci.tangram.TangramLector
                        path
                        );
 
-                // build the adapter suppliers
+                // get list of extensions that should not been loaded
+                var blocked = GetBlockedExtensionList();
 
+                // build the adapter suppliers
                 if (adptrs != null && adptrs.Count > 0)
                 {
                     foreach (var suppl in adptrs)
                     {
+                        if(blocked.Contains(suppl.Key)) continue;
+
                         try
                         {
                             var types = suppl.Value;
@@ -428,6 +465,7 @@ namespace tud.mci.tangram.TangramLector
         private void initializeSSFPExtensions()
         {
             var ssfp = loadAllSpecializedScriptFunctionProxyExtension(GetSSFPDirectoryPath());
+
             if (functionProxy != null && ssfp != null && ssfp.Count > 0)
             {
                 foreach (var item in ssfp)
@@ -478,14 +516,18 @@ namespace tud.mci.tangram.TangramLector
                        path
                        );
 
-                // build the adapter suppliers
+                // get list of extensions that should not been loaded
+                var blocked = GetBlockedExtensionList();
 
+                // build the specialized function poxies
                 if (proxies != null && proxies.Count > 0)
                 {
                     foreach (var suppl in proxies)
                     {
                         try
                         {
+                            if (blocked.Contains(suppl.Key)) continue;
+
                             var types = suppl.Value;
                             if (types != null && types.Count > 0)
                             {
