@@ -42,8 +42,8 @@ namespace tud.mci.tangram.TangramLector
         public ScreenObserver(double interval)
         {
             if (interval <= 0) throw new ArgumentException("Timer interval has to be higher than 0", "interval");
-
             refreshRate = interval;
+
             refreshTimer = new Timer(interval);
             refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
         }
@@ -54,7 +54,8 @@ namespace tud.mci.tangram.TangramLector
         /// This Observer generates screen shots of the main screen desktop window.
         /// </summary>
         /// <param name="timer">The timer to listen to.</param>
-        /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be handled if the result is 0. Default is 1.</param>
+        /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be 
+        /// handled if the result is 0. Default is 1.</param>
         /// <exception cref="System.ArgumentNullException">Timer has to be not NULL</exception>
         public ScreenObserver(Timer timer, int tickMod = 1)
         {
@@ -64,7 +65,25 @@ namespace tud.mci.tangram.TangramLector
             refreshTimer = timer;
             refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
         }
-
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScreenObserver" /> class.
+        /// This Observer generates screen shots of the given application/window.
+        /// </summary>
+        /// <param name="timer">The timer to listen to.</param>
+        /// <param name="wHnd">The window handle of the window/application to observe.</param>
+        /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be
+        /// handled if the result is 0. Default is 1.</param>
+        public ScreenObserver(Timer timer, IntPtr wHnd, int tickMod = 1) : this(timer, tickMod) { Whnd = wHnd; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScreenObserver" /> class.
+        /// This Observer generates screen shots of the screen position.
+        /// </summary>
+        /// <param name="timer">The timer to listen to.</param>
+        /// <param name="screenPosition">The position on the screen.</param>
+        /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be
+        /// handled if the result is 0. Default is 1.</param>
+        public ScreenObserver(Timer timer, Rectangle screenPosition, int tickMod = 1) : this(timer, tickMod) { ScreenPos = screenPosition; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver"/> class.
@@ -80,6 +99,7 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="interval">The capturing interval in milliseconds.</param>
         /// <param name="screenPosition">The position on the screen.</param>
         public ScreenObserver(double interval, Rectangle screenPosition) : this(interval) { ScreenPos = screenPosition; }
+        
         #endregion
 
         #region Event
@@ -87,26 +107,32 @@ namespace tud.mci.tangram.TangramLector
         public event CaptureChangedEventHandler Changed;
         #endregion
 
-        int _runs = 0;
+        int _runs = -1;
         int captureCount = 0;
         #region Timer
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (Changed != null && (_runs % tickMod == 0))
+            _runs++;
+
+            if (Changed != null && (_runs % (tickMod) == 0))
             {
-                _runs = 0;
+                if (_runs >= tickMod) {
+                    _runs = 0;
+                }               
                 using (Image sc = capture())
                 {
-                    if (sc != null && !sc.Equals(_lastCap))
+                    if (sc != null 
+                        //&& !sc.Equals(_lastCap)
+                    )
                     {
-                        _lastCap = sc;
-
+                       // _lastCap = sc;
                         try
                         {
-                            using (Bitmap img = sc.Clone() as Bitmap)
-                            {
-                                Changed.Invoke(this, new CaptureChangedEventArgs(img));
-                            }
+                            //using (Bitmap img = sc.Clone() as Bitmap)
+                            //{
+                                //Changed.Invoke(this, new CaptureChangedEventArgs(img));
+                                Changed.Invoke(this, new CaptureChangedEventArgs(sc));
+                            //}
                         }
                         catch { }
                         finally { 
@@ -118,9 +144,8 @@ namespace tud.mci.tangram.TangramLector
                             captureCount++;
                             if (captureCount > 20)
                             {
-                                var t = new System.Threading.Tasks.Task(() => { GC.Collect(); });
+                                var t = new System.Threading.Tasks.Task(() => { GC.Collect(); captureCount = 0; });
                                 t.Start();
-                                captureCount = 0;
                             }                            
                         }
                     }
@@ -129,8 +154,7 @@ namespace tud.mci.tangram.TangramLector
                         //TODO: what happens if the Image is null?
                     }
                 }
-            }
-            else _runs++;
+            }           
         }
 
         /// <summary>

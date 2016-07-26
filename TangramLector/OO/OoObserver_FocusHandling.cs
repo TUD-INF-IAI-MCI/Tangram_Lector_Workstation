@@ -130,30 +130,39 @@ namespace tud.mci.tangram.TangramLector.OO
             return (0xFF - r << 16) + (0xFF - g << 8) + (0xFF - b);
         }
 
+        volatile bool _render = false;
         void blinkTimer_Tick(object sender, EventArgs e)
         {
+            // bring is some delay to not interfere with the rendering itself
+            System.Threading.Thread.Sleep(95);
+
             // change blink state
             blinkStateOn = !blinkStateOn;
 
             if (brailleDomFocusHighlightMode && shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.LastSelectedShape != null)
             {
+                _render = true;
                 // blink rendered bounding box
                 BrailleDomFocusRenderer.DoRenderBoundingBox = blinkStateOn;
 
                 //doFocusHighlighting(blinkStateOn);
-                BrailleIOMediator.Instance.RefreshDisplay();
-            }
+                BrailleIOMediator.Instance.RefreshDisplay(true);
+            }else 
             if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
             {
+                _render = true;
                 DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
-
-                BrailleIOMediator.Instance.RefreshDisplay();
+                BrailleIOMediator.Instance.RefreshDisplay(true);
             }
             else
             {
                 DrawSelectFocusHighlightMode = false;
                 DrawSelectFocusRenderer.DoRenderBoundingBox = false;
-                BrailleIOMediator.Instance.RefreshDisplay();
+
+                if (_render) {
+                    _render = false;
+                    BrailleIOMediator.Instance.RefreshDisplay(true); 
+                }
             }
         }
 

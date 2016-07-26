@@ -286,7 +286,7 @@ namespace tud.mci.tangram.TangramLector
                     return false;
                 }
             }
-            io.RenderDisplay();
+            io.RefreshDisplay(true);
             return true;
         }
 
@@ -312,7 +312,7 @@ namespace tud.mci.tangram.TangramLector
                     return false;
                 }
             }
-            io.RenderDisplay();
+            io.RefreshDisplay(true);
             return true;
         }
 
@@ -793,7 +793,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 vr.SetContrastThreshold(contrast);
             }
-            io.RenderDisplay();
+            io.RefreshDisplay(true);
         }
 
         #endregion

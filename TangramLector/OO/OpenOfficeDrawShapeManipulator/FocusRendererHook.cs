@@ -9,12 +9,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     public class FocusRendererHook : IBailleIORendererHook
     {
         private bool _dashed = false;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FocusRendererHook"/> class.
+        /// </summary>
+        /// <param name="drawDashedBox">if set to <c>true</c> the box is drawn as a dashed outline box.</param>
         public FocusRendererHook(bool drawDashedBox = false)
         {
             _dashed = drawDashedBox;
         }
+        /// <summary>
+        /// The current bounding box to display
+        /// </summary>
         public Rectangle CurrentBoundingBox;
 
+        /// <summary>
+        /// Sets the current bounding box by shape.
+        /// </summary>
+        /// <param name="currentSelectedShape">The current selected shape.</param>
         public void SetCurrentBoundingBoxByShape(OoShapeObserver currentSelectedShape)
         {
             if (currentSelectedShape != null && currentSelectedShape.IsValid())
@@ -24,10 +35,22 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             else CurrentBoundingBox = new Rectangle(0, 0, 0, 0);
         }
 
+        /// <summary>
+        /// Determine if this Hook should be active or not.
+        /// </summary>
         public bool Active = false;
 
+        /// <summary>
+        /// Determine if this Hook should render the Bounding box or not.
+        /// </summary>
         public bool DoRenderBoundingBox = false;
 
+        /// <summary>
+        /// This hook function is called by an IBrailleIOHookableRenderer before he starts his rendering.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="content">The content.</param>
+        /// <param name="additionalParams">Additional parameters.</param>
         void IBailleIORendererHook.PreRenderHook(ref IViewBoxModel view, ref object content, params object[] additionalParams)
         {
         }
@@ -60,13 +83,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     int xOffset = ((IPannable)view).GetXOffset();
                     int yOffset = ((IPannable)view).GetYOffset();
 
-                    if (WindowManager.Instance != null && WindowManager.Instance.ScreenObserver != null && WindowManager.Instance.ScreenObserver.ScreenPos is System.Drawing.Rectangle)
-                    {
-                        Rectangle pageBounds = new Rectangle(
-                            ((System.Drawing.Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos).X,
-                            ((System.Drawing.Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos).Y,
-                            ((System.Drawing.Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos).Width,
-                            ((System.Drawing.Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos).Height);
+                    //if (WindowManager.Instance != null && WindowManager.Instance.ScreenObserver != null && WindowManager.Instance.ScreenObserver.ScreenPos is System.Drawing.Rectangle)
+                    //{
+
+                        Rectangle pageBounds = getPageBounds();
 
                         if (pageBounds.Width > 0 && pageBounds.Height > 0)
                         {
@@ -153,7 +173,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                        );
 
                                     // draw vertical lines
-                                    Parallel.For(y1, y2+1,
+                                    Parallel.For(y1, y2 + 1,
                                         (y) =>
                                         {
                                             if (y >= 0 && y <= result_y_max)
@@ -180,9 +200,34 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 }
                             }
                         }
-                    }
+                    //}
                 }
             }
         }
+
+        Rectangle getPageBounds()
+        {
+            Rectangle pageBounds = new Rectangle();
+            if (WindowManager.Instance != null)
+            {
+                ScreenObserver obs = WindowManager.Instance.ScreenObserver;
+                if (obs != null)
+                {
+                    Object scPos = obs.ScreenPos;
+                    if (scPos != null & scPos is Rectangle)
+                    {
+                        pageBounds.X = ((Rectangle)scPos).X;
+                        pageBounds.Y = ((Rectangle)scPos).Y;
+                        pageBounds.Width = ((Rectangle)scPos).Width;
+                        pageBounds.Height = ((Rectangle)scPos).Height;
+                    }
+                }
+            }
+
+            return pageBounds;
+        }
+
+
+
     }
 }

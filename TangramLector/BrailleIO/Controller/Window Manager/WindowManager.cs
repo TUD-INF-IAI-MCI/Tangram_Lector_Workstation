@@ -36,7 +36,7 @@ namespace tud.mci.tangram.TangramLector
         private const int THRESHOLD_STEP = 10;
         public const String BS_MAIN_NAME = "Mainscreen", BS_FULLSCREEN_NAME = "Vollbildmodus", BS_MINIMAP_NAME = "Minimap";
         public const String VR_CENTER_2_NAME = "Darstellungsbereich2", VR_CENTER_NAME = "Darstellungsbereich", VR_TOP_NAME = "Titelleiste", VR_STATUS_NAME = "Statusbereich", VR_DETAIL_NAME = "Detailbereich";
-        
+
 
         private const float _PRINT_ZOOM_FACTOR = 0.10561666418313964f;
 
@@ -93,9 +93,10 @@ namespace tud.mci.tangram.TangramLector
         /// <value>The instance.</value>
         public static WindowManager Instance
         {
-            get {
+            get
+            {
                 if (instance == null) instance = new WindowManager();
-                return instance; 
+                return instance;
             }
             set { instance = null; }
         }
@@ -112,7 +113,7 @@ namespace tud.mci.tangram.TangramLector
         {
             return MAINSCREEN_TITLE;
         }
-        
+
         #endregion
 
         private WindowManager()
@@ -138,9 +139,10 @@ namespace tud.mci.tangram.TangramLector
         /// Braille mode is for reading and writing Braille.
         /// Drawing mode is for pixel based output.
         /// </summary>
-        public enum LectorView { 
-            Braille = 1, 
-            Drawing = 2 
+        public enum LectorView
+        {
+            Braille = 1,
+            Drawing = 2
         };
 
         /// <summary>
@@ -224,7 +226,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 io.AddView(BS_MAIN_NAME, mainScreen);
                 io.ShowView(BS_MAIN_NAME);
-                io.RefreshDisplay();
+                io.RefreshDisplay(true);
             }
             return mainScreen;
         }
@@ -577,7 +579,7 @@ namespace tud.mci.tangram.TangramLector
                         return vs as BrailleIOScreen;
                     }
                 }
-                catch (InvalidOperationException){} //Happens if no view could been found in the listing
+                catch (InvalidOperationException) { } //Happens if no view could been found in the listing
             }
             return null;
         }
@@ -657,20 +659,22 @@ namespace tud.mci.tangram.TangramLector
         {
             if (ScreenObserver == null)
             {
-               // ScreenObserver = new ScreenObserver(100);
-                ScreenObserver = new ScreenObserver(blinkTimer.timer, 2);
+                ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
+                //ScreenObserver = new ScreenObserver(blinkTimer.timer, 100);
 
                 // so_Changed event handles the rendering of the bitmap
+                try { ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
+                catch (Exception) { }
                 ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
             }
             ScreenObserver.Start();
         }
-        
+
         /// <summary>
         /// Pause the screen capturing.
         /// </summary>
         void StopCapturing() { if (ScreenObserver != null) ScreenObserver.Stop(); }
-        
+
         /// <summary>
         /// Restarts the screen capturing.
         /// </summary>
@@ -970,7 +974,7 @@ namespace tud.mci.tangram.TangramLector
                 {
                     Disposing.DynamicInvoke(this, null);
                 }
-                catch {}
+                catch { }
             }
         }
 
@@ -993,8 +997,8 @@ namespace tud.mci.tangram.TangramLector
     /// </summary>
     public enum FollowFocusModes
     {
-        NONE, 
-        FOLLOW_MOUSE_FOCUS, 
+        NONE,
+        FOLLOW_MOUSE_FOCUS,
         FOLLOW_BRAILLE_FOCUS
     }
 

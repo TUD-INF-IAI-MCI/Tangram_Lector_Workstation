@@ -96,7 +96,7 @@ namespace tud.mci.tangram.TangramLector
             if (lgui != null) lgui.Disposed += new EventHandler(lgui_Disposed);
             try
             {
-                Application.Run(LectorApplicationContext);
+                 Application.Run(LectorApplicationContext);
             }
             catch (OutOfMemoryException)
             {
