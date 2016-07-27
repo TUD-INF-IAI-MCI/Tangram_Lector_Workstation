@@ -120,6 +120,11 @@ namespace tud.mci.tangram.TangramLector
         {
             registerForEvents();
             initBlinkTimer();
+            BuildScreens();
+        }
+
+        internal void BuildScreens()
+        {
             if (io != null && io.AdapterManager != null && io.AdapterManager.ActiveAdapter != null && io.AdapterManager.ActiveAdapter.Device != null)
             {
                 deviceSize = new Size(io.AdapterManager.ActiveAdapter.Device.DeviceSizeX, io.AdapterManager.ActiveAdapter.Device.DeviceSizeY);
@@ -132,6 +137,20 @@ namespace tud.mci.tangram.TangramLector
             BrailleIOScreen mainScreen = buildMainScreen(deviceSize.Width, deviceSize.Height, currentView);
             buildFullScreen(deviceSize.Width, deviceSize.Height);
             buildMinimapScreen(deviceSize.Width, deviceSize.Height);
+        }
+
+        internal void CleanScreen()
+        {
+            try {
+                if (io != null)
+                {
+                    io.RemoveView(BS_MAIN_NAME);
+                    io.RemoveView(BS_FULLSCREEN_NAME);
+                    io.RemoveView(BS_MINIMAP_NAME);
+                }
+            }
+            catch { }
+
         }
 
         /// <summary>
@@ -189,18 +208,18 @@ namespace tud.mci.tangram.TangramLector
             mainScreen.SetHeight(height);
             mainScreen.SetWidth(width);
 
-            var center = getMainScreenCenterRegion(0, 0, 120, 60);
+            var center = getMainScreenCenterRegion(0, 0, width, height);
             center.ShowScrollbars = true;
-            var center2 = getMainScreenCenter2Region(0, 0, 120, 60);
+            var center2 = getMainScreenCenter2Region(0, 0, width, height);
             center2.ShowScrollbars = true;
             center2.SetVisibility(false);
             center2.SetZoom(1);
 
-            var top = getMainTopRegion(0, 0, 120, 7);
-            var status = getMainStatusRegion(108, 0, 12, 5);
+            var top = getMainTopRegion(0, 0, width, 7);
+            var status = getMainStatusRegion(width -12, 0, 12, 5);
             status.SetText(LectorStateNames.STANDARD_MODE);
 
-            var detail = getMainDetailRegion(0, 53, 120, 7);
+            var detail = getMainDetailRegion(0, height-7, width, 7);
             detail.ShowScrollbars = true; // make the region scrollable
             // make the BrailleRenderer to ignore the last line space
             detail.SetText(LL.GetTrans("tangram.lector.wm.no_element_selected")); // set text to enable the BrailleRenderer
@@ -240,7 +259,7 @@ namespace tud.mci.tangram.TangramLector
         BrailleIOScreen buildFullScreen(int width, int height)
         {
             BrailleIOScreen fullScreen = new BrailleIOScreen(BS_FULLSCREEN_NAME);
-            BrailleIOViewRange center = new BrailleIOViewRange(0, 0, 120, 60);
+            BrailleIOViewRange center = new BrailleIOViewRange(0, 0, width, height);
             center.SetZoom(-1);
             center.SetBorder(0);
             center.SetContrastThreshold(STANDARD_CONTRAST_THRESHOLD);
@@ -263,9 +282,9 @@ namespace tud.mci.tangram.TangramLector
         {
             BrailleIOScreen minimapScreen = new BrailleIOScreen(BS_MINIMAP_NAME);
 
-            var center = getMainScreenCenterRegion(0, 0, 120, 60);
-            var top = getMainTopRegion(0, 0, 120, 7);
-            var detail = getMainDetailRegion(0, 53, 120, 7);
+            var center = getMainScreenCenterRegion(0, 0, width, height);
+            var top = getMainTopRegion(0, 0, width, 7);
+            var detail = getMainDetailRegion(0, height-7, width, 7);
 
             minimapScreen.AddViewRange(VR_CENTER_NAME, center); // TODO auch center2 nötig?
             minimapScreen.AddViewRange(VR_TOP_NAME, top);
@@ -306,7 +325,7 @@ namespace tud.mci.tangram.TangramLector
             _top.SetBorder(0, 0, 1);
             _top.SetMargin(0, 0, 1);
             _top.SetPadding(0, 11, 1, 0);
-            _top.SetWidth(200); // only that region content is not doing line breaks
+            _top.SetWidth((int)(width * 1.4)); // only that region content is not doing line breaks
             return _top;
         }
 
@@ -660,7 +679,6 @@ namespace tud.mci.tangram.TangramLector
             if (ScreenObserver == null)
             {
                 ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
-                //ScreenObserver = new ScreenObserver(blinkTimer.timer, 100);
 
                 // so_Changed event handles the rendering of the bitmap
                 try { ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }

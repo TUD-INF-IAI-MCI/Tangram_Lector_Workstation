@@ -19,12 +19,25 @@ namespace tud.mci.tangram.TangramLector
 
         void registerForEvents()
         {
+            // BRAILLE IO 
+            if (io != null && io.AdapterManager != null)
+            {
+                io.AdapterManager.ActiveAdapterChanged += AdapterManager_ActiveAdapterChanged;
+            }
+            
+            // INTERACTION MANGER
             if (InteractionManager != null)
             {
                 registerAsSpecializedFunctionProxy();
                 InteractionManager.InteractionModeChanged += new EventHandler<InteractionModeChangedEventArgs>(InteractionManager_InteractionModeChanged);
             }
             registerTopMostSpFProxy();
+        }
+
+        void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        {
+            CleanScreen();
+            BuildScreens();
         }
 
         void InteractionManager_InteractionModeChanged(object sender, InteractionModeChangedEventArgs e)
