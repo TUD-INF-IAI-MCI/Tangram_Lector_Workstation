@@ -36,8 +36,9 @@ namespace tud.mci.tangram.TangramLector
 
         void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
         {
-            CleanScreen();
-            BuildScreens();
+            //CleanScreen();
+            //BuildScreens();            
+            UpdateScreens();
         }
 
         void InteractionManager_InteractionModeChanged(object sender, InteractionModeChangedEventArgs e)

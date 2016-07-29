@@ -153,6 +153,31 @@ namespace tud.mci.tangram.TangramLector
 
         }
 
+        internal void UpdateScreens()
+        {
+            try
+            {
+
+                if (io != null && io.AdapterManager != null && io.AdapterManager.ActiveAdapter != null && io.AdapterManager.ActiveAdapter.Device != null)
+                {
+                    deviceSize = new Size(io.AdapterManager.ActiveAdapter.Device.DeviceSizeX, io.AdapterManager.ActiveAdapter.Device.DeviceSizeY);
+                }
+                else
+                {
+                    //showOffAdapter size 
+                    deviceSize = new Size(120, 60);
+                }
+
+                updateMainScreen(deviceSize.Width, deviceSize.Height);
+                updateFullScreen(deviceSize.Width, deviceSize.Height);
+                updateMinimapScreen(deviceSize.Width, deviceSize.Height);
+
+            }
+            catch { }
+
+        }
+
+
         /// <summary>
         /// View modes for the lector application.
         /// Braille mode is for reading and writing Braille.
@@ -250,6 +275,62 @@ namespace tud.mci.tangram.TangramLector
             return mainScreen;
         }
 
+        bool updateMainScreen(int width, int height)
+        {
+            if (io != null)
+            {
+                // main screen
+                BrailleIOScreen mainScreen = io.GetView(BS_MAIN_NAME) as BrailleIOScreen;
+                if (mainScreen != null)
+                {
+                    mainScreen.SetHeight(height);
+                    mainScreen.SetWidth(width);
+
+                    // center
+                    BrailleIOViewRange center = mainScreen.GetViewRange(VR_CENTER_NAME);
+                    if (center != null)
+                    {
+                        center.SetHeight(height);
+                        center.SetWidth(width);
+                    }
+
+                    // center 2
+                    BrailleIOViewRange center2 = mainScreen.GetViewRange(VR_CENTER_2_NAME);
+                    if (center2 != null)
+                    {
+                        center2.SetHeight(height);
+                        center2.SetWidth(width);
+                    }
+
+                    //top
+                    BrailleIOViewRange top = mainScreen.GetViewRange(VR_TOP_NAME);
+                    if (top != null)
+                    {
+                        top.SetWidth((int)(width * 1.4)); // only that region content is not doing line breaks
+                    }
+
+                    // status
+                    BrailleIOViewRange status = mainScreen.GetViewRange(VR_STATUS_NAME);
+                    if (status != null)
+                    {
+                        status.SetLeft(width - 12);
+                    }
+
+                    // center 2
+                    BrailleIOViewRange detail = mainScreen.GetViewRange(VR_DETAIL_NAME);
+                    if (detail != null)
+                    {
+                        detail.SetTop(height - 7);
+                        detail.SetWidth(width);
+                    }
+
+                    io.RefreshDisplay(true);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Shows the center region in full screen (other regions are set invisible).
         /// </summary>
@@ -270,6 +351,32 @@ namespace tud.mci.tangram.TangramLector
             fullScreen.SetVisibility(false);
 
             return fullScreen;
+        }
+
+        bool updateFullScreen(int width, int height)
+        {
+            if (io != null)
+            {
+                // main screen
+                BrailleIOScreen fullScreen = io.GetView(BS_FULLSCREEN_NAME) as BrailleIOScreen;
+                if (fullScreen != null)
+                {
+                    fullScreen.SetHeight(height);
+                    fullScreen.SetWidth(width);
+
+                    // center
+                    BrailleIOViewRange center = fullScreen.GetViewRange(VR_CENTER_NAME);
+                    if (center != null)
+                    {
+                        center.SetHeight(height);
+                        center.SetWidth(width);
+                    }
+
+                    io.RefreshDisplay(true);
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -297,6 +404,54 @@ namespace tud.mci.tangram.TangramLector
             minimapScreen.SetVisibility(false);
 
             return minimapScreen;
+        }
+
+        bool updateMinimapScreen(int width, int height)
+        {
+            if (io != null)
+            {
+                // main screen
+                BrailleIOScreen minimapScreen = io.GetView(BS_MINIMAP_NAME) as BrailleIOScreen;
+                if (minimapScreen != null)
+                {
+                    minimapScreen.SetHeight(height);
+                    minimapScreen.SetWidth(width);
+
+                    // center
+                    BrailleIOViewRange center = minimapScreen.GetViewRange(VR_CENTER_NAME);
+                    if (center != null)
+                    {
+                        center.SetHeight(height);
+                        center.SetWidth(width);
+                    }
+
+                    //top
+                    BrailleIOViewRange top = minimapScreen.GetViewRange(VR_TOP_NAME);
+                    if (top != null)
+                    {
+                        top.SetWidth((int)(width * 1.4)); // only that region content is not doing line breaks
+                    }
+
+                    // status
+                    BrailleIOViewRange status = minimapScreen.GetViewRange(VR_STATUS_NAME);
+                    if (status != null)
+                    {
+                        status.SetLeft(width - 12);
+                    }
+
+                    // center 2
+                    BrailleIOViewRange detail = minimapScreen.GetViewRange(VR_DETAIL_NAME);
+                    if (detail != null)
+                    {
+                        detail.SetTop(height - 7);
+                        detail.SetWidth(width);
+                    }
+
+                    io.RefreshDisplay(true);
+                    return true;
+                }
+            }
+            return false;
         }
 
         BrailleIOViewRange getMainScreenCenterRegion(int left, int top, int width, int height)

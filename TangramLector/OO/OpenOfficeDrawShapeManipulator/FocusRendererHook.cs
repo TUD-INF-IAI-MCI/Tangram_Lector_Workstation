@@ -58,7 +58,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         // Result is addressed in [y, x] notation.
         void IBailleIORendererHook.PostRenderHook(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
-            if (Active && WindowManager.Instance != null && !WindowManager.Instance.IsInMinimapMode())
+            if (Active && DoRenderBoundingBox && WindowManager.Instance != null && !WindowManager.Instance.IsInMinimapMode())
             {
                 doBlinkingBoundingBox(view, content, ref result, additionalParams);
             }
@@ -75,7 +75,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         private void doBlinkingBoundingBox(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
             //draw frame as bool pins
-            if (!(CurrentBoundingBox.Width * CurrentBoundingBox.Height < 1) && DoRenderBoundingBox)
+            if (DoRenderBoundingBox && !(CurrentBoundingBox.Width * CurrentBoundingBox.Height < 1) )
             {
                 if (view is IZoomable && view is IPannable)
                 {
