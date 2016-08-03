@@ -650,6 +650,24 @@ namespace tud.mci.tangram.util
             return shape;
         }
 
+        public static void AddShapeToDrawPage(XShape shape, Object drawDoc) { AddShapeToDrawPage(shape, drawDoc as XDrawPagesSupplier); }
+        /// <summary>
+        /// Adds a shape to a draw page or an other shape group.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <param name="page">The page.</param>
+        public static void AddShapeToDrawPage(XShape shape, XDrawPagesSupplier drawDoc)
+        {
+            if (shape != null && drawDoc != null)
+            {
+                try
+                {
+                    AddShapeToDrawPage(shape, GetCurrentPage(drawDoc));
+                }
+                catch { }
+            }
+        }
+
         /// <summary>
         /// Adds a shape to a draw page or an other shape group.
         /// </summary>
