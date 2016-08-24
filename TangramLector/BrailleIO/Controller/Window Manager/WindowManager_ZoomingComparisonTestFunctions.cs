@@ -79,10 +79,10 @@ namespace tud.mci.tangram.TangramLector
                 var oldvrdin = vr.ContentBox;
 
                 // Prüfung auf größte Zoomstufe
-                if (newZoom > BrailleIOViewRange.MAX_ZOOM_LEVEL)
+                if (newZoom > vr.MAX_ZOOM_LEVEL)
                 {
-                    if (oldZoom == BrailleIOViewRange.MAX_ZOOM_LEVEL) return false;
-                    newZoom = BrailleIOViewRange.MAX_ZOOM_LEVEL;
+                    if (oldZoom == vr.MAX_ZOOM_LEVEL) return false;
+                    newZoom = vr.MAX_ZOOM_LEVEL;
                 }
                 // Prüfung auf kleinste Zoomstufe
                 if (vr.ContentBox.Height >= vr.ContentHeight && vr.ContentBox.Width >= vr.ContentWidth)
