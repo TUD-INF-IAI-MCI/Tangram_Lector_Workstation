@@ -30,7 +30,6 @@ namespace tud.mci.tangram.TangramLector
         //IntPtr Whnd = IntPtr.Zero;
         public IntPtr Whnd { get; private set; }
         public Object ScreenPos { private set; get; }
-        Image _lastCap;
         #endregion
 
         #region Constructor

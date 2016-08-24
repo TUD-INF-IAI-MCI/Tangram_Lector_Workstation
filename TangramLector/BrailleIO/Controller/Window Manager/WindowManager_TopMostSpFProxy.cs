@@ -54,7 +54,7 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// Occurs when a [button combination was released].
         /// </summary>
-        public event EventHandler<ButtonCombinationEventArgs> ButtonCombinationReleased;
+        new public event EventHandler<ButtonCombinationEventArgs> ButtonCombinationReleased;
 
         private void fire_buttonCombinationReleased(List<string> buttons)
         {
