@@ -110,16 +110,16 @@ namespace tud.mci.tangram.Accessibility
 
         XDrawPagesSupplier _dps = null;
         /// <summary>
-        /// The corresponding DOM object for the DRAW document to create pages
+        /// The corresponding DOM object for the DRAW document to create pages [XDrawPagesSupplier]
         /// </summary>
-        public XDrawPagesSupplier DrawPageSupplier
+        public Object DrawPageSupplier
         {
             get { return _dps; }
             set
             {
-                _dps = value;
+                _dps = value as XDrawPagesSupplier;
                 _lastController = null;
-                _lastController = Controller;
+                _lastController = Controller as XController;
 
                 // set the meta data access
                 MetaData = new DrawDocMetaDataSet(_dps as unoidl.com.sun.star.document.XDocumentPropertiesSupplier);
@@ -434,7 +434,7 @@ namespace tud.mci.tangram.Accessibility
 
                                 //prepareForSelection(item); // Bad hack for getting accessible selection events
 
-                                DrawPagesObs = new OoDrawPagesObserver(DrawPageSupplier, DocumentComponent, this);
+                                DrawPagesObs = new OoDrawPagesObserver(DrawPageSupplier as XDrawPagesSupplier, DocumentComponent, this);
                                 return true;
                             }
                             else
@@ -690,7 +690,7 @@ namespace tud.mci.tangram.Accessibility
                 if (dps.Count > 1) // if only one page is known - take it
                 {
                     // get the controller of the Draw application
-                    XController contr = Controller;
+                    XController contr = Controller as XController;
 
                     int pid = getCurrentActivePageId(contr);
 
@@ -728,7 +728,7 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns></returns>
-        public XController Controller
+        public Object Controller
         {
             get
             {

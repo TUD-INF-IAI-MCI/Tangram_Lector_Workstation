@@ -110,7 +110,6 @@ namespace tud.mci.tangram.TangramLector.OO
             }
 
             #endregion
-
         }
 
         #region ILocalizable
@@ -455,7 +454,7 @@ namespace tud.mci.tangram.TangramLector.OO
             tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
             //TODO: check why the screenobserver does not capture the screen
             wm.ScreenObserver.ObserveScreen();
-            audioRenderer.PlaySound(LL.GetTrans("tangram.lector.oo_observer.window_minimized",e.Window.Title));
+            audioRenderer.PlaySound(LL.GetTrans("tangram.lector.oo_observer.window_minimized", e.Window.Title));
         }
 
         void OoDrawAccessibilityObserver_DrawWindowPropertyChange(object sender, OoWindowEventArgs e)
@@ -625,7 +624,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
                     {
-                        OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected" , String.Empty));
+                        OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
                         //audioRenderer.PlaySound("Form kann manipuliert werden");
                         shapeManipulatorFunctionProxy.LastSelectedShape = shape;
                         return shape;

@@ -9,8 +9,10 @@ using uno;
 using unoidl.com.sun.star.frame;
 using unoidl.com.sun.star.view;
 using unoidl.com.sun.star.beans;
+using unodrawing = unoidl.com.sun.star.drawing;
 using unoidl.com.sun.star.accessibility;
 using System.Threading;
+using System.Linq;
 
 namespace tud.mci.tangram.util
 {
@@ -156,6 +158,8 @@ namespace tud.mci.tangram.util
         }
         #endregion
 
+        #region DOM Tree functions
+
         internal static XDrawPage GetPageForShape(XShape shape)
         {
             XDrawPage page = null;
@@ -193,11 +197,14 @@ namespace tud.mci.tangram.util
             return parent;
         }
 
+        #endregion
 
         //----------------------------------------------------------------------
         //  Sugar coated access to pages on a drawing document.
         //   The first page of a drawing is page zero.
         //----------------------------------------------------------------------
+
+        #region Page Operations
 
         /// <summary>
         /// Gets the count of draw pages inside the draw doc. How many pages are on a drawing?
@@ -327,11 +334,44 @@ namespace tud.mci.tangram.util
             }
         }
 
+        #region  Properties of Pages
+
+        /// <summary>
+        /// Gets the name of the page.
+        /// </summary>
+        /// <param name="drawPage">The draw page.</param>
+        /// <returns></returns>
+        public static String GetPageName(Object drawPage)
+        {
+            // Get a different interface to the drawDoc.
+            //XNamed drawPage_XNamed = QI.XNamed( drawPage );       
+            //return drawPage_XNamed.getName();
+            return OoUtils.XNamedGetName(drawPage);
+        }
+
+        /// <summary>
+        /// Sets the name of the page.
+        /// </summary>
+        /// <param name="drawPage">The draw page.</param>
+        /// <param name="pageName">Name of the page.</param>
+        public static void SetPageName(Object drawPage, String pageName)
+        {
+            // Get a different interface to the drawDoc.
+            //XNamed drawPage_XNamed = QI.XNamed( drawPage );
+            //drawPage_XNamed.setName( pageName );
+            OoUtils.XNamedSetName(drawPage, pageName);
+        }
+
+        #endregion
+
+        #endregion
 
         //----------------------------------------------------------------------
         //  Sugar coated access to layers of a drawing document.
         //   The first layer of a drawing is page zero.
         //----------------------------------------------------------------------
+
+        #region Operations on Draw Document
 
         /// <summary>
         /// Gets the count of available draw layers.
@@ -343,12 +383,6 @@ namespace tud.mci.tangram.util
             XLayerManager xLayerManager = DrawDocGetXLayerManager(drawDoc);
             return xLayerManager != null ? xLayerManager.getCount() : 0;
         }
-
-
-        //----------------------------------------------------------------------
-        //  Get useful interfaces to a drawing document.
-        //----------------------------------------------------------------------
-
 
         /// <summary>
         /// Get one of the useful interfaces from a drawing document.
@@ -452,82 +486,13 @@ namespace tud.mci.tangram.util
             return null;
         }
 
-
-        //----------------------------------------------------------------------
-        //  Operations on Pages
-        //----------------------------------------------------------------------
-
-        /// <summary>
-        /// Gets the name of the page.
-        /// </summary>
-        /// <param name="drawPage">The draw page.</param>
-        /// <returns></returns>
-        public static String GetPageName(Object drawPage)
-        {
-            // Get a different interface to the drawDoc.
-            //XNamed drawPage_XNamed = QI.XNamed( drawPage );       
-            //return drawPage_XNamed.getName();
-            return OoUtils.XNamedGetName(drawPage);
-        }
-
-        /// <summary>
-        /// Sets the name of the page.
-        /// </summary>
-        /// <param name="drawPage">The draw page.</param>
-        /// <param name="pageName">Name of the page.</param>
-        public static void SetPageName(Object drawPage, String pageName)
-        {
-            // Get a different interface to the drawDoc.
-            //XNamed drawPage_XNamed = QI.XNamed( drawPage );
-            //drawPage_XNamed.setName( pageName );
-            OoUtils.XNamedSetName(drawPage, pageName);
-        }
-
-        //  Sugar Coated property manipulation.
-
-        /// <summary>
-        /// Sets the height property.
-        /// </summary>
-        /// <param name="obj">The obj whos hight should be set.</param>
-        /// <param name="height">The height.</param>
-        public static void SetHeight(Object obj, int height)
-        {
-            OoUtils.SetIntProperty(obj, "Height", height);
-        }
-        /// <summary>
-        /// Gets the height property.
-        /// </summary>
-        /// <param name="obj">The obj.</param>
-        /// <returns>the height of an element</returns>
-        public static int GetHeight(Object obj)
-        {
-            return OoUtils.GetIntProperty(obj, "Height");
-        }
-
-        /// <summary>
-        /// Sets the width property.
-        /// </summary>
-        /// <param name="obj">The obj whos width should be set.</param>
-        /// <param name="width">The width.</param>
-        public static void SetWidth(Object obj, int width)
-        {
-            OoUtils.SetIntProperty(obj, "Width", width);
-        }
-        /// <summary>
-        /// Gets the width property.
-        /// </summary>
-        /// <param name="obj">The obj.</param>
-        /// <returns>the width of an element</returns>
-        public static int GetWidth(Object obj)
-        {
-            return OoUtils.GetIntProperty(obj, "Width");
-        }
-
+        #endregion
 
         //----------------------------------------------------------------------
         //  Operations on Shapes
         //----------------------------------------------------------------------
 
+        #region Shape Creation
 
         /// <summary>
         /// Creates a rectangle shape.
@@ -538,10 +503,22 @@ namespace tud.mci.tangram.util
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateRectangleShape(Object drawDoc, int x, int y, int width, int height)
+        internal static XShape CreateRectangleShape(Object drawDoc, int x, int y, int width, int height)
         {
             return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_RECT, x, y, width, height);
         }
+        /// <summary>
+        /// Creates a rectangle shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape[XShape] or null</returns>
+        public static Object CreateRectangleShape_anonymous(Object drawDoc, int x, int y, int width, int height)
+        { return CreateRectangleShape(drawDoc, x, y, width, height); }
         /// <summary>
         /// Creates a ellipse shape.
         /// </summary>
@@ -551,10 +528,22 @@ namespace tud.mci.tangram.util
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateEllipseShape(Object drawDoc, int x, int y, int width, int height)
+        internal static XShape CreateEllipseShape(Object drawDoc, int x, int y, int width, int height)
         {
             return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_ELLIPSE, x, y, width, height);
         }
+        /// <summary>
+        /// Creates a ellipse shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape[XShape] or null</returns>
+        public static Object CreateEllipseShape_anonymous(Object drawDoc, int x, int y, int width, int height)
+        { return CreateEllipseShape(drawDoc, x, y, width, height); }
         /// <summary>
         /// Creates a line shape.
         /// </summary>
@@ -564,10 +553,22 @@ namespace tud.mci.tangram.util
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateLineShape(Object drawDoc, int x, int y, int width, int height)
+        internal static XShape CreateLineShape(Object drawDoc, int x, int y, int width, int height)
         {
             return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_LINE, x, y, width, height);
         }
+        /// <summary>
+        /// Creates a line shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape or null</returns>
+        public static Object CreateLineShape_anonymous(Object drawDoc, int x, int y, int width, int height)
+        { return CreateLineShape(drawDoc, x, y, width, height); }
         /// <summary>
         /// Creates a text shape.
         /// </summary>
@@ -577,10 +578,88 @@ namespace tud.mci.tangram.util
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateTextShape(Object drawDoc, int x, int y, int width, int height)
+        internal static XShape CreateTextShape(Object drawDoc, int x, int y, int width, int height)
         {
             return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_TEXT, x, y, width, height);
         }
+        /// <summary>
+        /// Creates a text shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape[XShape] or null</returns>
+        public static Object CreateTextShape_anonymous(Object drawDoc, int x, int y, int width, int height)
+        { return CreateTextShape(drawDoc, x, y, width, height); }
+
+        #region Freeforms
+
+        /// <summary>
+        /// Creates a Bezier shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <param name="closed">if set to <c>true</c> the form will be closed automatically.</param>
+        /// <returns>The Bezier shape or <c>null</c></returns>
+        internal static XShape CreateBezierShape(Object drawDoc, bool closed = true)
+        {
+            return closed ?
+                CreateShape(drawDoc, OO.Services.DRAW_SHAPE_BEZIER_CLOSED) :
+                CreateShape(drawDoc, OO.Services.DRAW_SHAPE_BEZIER_OPEN);
+        }
+        // <summary>
+        /// Creates a Bezier shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <param name="closed">if set to <c>true</c> the form will be closed automatically.</param>
+        /// <returns>The Bezier shape[XShape] or <c>null</c></returns>
+        public static Object CreateBezierShape_anonymous(Object drawDoc, bool closed = true)
+        { return CreateBezierShape(drawDoc, closed); }
+
+        /// <summary>
+        /// Creates a polyline shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <returns>The Polyline shape or <c>null</c></returns>
+        internal static XShape CreatePolylineShape(Object drawDoc)
+        {
+            return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_POLYLINE);
+        }
+        /// <summary>
+        /// Creates a polyline shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <returns>The Polyline shape[XShape] or <c>null</c></returns>
+        public static Object CreatePolylineShape_anonymous(Object drawDoc)
+        { return CreatePolylineShape(drawDoc); }
+
+        /// <summary>
+        /// Creates a polygon shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <param name="closed">if set to <c>true</c> the form will be closed automatically.</param>
+        /// <returns>A PolyPolygon if closed, a Polyline shape if open or <c>null</c></returns>
+        internal static XShape CreatePolygonShape(Object drawDoc, bool closed = true)
+        {
+            return closed ?
+                CreateShape(drawDoc, OO.Services.DRAW_SHAPE_POLYPOLYGON) :
+                CreatePolylineShape(drawDoc);
+        }
+        /// <summary>
+        /// Creates a polygon shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <param name="closed">if set to <c>true</c> the form will be closed automatically.</param>
+        /// <returns>A PolyPolygon if closed, a Polyline shape[XShape] if open or <c>null</c></returns>
+        public static Object CreatePolygonShape_anonymous(Object drawDoc, bool closed = true)
+        { return CreatePolygonShape(drawDoc, closed); }
+
+        #endregion
 
         /// <summary>
         /// Creates a shape.
@@ -588,7 +667,7 @@ namespace tud.mci.tangram.util
         /// <param name="drawDoc">The draw doc.</param>
         /// <param name="service">The service identifier of the shape to create.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateShape(Object drawDoc, String service)
+        internal static XShape CreateShape(Object drawDoc, String service)
         {
             // We need the XMultiServiceFactory interface.
             XMultiServiceFactory drawDocXMultiServiceFactory;
@@ -632,6 +711,15 @@ namespace tud.mci.tangram.util
             }
             return null;
         }
+        /// <summary>
+        /// Creates a shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="service">The service identifier of the shape to create.</param>
+        /// <returns>The resulting shape[XShape] or null</returns>
+        public static Object CreateShape_anonymous(Object drawDoc, String service)
+        { return CreateShape(drawDoc, service); }
 
         /// <summary>
         /// Creates a shape.
@@ -643,20 +731,47 @@ namespace tud.mci.tangram.util
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
         /// <returns>The resulting shape or null</returns>
-        public static XShape CreateShape(Object drawDoc, String service, int x, int y, int width, int height)
+        internal static XShape CreateShape(Object drawDoc, String service, int x, int y, int width, int height)
         {
             XShape shape = CreateShape(drawDoc, service);
             SetShapePositionAndSize(shape, x, y, width, height);
             return shape;
         }
+        /// <summary>
+        /// Creates a shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="service">The service identifier of the shape to create.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape[XShape] or null</returns>
+        public static Object CreateShape_anonymous(Object drawDoc, String service, int x, int y, int width, int height)
+        { return CreateShape(drawDoc, service, x, y, width, height); }
 
-        public static void AddShapeToDrawPage(XShape shape, Object drawDoc) { AddShapeToDrawPage(shape, drawDoc as XDrawPagesSupplier); }
+        #endregion
+
+        #region Shape to Page Relation
+        /// <summary>
+        /// Adds a shape to a draw page or an other shape group.
+        /// </summary>
+        /// <param name="shape">The shape [XShape].</param>
+        /// <param name="drawDoc">The draw document [XDrawPagesSupplier].</param>
+        public static void AddShapeToDrawPage(Object shape, Object drawDoc) { AddShapeToDrawPage(shape as XShape, drawDoc as XDrawPagesSupplier); }
+        /// <summary>
+        /// Adds a shape to a draw page or an other shape group.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <param name="drawDoc">The draw document [XDrawPagesSupplier].</param>
+        internal static void AddShapeToDrawPage(XShape shape, Object drawDoc) { AddShapeToDrawPage(shape, drawDoc as XDrawPagesSupplier); }
         /// <summary>
         /// Adds a shape to a draw page or an other shape group.
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="page">The page.</param>
-        public static void AddShapeToDrawPage(XShape shape, XDrawPagesSupplier drawDoc)
+        internal static void AddShapeToDrawPage(XShape shape, XDrawPagesSupplier drawDoc)
         {
             if (shape != null && drawDoc != null)
             {
@@ -667,13 +782,12 @@ namespace tud.mci.tangram.util
                 catch { }
             }
         }
-
         /// <summary>
         /// Adds a shape to a draw page or an other shape group.
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="page">The page.</param>
-        public static void AddShapeToDrawPage(XShape shape, XShapes page)
+        internal static void AddShapeToDrawPage(XShape shape, XShapes page)
         {
             if (shape != null && page != null)
             {
@@ -690,7 +804,7 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="page">The page.</param>
-        public static void RemoveShapeFromDrawPage(XShape shape, XShapes page)
+        internal static void RemoveShapeFromDrawPage(XShape shape, XShapes page)
         {
             if (shape != null && page != null)
             {
@@ -701,6 +815,12 @@ namespace tud.mci.tangram.util
                 catch { }
             }
         }
+        /// <summary>
+        /// Removes the shape from the draw page or an other shape group.
+        /// </summary>
+        /// <param name="shape">The shape [XShape].</param>
+        /// <param name="page">The page [XShapes].</param>
+        public static void RemoveShapeFromDrawPage(Object shape, Object page) { RemoveShapeFromDrawPage(shape as XShape, page as XShapes); }
 
         /// <summary>
         /// Gets the current page.
@@ -735,6 +855,16 @@ namespace tud.mci.tangram.util
             }
             return null;
         }
+        /// <summary>
+        /// Gets the current page.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc [XDrawPagesSupplier].</param>
+        /// <returns>the currently active draw page [XDrawPage]</returns>
+        public static Object GetCurrentPage_anonymous(Object drawDoc) { return GetCurrentPage(drawDoc as XDrawPagesSupplier); }
+        #endregion
+
+        #region Shape Size and Position
 
         /// <summary>
         /// Sets the size and position of the shape.
@@ -744,11 +874,22 @@ namespace tud.mci.tangram.util
         /// <param name="y">The y position.</param>
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
-        public static void SetShapePositionAndSize(XShape shape, int x, int y, int width, int height)
+        internal static void SetShapePositionAndSize(XShape shape, int x, int y, int width, int height)
         {
             SetShapePosition(shape, x, y);
             SetShapeSize(shape, width, height);
         }
+        /// <summary>
+        /// Sets the size and position of the shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="shape">The shape. [XShape]</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        public static void SetShapePositionAndSize(Object shape, int x, int y, int width, int height)
+        { SetShapePositionAndSize(shape as XShape, x, y, width, height); }
 
         /// <summary>
         /// Sets the position of the shape.
@@ -756,7 +897,7 @@ namespace tud.mci.tangram.util
         /// <param name="shape">The shape.</param>
         /// <param name="x">The x position.</param>
         /// <param name="y">The y position.</param>
-        public static void SetShapePosition(XShape shape, int x, int y)
+        internal static void SetShapePosition(XShape shape, int x, int y)
         {
             if (shape != null)
             {
@@ -764,6 +905,15 @@ namespace tud.mci.tangram.util
                 shape.setPosition(position);
             }
         }
+        /// <summary>
+        /// Sets the position of the shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="shape">The shape. [XShape]</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        public static void SetShapePosition(Object shape, int x, int y)
+        { SetShapePosition(shape as XShape, x, y); }
 
         /// <summary>
         /// Sets the size of the shape.
@@ -771,7 +921,7 @@ namespace tud.mci.tangram.util
         /// <param name="shape">The shape.</param>
         /// <param name="width">The width of the shape.</param>
         /// <param name="height">The height of the shape.</param>
-        public static void SetShapeSize(XShape shape, int width, int height)
+        internal static void SetShapeSize(XShape shape, int width, int height)
         {
             if (shape != null)
             {
@@ -779,30 +929,57 @@ namespace tud.mci.tangram.util
                 shape.setSize(size);
             }
         }
+        /// <summary>
+        /// Sets the size of the shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="shape">The shape. [XShape]</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        public static void SetShapeSize(Object shape, int width, int height)
+        { SetShapeSize(shape as XShape, width, height); }
+
+        #endregion
+
+        #region Shape Property Manipulation
 
         /// <summary>
-        /// Determines whether a point is inside a rect.
+        /// Sets the height property.
         /// </summary>
-        /// <param name="point">The point.</param>
-        /// <param name="rect">The rect.</param>
-        /// <returns>
-        /// 	<c>true</c> if the point is inside the rect; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsPointInRect(Point point, Rectangle rect)
+        /// <param name="obj">The obj whos hight should be set.</param>
+        /// <param name="height">The height.</param>
+        public static void SetHeight(Object obj, int height)
         {
-            if (point.X < rect.X)
-                return false;
-            if (point.Y < rect.Y)
-                return false;
-            if (point.X > (rect.X + rect.Width))
-                return false;
-            if (point.Y > (rect.Y + rect.Height))
-                return false;
-
-            return true;
+            OoUtils.SetIntProperty(obj, "Height", height);
+        }
+        /// <summary>
+        /// Gets the height property.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <returns>the height of an element</returns>
+        public static int GetHeight(Object obj)
+        {
+            return OoUtils.GetIntProperty(obj, "Height");
         }
 
-        //  Sugar Coated property manipulation.
+        /// <summary>
+        /// Sets the width property.
+        /// </summary>
+        /// <param name="obj">The obj who's width should be set.</param>
+        /// <param name="width">The width.</param>
+        public static void SetWidth(Object obj, int width)
+        {
+            OoUtils.SetIntProperty(obj, "Width", width);
+        }
+        /// <summary>
+        /// Gets the width property.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <returns>the width of an element</returns>
+        public static int GetWidth(Object obj)
+        {
+            return OoUtils.GetIntProperty(obj, "Width");
+        }
 
         /// <summary>
         /// Sets the FillColor property of an element.
@@ -825,16 +1002,20 @@ namespace tud.mci.tangram.util
             return OoUtils.GetIntProperty(obj, "FillColor");
         }
 
-        public static void convertIntoUnit(int size, unoidl.com.sun.star.util.MeasureUnit targetUnit)
-        {
-            //    unoidl.com.sun.star.util      
-        }
+        #endregion
+
+        //public static void convertIntoUnit(int size, unoidl.com.sun.star.util.MeasureUnit targetUnit)
+        //{
+        //    //    unoidl.com.sun.star.util      
+        //}
+
+        #region General Functions
 
         /// <summary>
         /// Gets the XAccessible from a draw pages supplier.
         /// </summary>
         /// <param name="dps">The DPS.</param>
-        /// <returns>the coresponding XAccessible if possible otherwise <c>null</c></returns>
+        /// <returns>the corresponding XAccessible if possible otherwise <c>null</c></returns>
         internal static XAccessible GetXAccessibleFromDrawPagesSupplier(XDrawPagesSupplier dps)
         {
             XAccessible acc = null;
@@ -852,6 +1033,59 @@ namespace tud.mci.tangram.util
             }
             return acc;
         }
+
+        /// <summary>
+        /// Determines whether a point is inside a rect.
+        /// </summary>
+        /// <param name="point">The point.</param>
+        /// <param name="rect">The rect.</param>
+        /// <returns>
+        /// 	<c>true</c> if the point is inside the rect; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool IsPointInRect(Point point, Rectangle rect)
+        {
+            return IsPointInRect(point.X, point.Y, rect);
+        }
+        /// <summary>
+        /// Determines whether a point is inside a rect.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="rect">The rect.</param>
+        /// <returns>
+        ///   <c>true</c> if the point is inside the rect; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool IsPointInRect(int x, int y, Rectangle rect)
+        {
+            return IsPointInRect(x, y, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        /// <summary>
+        /// Determines whether a point is inside a rect.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="rX">The x of the rectangle.</param>
+        /// <param name="rY">The y of the rectangle.</param>
+        /// <param name="rWidth">Width of the rectangle.</param>
+        /// <param name="rHeight">Height of the rectangle.</param>
+        /// <returns>
+        ///   <c>true</c> if the point is inside the rect; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsPointInRect(int x, int y, int rX, int rY, int rWidth, int rHeight)
+        {
+            if (x < rX)
+                return false;
+            if (y < rY)
+                return false;
+            if (x > (rX + rWidth))
+                return false;
+            if (y > (rY + rHeight))
+                return false;
+
+            return true;
+        }
+
+        #endregion
 
         #region 100thmm to pixel conversion
         /// <summary>
@@ -981,6 +1215,8 @@ namespace tud.mci.tangram.util
         }
         #endregion
 
+        #region Homogen Matrix Conversion
+
         internal static double[,] ConvertHomogenMatrix3ToMatrix(HomogenMatrix3 transformProp)
         {
             // initialization of a two dimensional array
@@ -1017,7 +1253,6 @@ namespace tud.mci.tangram.util
             return matrix;
         }
 
-
         internal static HomogenMatrix3 ConvertMatrixToHomogenMatrix3(double[,] matrix)
         {
             HomogenMatrix3 m = new HomogenMatrix3();
@@ -1044,14 +1279,600 @@ namespace tud.mci.tangram.util
                                     colField.SetValue(line, matrix[i, j]);
                                 }
                             }
-                        }                        
+                        }
                     }
                 }
-                catch (System.Exception){}
+                catch (System.Exception) { }
             }
             return m;
         }
+
+        #endregion
+
     }
+
+    /// <summary>
+    /// Class with helper functions for handling polygons, polylines etc.
+    /// </summary>
+    public static class PolygonHelper
+    {
+        /// <summary>
+        /// Determines whether the specified shape is freeform.
+        /// Freeforms are polygons, polylines and Bezier curves.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified shape is a freeform; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool IsFreeform(XShape shape)
+        {
+            return OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_DESCRIPTOR)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR);
+        }
+        /// <summary>
+        /// Determines whether the specified shape is freeform.
+        /// Freeforms are polygons, polylines and Bezier curves.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified shape is a freeform; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsFreeform(Object shape) { return IsFreeform(shape as XShape); }
+
+        /// <summary>
+        /// Builds a free form such as a polygon or a Bezier curve etc.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <param name="kind">The kind of freeform you want to create.</param>
+        /// <param name="coordinates">The coordinates of the form(s). By adding more coordinate lists in the List, it will create a poly kind of the requested kind.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns>XShape</returns>
+        public static Object BuildFreeForm(Object drawDoc, PolygonKind kind, List<LinkedList<PolyPointDescriptor>> coordinates = null, bool geometry = false)
+        {
+            XShape shape = null;
+
+            switch (kind)
+            {
+                case PolygonKind.LINE:
+                case PolygonKind.PLIN: // polygon open
+                    shape = OoDrawUtils.CreatePolylineShape(drawDoc);
+                    break;
+
+                case PolygonKind.PATHPLIN:
+                case PolygonKind.FREELINE:
+                case PolygonKind.PATHLINE: // Freehand open, Curve
+                    shape = OoDrawUtils.CreateBezierShape(drawDoc, false);
+                    break;
+
+                case PolygonKind.FREEFILL:
+                case PolygonKind.PATHFILL: // Freehand filled, Curve filled
+                    shape = OoDrawUtils.CreateBezierShape(drawDoc);
+                    break;
+
+                case PolygonKind.PATHPOLY:
+                case PolygonKind.POLY: // polygon filled
+                    shape = OoDrawUtils.CreatePolygonShape(drawDoc);
+                    break;
+
+                default:
+                    break;
+            }
+
+            SetPolyPoints(shape, coordinates, geometry);
+            return shape;
+        }
+
+        /// <summary>
+        /// Sets the poly points.
+        /// </summary>
+        /// <param name="shape">The shape to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        internal static bool SetPolyPoints(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {
+            if (shape != null && coordinates != null && coordinates.Count > 0)
+            {
+                #region Polygon
+                if (OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_DESCRIPTOR))
+                {
+
+                    return AddPointsToPolygon(shape, coordinates, geometry);
+                }
+                #endregion
+
+                #region Bezier
+                // Bezier
+                else if (OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR))
+                {
+                    return AddPointsToPolyPolygonBezierDescriptor(shape, coordinates, geometry);
+                }
+                #endregion
+                else {
+
+                    //Debug.GetAllServicesOfObject(shape);
+                    //Debug.GetAllProperties(shape);
+                
+                } // not a polygon or bezier 
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the poly points.
+        /// </summary>
+        /// <param name="shape">The shape to change the points. [XShape]</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        public static bool SetPolyPoints(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return SetPolyPoints(shape as XShape, coordinates, geometry); }
+
+        /// <summary>
+        /// Adds the points to a poly polygon bezier descriptor.
+        /// </summary>
+        /// <param name="shape">The shape to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        internal static bool AddPointsToPolyPolygonBezierDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {
+            // Geometry           .drawing.PolyPolygonBezierCoords  -STRUCT-
+            // PolyPolygonBezier  .drawing.PolyPolygonBezierCoords  -STRUCT-
+            //      Coordinates   [].drawing.PointSequence          -Sequence- 
+            //                          [].awt.Point                -Sequence- 
+            //      Flags         [].drawing.FlagSequence           -Sequence-
+            //                           [].drawing.Flag            -Sequence-
+
+            PolyPolygonBezierCoords ppc = BuildPolyPolygonBezierCoords(coordinates);
+            return OoUtils.SetProperty(shape, geometry ? "Geometry" : "PolyPolygonBezier", ppc);
+        }
+        /// <summary>
+        /// Adds the points to a poly polygon bezier descriptor.
+        /// </summary>
+        /// <param name="shape">The shape[XShape] to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        public static bool AddPointsToPolyPolygonBezierDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {return AddPointsToPolyPolygonBezierDescriptor(shape as XShape, coordinates, geometry);}
+
+        /// <summary>
+        /// Adds the points to a poly polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape[XShape] to change the points.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon).
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns>
+        ///   <c>true</c> if the property could be set successfully
+        /// </returns>
+        internal static bool AddPolyPointsToPolyPolygonDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {
+            int i = 0;
+            Point[][] ps = new Point[coordinates.Count][];
+            unodrawing.PolygonFlags[] f;
+            foreach (var polygon in coordinates)
+            {
+                Point[] p;
+                bool success = TransformToCoordinateAndFlagSequence(coordinates[0], out p, out f, true);
+                ps[i] = p;
+                i++;
+            }
+            if (geometry)
+            {
+                return OoUtils.SetProperty(shape, "Geometry", ps);
+            }
+            else
+            {
+                return OoUtils.SetProperty(shape, "PolyPolygon", ps);
+            }
+        }
+        /// <summary>
+        /// Adds the points to a poly polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape[XShape] to change the points.</param>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon).
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns>
+        ///   <c>true</c> if the property could be set successfully
+        /// </returns>
+        public static bool AddPolyPointsToPolyPolygonDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPolyPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry);}
+
+        /// <summary>
+        /// Adds the points to a polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        internal static bool AddPointsToPolyPolygonDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {
+            Point[] p;
+            unodrawing.PolygonFlags[] f;
+            bool success = TransformToCoordinateAndFlagSequence(coordinates[0], out p, out f, true);
+            if (success)
+            {
+                if (geometry)
+                {
+                    return OoUtils.SetProperty(shape, "Geometry", new Point[][] { p });
+                }
+                else
+                {
+                    return OoUtils.SetProperty(shape, "Polygon", p);
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// Adds the points to a polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape[XShape] to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        public static bool AddPointsToPolyPolygonDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry);}
+
+        /// <summary>
+        /// Adds the points to a poly polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        internal static bool AddPointsToPolygon(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        {
+            // Geometry         [][].awt.Point     -Sequence-   NOTE: is empty if not a poly!
+            // PolyPolygon      [][].awt.Point     -Sequence-   NOTE: is empty if not a poly!  
+            // Polygon          [].awt.Point       -Sequence-     
+
+            if (coordinates.Count > 1) // poly polygon
+            {
+                return AddPolyPointsToPolyPolygonDescriptor(shape, coordinates, geometry);
+            }
+            else // polygon
+            {
+                if (coordinates[0] != null)
+                {
+                    return AddPointsToPolyPolygonDescriptor(shape, coordinates, geometry);
+                }
+                return false;
+            }
+        }
+        /// <summary>
+        /// Adds the points to a poly polygon descriptor.
+        /// </summary>
+        /// <param name="shape">The shape[XShape] to change the points.</param>
+        /// <param name="coodinates">The complete coordinates to set.</param>
+        /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
+        /// <returns><c>true</c> if the property could be set successfully</returns>
+        public static bool AddPointsToPolygon(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPointsToPolygon(shape as XShape, coordinates, geometry);}
+
+        #region Point List Handling
+
+        /// <summary>
+        /// Adds a new point to a point descriptor list at a certain position.
+        /// </summary>
+        /// <param name="pd">The point descriptor to add.</param>
+        /// <param name="pdl">The list of point descriptor lists to add to.</param>
+        /// <param name="index">The index to witch the node should be added.</param>
+        /// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
+        /// <returns><c>true</c> if the new entry was added.</returns>
+        public static bool AddPointAtPosition(PolyPointDescriptor pd, ref List<LinkedList<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
+        {
+            if (pdl != null && pdl.Count > polyIndex)
+            {
+                LinkedList<PolyPointDescriptor> entry = pdl[polyIndex];
+                bool success = (AddPointAtPosition(pd, ref entry, index));
+                //TODO: check if this works!!!
+                return success;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Adds a new point to a point descriptor list at a certain position.
+        /// </summary>
+        /// <param name="pds">The point descriptors to add.</param>
+        /// <param name="pdl">The list of point descriptor lists to add to.</param>
+        /// <param name="index">The index to witch the node should be added.</param>
+        /// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
+        /// <returns><c>true</c> if the new entry was added.</returns>
+        public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref List<LinkedList<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
+        {
+            if (pdl != null && pdl.Count > polyIndex)
+            {
+                LinkedList<PolyPointDescriptor> entry = pdl[polyIndex];
+                bool success = (AddPointAtPosition(pds, ref entry, index));
+                //TODO: check if this works!!!
+                return success;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Adds a new point to the point descriptor list at a certain position.
+        /// </summary>
+        /// <param name="pd">The point descriptor to add.</param>
+        /// <param name="pdl">The list of point descriptors to add to.</param>
+        /// <param name="index">The index to witch the node should be added.</param>
+        /// <returns><c>true</c> if the new entry was added.</returns>
+        public static bool AddPointAtPosition(PolyPointDescriptor pd, ref LinkedList<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
+        {
+            return AddElementToLinkedListAtPosition<PolyPointDescriptor>(pd, ref pdl, index);
+
+            //if (pdl != null)
+            //{
+            //    if (index >= pdl.Count) { pdl.AddLast(pd); }
+            //    else if (index <= 0) { pdl.AddFirst(pd); }
+            //    else
+            //    {
+            //        try
+            //        {
+            //            LinkedListNode<PolyPointDescriptor> n = null;
+            //            if (index < pdl.Count / 2)
+            //            {
+            //                n = pdl.First;
+            //                for (int i = 0; i < index; i++) { n = n.Next; }
+            //            }
+            //            else
+            //            {
+            //                n = pdl.Last;
+            //                for (int i = pdl.Count-1; i > index; i--) { n = n.Previous; }
+            //            }                        
+            //            pdl.AddBefore(n, pd);
+            //        }
+            //        catch (System.Exception) { return false; }
+            //    }
+            //    return true;
+            //}
+
+            //return false;
+        }
+        /// <summary>
+        /// Adds a new point to the point descriptor list at a certain position.
+        /// </summary>
+        /// <param name="pds">The point descriptors to add.</param>
+        /// <param name="pdl">The list of point descriptors to add to.</param>
+        /// <param name="index">The index to witch the node should be added.</param>
+        /// <returns><c>true</c> if the new entry was added.</returns>
+        public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref LinkedList<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
+        {
+            return AddElementToLinkedListAtPosition<PolyPointDescriptor>(pds, ref pdl, index);
+        }
+
+        /// <summary>
+        /// Adds an element to a linked list at a certain position.
+        /// </summary>
+        /// <typeparam name="T">The type of the list entries</typeparam>
+        /// <param name="obj">The object to add.</param>
+        /// <param name="list">The list to add to.</param>
+        /// <param name="index">The index to add in.</param>
+        /// <returns><c>true</c> if successfully added</returns>
+        public static bool AddElementToLinkedListAtPosition<T>(T obj, ref LinkedList<T> list, int index)
+        {
+            if (list != null && obj != null)
+            {
+                if (index >= list.Count)
+                {
+                    list.AddLast(obj);
+                }
+                else if (index <= 0) { list.AddFirst(obj); }
+                else
+                {
+                    try
+                    {
+                        LinkedListNode<T> n = null;
+                        if (index < list.Count / 2)
+                        {
+                            n = list.First;
+                            for (int i = 0; i < index; i++) { n = n.Next; }
+                        }
+                        else
+                        {
+                            n = list.Last;
+                            for (int i = list.Count - 1; i > index; i--) { n = n.Previous; }
+                        }
+                        list.AddBefore(n, obj);
+                    }
+                    catch (System.Exception) { return false; }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Adds the elements to a linked list at a certain position.
+        /// </summary>
+        /// <typeparam name="T">The type of the list entries</typeparam>
+        /// <param name="obj">The objects to add.</param>
+        /// <param name="list">The list to add to.</param>
+        /// <param name="index">The index to add in.</param>
+        /// <returns><c>true</c> if successfully added</returns>
+        public static bool AddElementToLinkedListAtPosition<T>(IEnumerable<T> obj, ref LinkedList<T> list, int index)
+        {
+            if (list != null && obj != null)
+            {
+                if (index >= list.Count)
+                {
+                    foreach (T o in obj) list.AddLast(o);
+                }
+                else if (index <= 0) { foreach (T o in obj.Reverse<T>()) list.AddFirst(o); }
+                else
+                {
+                    try
+                    {
+                        LinkedListNode<T> n = null;
+                        if (index < list.Count / 2)
+                        {
+                            n = list.First;
+                            for (int i = 0; i < index; i++) { n = n.Next; }
+                        }
+                        else
+                        {
+                            n = list.Last;
+                            for (int i = list.Count - 1; i > index; i--) { n = n.Previous; }
+                        }
+                        foreach (T o in obj) list.AddBefore(n, o);
+                    }
+                    catch (System.Exception) { return false; }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region PolyPointHandling
+
+        /// <summary>
+        /// Gets a List of Lists of PolyPoint descriptors from a property value.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns>List of lists containing the point descriptors for bezier points</returns>
+        internal static List<LinkedList<PolyPointDescriptor>> GetPolyPoints(unoidl.com.sun.star.drawing.PolyPolygonBezierCoords coordinates)
+        {
+            List<LinkedList<PolyPointDescriptor>> pointLists = null;
+            if (coordinates != null)
+            {
+                Point[][] coords = coordinates.Coordinates;
+                unodrawing.PolygonFlags[][] flags = coordinates.Flags;
+
+                if (coords != null && coords.Length > 0 && coords[0].Length > 0)
+                {
+                    pointLists = new List<LinkedList<PolyPointDescriptor>>(coords.Length);
+
+                    for (int i = 0; i < coords.Length; i++)
+                    {
+                        Point[] coordList = coords[i];
+                        unodrawing.PolygonFlags[] flaglist = flags.Length > i ? flags[i] : null;
+
+                        if (coordList != null && coordList.Length > 0)
+                        {
+                            List<PolyPointDescriptor> points = new List<PolyPointDescriptor>(coordList.Length);
+
+                            for (int j = 0; j < coordList.Length; j++)
+                            {
+                                points.Add(new PolyPointDescriptor(coordList[j],
+                                    flaglist != null && flaglist.Length > j ? (PolygonFlags)flaglist[j] : (PolygonFlags)unodrawing.PolygonFlags.NORMAL
+                                    ));
+                            }
+                            pointLists.Add(new LinkedList<PolyPointDescriptor>(points));
+                        }
+                    }
+                }
+                pointLists.TrimExcess();
+            }
+
+            return pointLists != null ? pointLists : new List<LinkedList<PolyPointDescriptor>>();
+        }
+
+        /// <summary>
+        /// Builds the poly polygon bezier coords property value.
+        /// </summary>
+        /// <param name="points">The points.</param>
+        /// <returns>a PolyPolygonBezierCoords, which multidimensional arrays are filled with the given coordinates and flags</returns>
+        internal static PolyPolygonBezierCoords BuildPolyPolygonBezierCoords(List<LinkedList<PolyPointDescriptor>> points)
+        {
+            PolyPolygonBezierCoords property = new PolyPolygonBezierCoords();
+
+            if (points != null && points.Count > 0)
+            {
+                Point[][] AllCoordinates = new Point[points.Count][];
+                unodrawing.PolygonFlags[][] AllFlags = new unodrawing.PolygonFlags[points.Count][];
+
+                int i = 0;
+                foreach (var item in points)
+                {
+                    Point[] Coordinates;
+                    unodrawing.PolygonFlags[] Flags;
+
+                    bool success = TransformToCoordinateAndFlagSequence(item, out Coordinates, out Flags);
+                    if (success)
+                    {
+                        AllCoordinates[i] = Coordinates;
+                        AllFlags[i] = Flags;
+                        i++;
+                    }
+                }
+
+                property.Coordinates = AllCoordinates;
+                property.Flags = AllFlags;
+            }
+
+            return property;
+        }
+
+        /// <summary>
+        /// Gets the coordinate and flag sequence arrays to be set as property values.
+        /// </summary>
+        /// <param name="points">The points to be transformed.</param>
+        /// <param name="Coordinates">The coordinate sequence array.</param>
+        /// <param name="Flags">The flag sequence array.</param>
+        /// <param name="filterControlPoints">if set to <c>true</c> control points will be ignored during translation.</param>
+        /// <returns>
+        ///   <c>true</c> if successfully transformed; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool TransformToCoordinateAndFlagSequence(LinkedList<PolyPointDescriptor> points, out Point[] Coordinates, out unodrawing.PolygonFlags[] Flags, bool filterControlPoints = false)
+        {
+            bool success = false;
+            Coordinates = null;
+            Flags = null;
+
+            if (points != null)
+            {
+                Coordinates = new Point[points.Count];
+                Flags = new unodrawing.PolygonFlags[points.Count];
+
+                if (points.Count > 0)
+                {
+                    try
+                    {
+                        int i = 0;
+                        foreach (var item in points)
+                        {
+                            if (!filterControlPoints || item.Flag == PolygonFlags.NORMAL)
+                            {
+                                // System.Linq.Enumerable.ElementAt(points, i);
+                                Coordinates[i] = new Point(item.X, item.Y);
+                                Flags[i] = (unodrawing.PolygonFlags)item.Flag;
+                                i++;
+                            }
+                        }
+
+                        if (i < points.Count)
+                        {
+                            Coordinates = Coordinates.Take(i).ToArray();
+                            Flags = Flags.Take(i).ToArray();
+                            //TODO: check if this works
+                        }
+                    }
+                    catch { return false; }
+                }
+                success = true;
+            }
+            return success;
+        }
+
+        #endregion
+
+    }
+
 
     #region Enums
 
@@ -1081,7 +1902,6 @@ namespace tud.mci.tangram.util
         /// </summary>
         BITMAP = unoidl.com.sun.star.drawing.FillStyle.BITMAP
     }
-
 
     public enum BitmapMode
     {
@@ -1144,6 +1964,111 @@ namespace tud.mci.tangram.util
         /// </summary>
         ROUNDRELATIVE = unoidl.com.sun.star.drawing.DashStyle.ROUNDRELATIVE
     }
+
+    /// <summary>
+    /// Defines how a bezier curve goes through a point.
+    /// </summary>
+    public enum PolygonFlags
+    {
+        /// <summary>
+        /// the point is normal, from the curve discussion view.  
+        /// </summary>
+        NORMAL = unoidl.com.sun.star.drawing.PolygonFlags.NORMAL,
+        /// <summary>
+        /// the point is smooth, the first derivation from the curve discussion view.  
+        /// </summary>
+        SMOOTH = unoidl.com.sun.star.drawing.PolygonFlags.SMOOTH,
+        /// <summary>
+        ///  the point is a control point, to control the curve from the user interface.  
+        /// </summary>
+        CONTROL = unoidl.com.sun.star.drawing.PolygonFlags.CONTROL,
+        /// <summary>
+        /// the point is symmetric, the second derivation from the curve discussion view.
+        /// </summary>
+        SYMMETRIC = unoidl.com.sun.star.drawing.PolygonFlags.SYMMETRIC,
+
+        //unoidl.com.sun.star.drawing.
+    }
+
+    /// <summary>
+    /// This enumeration defines the type of polygon.
+    /// Property 'PolygonKind'.
+    /// </summary>
+    public enum PolygonKind
+    {
+        /// <summary>
+        /// This is the PolygonKind for a LineShape. 
+        /// </summary>
+        LINE = unoidl.com.sun.star.drawing.PolygonKind.LINE,
+        /// <summary>
+        ///  This is the PolygonKind for a PolyPolygonShape.  
+        /// </summary>
+        POLY = unoidl.com.sun.star.drawing.PolygonKind.POLY,
+        /// <summary>
+        /// This is the PolygonKind for a PolyLineShape.  
+        /// </summary>
+        PLIN = unoidl.com.sun.star.drawing.PolygonKind.PLIN,
+        /// <summary>
+        /// This is the PolygonKind for an OpenBezierShape.
+        /// </summary>
+        PATHLINE = unoidl.com.sun.star.drawing.PolygonKind.PATHLINE,
+        /// <summary>
+        /// This is the PolygonKind for a ClosedBezierShape. 
+        /// </summary>
+        PATHFILL = unoidl.com.sun.star.drawing.PolygonKind.PATHFILL,
+        /// <summary>
+        /// This is the PolygonKind for an OpenFreeHandShape.
+        /// </summary>
+        FREELINE = unoidl.com.sun.star.drawing.PolygonKind.FREELINE,
+        /// <summary>
+        /// This is the PolygonKind for a ClosedFreeHandShape.
+        /// </summary>
+        FREEFILL = unoidl.com.sun.star.drawing.PolygonKind.FREEFILL,
+        /// <summary>
+        /// This is the PolygonKind for a PolyPolygonPathShape.
+        /// </summary>
+        PATHPOLY = unoidl.com.sun.star.drawing.PolygonKind.PATHPOLY,
+        /// <summary>
+        /// This is the PolygonKind for a PolyLinePathShape.
+        /// </summary>
+        PATHPLIN = unoidl.com.sun.star.drawing.PolygonKind.PATHPLIN,
+    }
+
+
+
+    #endregion
+
+    #region Structs
+
+    /// <summary>
+    /// A Struct to define Points of polypoint structures.
+    /// </summary>
+    public struct PolyPointDescriptor
+    {
+        /// <summary>
+        /// specifies the x-coordinate. 
+        /// </summary>
+        public int X;
+        /// <summary>
+        /// specifies the y-coordinate. 
+        /// </summary>
+        public int Y;
+        /// <summary>
+        /// defines how a bezier curve goes through a point.
+        /// </summary>
+        public PolygonFlags Flag;
+
+        public PolyPointDescriptor(int x, int y, PolygonFlags flag = PolygonFlags.NORMAL)
+        {
+            X = x;
+            Y = y;
+            Flag = flag;
+        }
+
+        internal PolyPointDescriptor(Point p, PolygonFlags flag = PolygonFlags.NORMAL)
+            : this(p != null ? p.X : 0, p != null ? p.Y : 0, flag) { }
+    }
+
 
     #endregion
 
