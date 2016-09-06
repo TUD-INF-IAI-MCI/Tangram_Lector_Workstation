@@ -1094,12 +1094,13 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="valueIn100thMm">A length value in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <param name="dpi">A dpi value, 96 by default.</param>
-        /// <returns>The length in pixels.</returns>
+        /// <param name="pixelPerMeter">The pixels per meter. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// The length in pixels.
+        /// </returns>
         public static int convertToPixel(int valueIn100thMm, int zoomInPercent, double pixelPerMeter = (96.0 / 25.4) * 1000.0)
         {
             return (int)(zoomInPercent * valueIn100thMm * pixelPerMeter / 10000000.0);
-            //return dpi * zoomInPercent * valueIn100thMm / 254000;
         }
 
         /// <summary>
@@ -1107,7 +1108,11 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="pos">Coordinate in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Coordinate in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Coordinate in px.
+        /// </returns>
         internal static Point convertToPixel(Point pos, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new Point(convertToPixel(pos.X, zoomInPercent, pxPerMeterX), convertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
@@ -1118,7 +1123,11 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="pos">Coordinate in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Coordinate in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Coordinate in px.
+        /// </returns>
         public static System.Drawing.Point convertToPixel(System.Drawing.Point pos, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new System.Drawing.Point(convertToPixel(pos.X, zoomInPercent, pxPerMeterX), convertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
@@ -1129,7 +1138,11 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="size">Size in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Size in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Size in px.
+        /// </returns>
         internal static Size convertToPixel(Size size, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new Size(convertToPixel(size.Width, zoomInPercent, pxPerMeterX), convertToPixel(size.Height, zoomInPercent, pxPerMeterY));
@@ -1140,7 +1153,11 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="size">Size in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Size in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Size in px.
+        /// </returns>
         public static System.Drawing.Size convertToPixel(System.Drawing.Size size, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new System.Drawing.Size(convertToPixel(size.Width, zoomInPercent, pxPerMeterX), convertToPixel(size.Height, zoomInPercent, pxPerMeterY));
@@ -1151,7 +1168,11 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="rect">Rectangle in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Rectangle in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Rectangle in px.
+        /// </returns>
         internal static unoidl.com.sun.star.awt.Rectangle convertToPixel(unoidl.com.sun.star.awt.Rectangle rect, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new unoidl.com.sun.star.awt.Rectangle(convertToPixel(rect.X, zoomInPercent, pxPerMeterX), convertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
@@ -1164,11 +1185,29 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="rect">Rectangle in 100th/mm.</param>
         /// <param name="zoomInPercent">A zoom value in percent (e.g. 102 for 102%).</param>
-        /// <returns>Rectangle in px.</returns>
+        /// <param name="pxPerMeterX">The px per meter x. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <param name="pxPerMeterY">The px per meter y. Default is (96.0 / 25.4) * 1000.0</param>
+        /// <returns>
+        /// Rectangle in px.
+        /// </returns>
         public static System.Drawing.Rectangle convertToPixel(System.Drawing.Rectangle rect, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
             return new System.Drawing.Rectangle(convertToPixel(rect.X, zoomInPercent, pxPerMeterX), convertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
                 convertToPixel(rect.Width, zoomInPercent, pxPerMeterX), convertToPixel(rect.Height, zoomInPercent, pxPerMeterY));
+        }
+
+        /// <summary>
+        /// Converts pixel into the internal document unit of 100/mm.
+        /// ATTENTION: the return internal document units have to be corrected with the current applied zoom level,
+        /// if you want to transform pixel to units! You have to do this by your own afterwards!! 
+        /// </summary>
+        /// <param name="value">The pixel value.</param>
+        /// <returns> value / (96.0 / 25.4) * 100 = value in 100/mm on a resolution of 96 dpi</returns>
+        public static int ConvertPixelTo100thmm(double value)
+        {
+            double v = value / (96.0 / 25.4);
+            v = v * 100;
+            return (int)Math.Round(v, 0, MidpointRounding.AwayFromZero);
         }
 
         /// <summary>
@@ -1213,6 +1252,115 @@ namespace tud.mci.tangram.util
             int maxY = Math.Max(Math.Max(Math.Max(p1.Y, p2.Y), p3.Y), p4.Y);
             return new Rectangle(minX, minY, maxX - minX, maxY - minY);
         }
+        #endregion
+
+        #region Screen Position To Document Position
+        /// <summary>
+        /// Gets the document position from a screen position.
+        /// </summary>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="currentPage">The current page [XDrawPage].</param>
+        /// <param name="currentView">The current view [XDrawView].</param>
+        /// <returns>The position on the page based on document page position and current zoom level.</returns>
+        public static System.Drawing.Point GetDocumentPositionFromScreenPosition(double x, double y, Object currentPage, Object currentView)
+        {
+            Point p = GetDocumentPositionFromScreenPosition(x, y, currentPage as XDrawPage, currentView as XDrawView);
+            return new System.Drawing.Point(p.X, p.Y);
+        }
+
+        /// <summary>
+        /// Gets the document position from a screen position.
+        /// </summary>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="currentPage">The current page [XDrawPage].</param>
+        /// <param name="currentView">The current view [XDrawView].</param>
+        /// <returns>
+        /// The position on the page based on document page position and current zoom level.
+        /// </returns>
+        internal static Point GetDocumentPositionFromScreenPosition(double x, double y, XDrawPage currentPage, XDrawView currentView)
+        {
+            if (currentPage != null && currentView != null)
+            {
+                var zoom = OoUtils.GetProperty(currentView, "ZoomValue");
+                var viewOffset = OoUtils.GetProperty(currentView, "ViewOffset");
+
+                int zoomInPercent = Int32.Parse(zoom.ToString());
+
+                Point viewOffsetAsPoint = viewOffset is Point ? (Point)viewOffset : new Point(0, 0);
+                double zoomFactor = ((double)zoomInPercent / 100.0);
+
+                double xOffsetZoomed = zoomFactor * viewOffsetAsPoint.X;
+                double yOffsetZoomed = zoomFactor * viewOffsetAsPoint.Y;
+
+                double xIn100thmm = ConvertPixelTo100thmm(x) + xOffsetZoomed;
+                double yIn100thmm = ConvertPixelTo100thmm(y) + yOffsetZoomed;
+
+                int xZoomed = (int)Math.Round(xIn100thmm / zoomFactor, 0, MidpointRounding.AwayFromZero);
+                int yZoomed = (int)Math.Round(yIn100thmm / zoomFactor, 0, MidpointRounding.AwayFromZero);
+
+                Point p = new Point(xZoomed, yZoomed);
+                return p;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the document position without screen position.
+        /// </summary>
+        /// <param name="page">The page[XDrawPage].</param>
+        /// <param name="drawView">The draw view[XDrawView].</param>
+        /// <param name="coords1">The coords1.</param>
+        /// <param name="coords2">The coords2.</param>
+        public static void GetDocumentPositionWithoutScreenPosition(Object page, Object drawView, out System.Drawing.Point coords1, out System.Drawing.Point coords2)
+        {
+            System.Drawing.Point p1, p2;
+            GetDocumentPositionWithoutScreenPosition(page as XDrawPage, drawView as XDrawView, out p1, out p2);
+            coords1.X = p1.X;
+            coords1.Y = p1.Y;
+            coords2.X = p2.X;
+            coords2.Y = p2.Y;
+        }
+
+        /// <summary>
+        /// Gets the document position without screen position.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="drawView">The draw view.</param>
+        /// <param name="coords1">The coords1.</param>
+        /// <param name="coords2">The coords2.</param>
+        internal static void GetDocumentPositionWithoutScreenPosition(XDrawPage page, XDrawView drawView, out Point coords1, out Point coords2)
+        {
+            var zoom = OoUtils.GetProperty(drawView, "ZoomValue");
+            var viewOffset = OoUtils.GetProperty(drawView, "ViewOffset");
+            var width = OoUtils.GetProperty(page, "Width");
+            var height = OoUtils.GetProperty(page, "Height");
+
+            double zoomInPercent = Int32.Parse(zoom.ToString());
+            double pageHeight = Int32.Parse(height.ToString());
+            double pageWidth = Int32.Parse(width.ToString());
+
+            Point viewOffsetAsPoint = viewOffset is Point ? (Point)viewOffset : new Point(0, 0);
+            double zoomFactor = (zoomInPercent / 100.0);
+
+            double xZoomedOffset = zoomFactor * viewOffsetAsPoint.X;
+            double yZoomedOffset = zoomFactor * viewOffsetAsPoint.Y;
+
+            double x1 = Math.Abs(xZoomedOffset) + pageWidth / 3;
+            double y1 = Math.Abs(yZoomedOffset) + pageHeight / 3;
+            double x2 = Math.Abs(xZoomedOffset) + pageWidth * 2 / 3;
+            double y2 = Math.Abs(yZoomedOffset) + pageHeight * 2 / 3;
+
+            int xOffsetZoomed = (int)Math.Round(x1 + xZoomedOffset, 0, MidpointRounding.AwayFromZero);
+            int yOffsetZoomed = (int)Math.Round(y1 + yZoomedOffset, 0, MidpointRounding.AwayFromZero); ;
+            int x2OffsetZoomed = (int)Math.Round(x2 + xZoomedOffset, 0, MidpointRounding.AwayFromZero); ;
+            int y2OffsetZoomed = (int)Math.Round(y2 + yZoomedOffset, 0, MidpointRounding.AwayFromZero); ;
+
+            coords1 = new Point(xOffsetZoomed, yOffsetZoomed);
+            coords2 = new Point(x2OffsetZoomed, y2OffsetZoomed);
+        }
+
         #endregion
 
         #region Homogen Matrix Conversion
