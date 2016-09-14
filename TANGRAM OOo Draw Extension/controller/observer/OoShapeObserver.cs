@@ -374,6 +374,14 @@ namespace tud.mci.tangram.controller.observer
         #region Validation
 
         /// <summary>
+        /// A flag for disabling the validation request. The request for validation collides sometimes with the 
+        /// change of properties such as polygon points.
+        /// </summary>
+        internal static volatile bool LockValidation = false;
+        
+        bool valid = true;
+
+        /// <summary>
         /// Determines whether this instance is valid.
         /// </summary>
         /// <returns>
@@ -381,12 +389,17 @@ namespace tud.mci.tangram.controller.observer
         /// </returns>
         public bool IsValid()
         {
-            bool valid = true;
+            if (LockValidation)
+            {
+                return valid;
+            }
+
+            valid = true;
             try
             {
                 if (!Disposed && Shape != null && Page != null)
                 {
-                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, () =>
+                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
                     {
                         try
                         {

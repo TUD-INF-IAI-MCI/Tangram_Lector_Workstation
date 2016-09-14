@@ -451,9 +451,12 @@ namespace tud.mci.tangram.TangramLector.OO
             {
                 Logger.Instance.Log(LogPriority.DEBUG, ex);
             }
-            tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
-            //TODO: check why the screenobserver does not capture the screen
-            wm.ScreenObserver.ObserveScreen();
+            //tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
+            ////TODO: check why the screenobserver does not capture the screen
+            //wm.ScreenObserver.ObserveScreen();
+
+            addWindowEvent(e);
+
             audioRenderer.PlaySound(LL.GetTrans("tangram.lector.oo_observer.window_minimized", e.Window.Title));
         }
 
@@ -512,45 +515,62 @@ namespace tud.mci.tangram.TangramLector.OO
                 stack.Clear();
                 if (e != null && e.Window != null && !e.Window.Disposed)
                 {
-                    if (windowManager != null)
+                    if (!e.Window.IsVisible() || e.Type.HasFlag(WindowEventType.CLOSED) || e.Type.HasFlag(WindowEventType.MINIMIZED))
                     {
-                        windowManager.SetTopRegionContent(e.Window.Title);
+                        resetScreenObserver(windowManager);
                     }
-
-                    Thread.Sleep(50); // gives the element the chance to finish the changes before requesting the new properties. Should prevent a hang on. 
-
-                    tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
-                    try
+                    else
                     {
-                        Logger.Instance.Log(LogPriority.DEBUG, this, "ooDraw wnd property changed " + e.Window.ToString());
-
-                        var bounds = e.Window.DocumentComponent.ScreenBounds;
-                        var whndl = e.Window.Whnd;
-
-                        if (bounds.Height < 1 || bounds.Width < 1)
+                        if (windowManager != null)
                         {
-                            //TODO: check if minimized
-                            if (boundsCache.ContainsKey(whndl)) { bounds = boundsCache[whndl]; }
-                        }
-                        else
-                        {
-                            boundsCache.AddOrUpdate(whndl, bounds, (key, existingVal) => { return bounds; });
+                            windowManager.SetTopRegionContent(e.Window.Title);
                         }
 
-                        DocumentBorderHook.Wnd = e.Window;
-                        wm.ScreenObserver.SetPartOfWhnd(bounds, whndl);
+                        Thread.Sleep(50); // gives the element the chance to finish the changes before requesting the new properties. Should prevent a hang on. 
 
-                    }
-                    catch (System.Exception ex)
-                    {
-                        if (wm != null && wm.ScreenObserver != null) wm.ScreenObserver.ObserveScreen();
-                        Logger.Instance.Log(LogPriority.DEBUG, ex);
+                        tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
+                        try
+                        {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "ooDraw wnd property changed " + e.Window.ToString());
+
+                            var bounds = e.Window.DocumentComponent.ScreenBounds;
+                            var whndl = e.Window.Whnd;
+
+                            if (bounds.Height < 1 || bounds.Width < 1)
+                            {
+                                //TODO: check if minimized
+                                if (boundsCache.ContainsKey(whndl)) { bounds = boundsCache[whndl]; }
+                            }
+                            else
+                            {
+                                boundsCache.AddOrUpdate(whndl, bounds, (key, existingVal) => { return bounds; });
+                            }
+
+                            DocumentBorderHook.Wnd = e.Window;
+                            wm.ScreenObserver.SetPartOfWhnd(bounds, whndl);
+
+                        }
+                        catch (System.Exception ex)
+                        {
+                            resetScreenObserver(wm);
+                            Logger.Instance.Log(LogPriority.DEBUG, ex);
+                        }
                     }
                 }
             }
 
             windowEventThread = null;
             return;
+        }
+
+        private static void resetScreenObserver(tud.mci.tangram.TangramLector.WindowManager wm)
+        {
+
+            if (wm != null)
+            {
+                if (wm.ScreenObserver != null) wm.ScreenObserver.ObserveScreen();
+                wm.SetTopRegionContent("");
+            }
         }
 
         #endregion

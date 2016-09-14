@@ -6,6 +6,10 @@ using System.Timers;
 
 namespace tud.mci.tangram.TangramLector
 {
+    /// <summary>
+    /// Event arguments for a captured screen shot
+    /// </summary>
+    /// <seealso cref="System.EventArgs" />
     public class CaptureChangedEventArgs : EventArgs
     {
         /// <summary>
@@ -13,6 +17,10 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         /// <value>The screen capture.</value>
         public Image Img { get; private set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CaptureChangedEventArgs"/> class.
+        /// </summary>
+        /// <param name="image">The image.</param>
         public CaptureChangedEventArgs(Image image)
         {
             Img = image;
@@ -25,10 +33,34 @@ namespace tud.mci.tangram.TangramLector
     public class ScreenObserver
     {
         #region Members
-        double refreshRate;
+        //double refreshRate;
         Timer refreshTimer;
-        //IntPtr Whnd = IntPtr.Zero;
-        public IntPtr Whnd { get; private set; }
+        /// <summary>
+        /// Gets the Window handle of the window to capture.
+        /// </summary>
+        /// <value>
+        /// The window handle.
+        /// </value>
+        private IntPtr _whnd; // { get; private set; }
+        /// <summary>
+        /// Gets the Window handle of the window to capture.
+        /// </summary>
+        /// <value>
+        /// The window handle.
+        /// </value>
+        public IntPtr Whnd
+        {
+            get { return _whnd; }
+            private set {
+                _whnd = value;
+            }
+        }
+        /// <summary>
+        /// Gets or sets the screen position to capture.
+        /// </summary>
+        /// <value>
+        /// The screen position.
+        /// </value>
         public Object ScreenPos { private set; get; }
         #endregion
 
@@ -41,7 +73,7 @@ namespace tud.mci.tangram.TangramLector
         public ScreenObserver(double interval)
         {
             if (interval <= 0) throw new ArgumentException("Timer interval has to be higher than 0", "interval");
-            refreshRate = interval;
+            //refreshRate = interval;
 
             refreshTimer = new Timer(interval);
             refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
@@ -64,7 +96,6 @@ namespace tud.mci.tangram.TangramLector
             refreshTimer = timer;
             refreshTimer.Elapsed += new ElapsedEventHandler(refreshTimer_Elapsed);
         }
-        
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver" /> class.
         /// This Observer generates screen shots of the given application/window.
@@ -73,7 +104,7 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="wHnd">The window handle of the window/application to observe.</param>
         /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be
         /// handled if the result is 0. Default is 1.</param>
-        public ScreenObserver(Timer timer, IntPtr wHnd, int tickMod = 1) : this(timer, tickMod) { Whnd = wHnd; }
+        public ScreenObserver(Timer timer, IntPtr wHnd, int tickMod = 1) : this(timer, tickMod) { _whnd = wHnd; }
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver" /> class.
         /// This Observer generates screen shots of the screen position.
@@ -83,14 +114,13 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="tickMod">The tick modulo. Modulo value for which the timer event should be
         /// handled if the result is 0. Default is 1.</param>
         public ScreenObserver(Timer timer, Rectangle screenPosition, int tickMod = 1) : this(timer, tickMod) { ScreenPos = screenPosition; }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver"/> class.
         /// This Observer generates screen shots of the given application/window.
         /// </summary>
         /// <param name="interval">The capturing interval in milliseconds.</param>
         /// <param name="wHnd">The window handle of the window/application to observe.</param>
-        public ScreenObserver(double interval, IntPtr wHnd) : this(interval) { Whnd = wHnd; }
+        public ScreenObserver(double interval, IntPtr wHnd) : this(interval) { _whnd = wHnd; }
         /// <summary>
         /// Initializes a new instance of the <see cref="ScreenObserver"/> class.
         /// This Observer generates screen shots of the screen position.
@@ -102,7 +132,15 @@ namespace tud.mci.tangram.TangramLector
         #endregion
 
         #region Event
+        /// <summary>
+        /// Handler for changing screen shots.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="CaptureChangedEventArgs"/> instance containing the event data.</param>
         public delegate void CaptureChangedEventHandler(object sender, CaptureChangedEventArgs e);
+        /// <summary>
+        /// Occurs when a new screen shot was produces.
+        /// </summary>
         public event CaptureChangedEventHandler Changed;
         #endregion
 
@@ -162,7 +200,7 @@ namespace tud.mci.tangram.TangramLector
         /// <returns>true if the observer could be started otherwise false.</returns>
         public bool Start()
         {
-            if (refreshRate > 0 && refreshTimer != null)
+            if (refreshTimer != null)
             {
                 refreshTimer.Start();
                 return refreshTimer.Enabled = true;
@@ -204,12 +242,16 @@ namespace tud.mci.tangram.TangramLector
                 ScreenPos = null;
                 Whnd = wHnd;
             }
+            else
+            {
+                Whnd = IntPtr.Zero;
+            }
         }
         /// <summary>
         /// Sets the screen position to capture.
         /// </summary>
         /// <param name="screenPosition">The screen position.</param>
-        public void SetScreenPos(Rectangle screenPosition) { Whnd = IntPtr.Zero; ScreenPos = screenPosition; }
+        public void SetScreenPos(Rectangle screenPosition) { SetWhnd(IntPtr.Zero); ScreenPos = screenPosition; }
         /// <summary>
         /// Sets the part of window handle to capture.
         /// </summary>
@@ -219,11 +261,21 @@ namespace tud.mci.tangram.TangramLector
         {
             if (tud.mci.tangram.TangramLector.ScreenCapture.User32.IsWindow(wHnd))
             { ScreenPos = position; Whnd = wHnd; }
+            else
+            {
+                Whnd = IntPtr.Zero;
+                ScreenPos = null;
+            }
         }
         /// <summary>
         /// Captures the first screen (positive parts).
         /// </summary>
-        public void ObserveScreen() { Stop(); Whnd = tud.mci.tangram.TangramLector.ScreenCapture.User32.GetDesktopWindow(); ScreenPos = null; Start(); }
+        public void ObserveScreen() { 
+            Stop(); 
+            Whnd = tud.mci.tangram.TangramLector.ScreenCapture.User32.GetDesktopWindow(); 
+            ScreenPos = null;
+            Start(); 
+        }
 
         Image capture()
         {

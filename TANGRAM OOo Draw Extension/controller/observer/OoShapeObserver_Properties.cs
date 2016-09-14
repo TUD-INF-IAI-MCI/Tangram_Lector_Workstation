@@ -841,80 +841,134 @@ namespace tud.mci.tangram.controller.observer
 
         #region Pologon Points
 
-        /// <summary>
-        /// Gets a list of polygon point observers.
-        /// </summary>
-        /// <returns>a list of polygon point observers</returns>
-        public List<OoPolygonPointObserver> GetPolygonPoints()
+
+        public List<List<PolyPointDescriptor>> GetPolyPolygonPoints()
         {
-            List<OoPolygonPointObserver> points = new List<OoPolygonPointObserver>();
-            if (Shape != null && IsValid())
-            {
-                unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
-                if (poly != null)
-                {
-                    for (int i = 0; i < poly.Length; i++)
-                    {
-                        OoPolygonPointObserver pObs = new OoPolygonPointObserver(this, poly[i], i);
-                        points.Add(pObs);
-                    }
-                }
-            }
+            var points = PolygonHelper.GetPolyPoints(Shape);
+
             return points;
         }
 
         /// <summary>
-        /// Sets the polygon points.
+        /// Sets the poly polygon points to the shape.
         /// </summary>
         /// <param name="points">The points.</param>
-        /// <returns></returns>
-        public bool SetPolygonPoints(List<OoPolygonPointObserver> points)
+        public void SetPolyPolygonPoints(List<List<PolyPointDescriptor>> points)
         {
-            if (Shape != null && IsValid())
+            //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            //watch.Restart();
+            try
             {
-                if (points == null || points.Count == 0)
-                {
-                    return SetProperty("Polygon", new unoidl.com.sun.star.awt.Point[0]);
-                }
-
-                unoidl.com.sun.star.awt.Point[] poly = new unoidl.com.sun.star.awt.Point[points.Count];
-
-                Parallel.For(0, points.Count,
-                    (i) =>
-                    {
-                        var p = points[(int)i];
-                        Point pP = new Point();
-                        if (p != null)
-                        {
-                            pP.X = p.P.X;
-                            pP.Y = p.P.Y;
-                        }
-                        poly[i] = pP;
+                Task t = new Task(
+                    () => {
+                        LockValidation = true;
+                        try { PolygonHelper.SetPolyPoints(Shape, points); }
+                        finally { LockValidation = false; }
                     }
                 );
-                return SetProperty("Polygon", poly);
+                t.Start();
             }
-            return false;
+            finally
+            {
+                //watch.Stop();
+                //System.Diagnostics.Debug.WriteLine("Ticks for handling Polygon setting Points:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
+            }
         }
 
-        public bool SetPolygonPoint(OoPolygonPointObserver point, int index)
-        {
-            if (point != null) { return SetPolygonPoint(point.P.X, point.P.Y, index); }
-            return false;
-        }
-        public bool SetPolygonPoint(int x, int y, int index)
-        {
-            if (index >= 0 && Shape != null && IsValid())
-            {
-                unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
-                if (poly != null && poly.Length > index)
-                {
-                    poly[index] = new Point(x, y);
-                    return SetProperty("Polygon", poly);
-                }
-            }
-            return false;
-        }
+        #region OLD DEPRECATED POLYGON POINT STUFF
+
+        ///// <summary>
+        ///// Gets a list of polygon point observers.
+        ///// </summary>
+        ///// <returns>a list of polygon point observers</returns>
+        //public List<OoPolygonPointObserver> GetPolygonPoints()
+        //{
+        //    List<OoPolygonPointObserver> points = new List<OoPolygonPointObserver>();
+        //    if (Shape != null && IsValid())
+        //    {
+        //        unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
+        //        if (poly != null)
+        //        {
+        //            for (int i = 0; i < poly.Length; i++)
+        //            {
+        //                OoPolygonPointObserver pObs = new OoPolygonPointObserver(this, poly[i], i);
+        //                points.Add(pObs);
+        //            }
+        //        }
+        //    }
+        //    return points;
+        //}
+
+        ///// <summary>
+        ///// Sets the polygon points.
+        ///// </summary>
+        ///// <param name="points">The points.</param>
+        ///// <returns><c>true if the points could be ste to the polygon</c></returns>
+        //public bool SetPolygonPoints(List<OoPolygonPointObserver> points)
+        //{
+        //    if (Shape != null && IsValid())
+        //    {
+        //        if (points == null || points.Count == 0)
+        //        {
+        //            return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[0][]);
+        //        }
+
+        //        unoidl.com.sun.star.awt.Point[] poly = new unoidl.com.sun.star.awt.Point[points.Count];
+
+        //        Parallel.For(0, points.Count,
+        //            (i) =>
+        //            {
+        //                var p = points[(int)i];
+        //                Point pP = new Point();
+        //                if (p != null)
+        //                {
+        //                    pP.X = p.P.X;
+        //                    pP.Y = p.P.Y;
+        //                }
+        //                poly[i] = pP;
+        //            }
+        //        );
+        //        return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[][]{poly});
+        //    }
+        //    return false;
+        //}
+        ///// <summary>
+        ///// Sets the polygon points.
+        ///// </summary>
+        ///// <param name="point">The point.</param>
+        ///// <param name="index">The index.</param>
+        ///// <returns>
+        /////   <c>true if the point could be ste to the polygon</c>
+        ///// </returns>
+        //public bool SetPolygonPoint(OoPolygonPointObserver point, int index)
+        //{
+        //    if (point != null) { return SetPolygonPoint(point.P.X, point.P.Y, index); }
+        //    return false;
+        //}
+        ///// <summary>
+        ///// Sets the polygon points.
+        ///// </summary>
+        ///// <param name="x">The x.</param>
+        ///// <param name="y">The y.</param>
+        ///// <param name="index">The index.</param>
+        ///// <returns>
+        /////   <c>true if the point could be ste to the polygon</c>
+        ///// </returns>
+        //public bool SetPolygonPoint(int x, int y, int index)
+        //{
+        //    if (index >= 0 && Shape != null && IsValid())
+        //    {
+        //        unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
+        //        if (poly != null && poly.Length > index)
+        //        {
+        //            poly[index] = new Point(x, y);
+        //            return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[][] { poly });
+        //        }
+        //    }
+        //    return false;
+        //}
+
+        #endregion
 
         #endregion
 

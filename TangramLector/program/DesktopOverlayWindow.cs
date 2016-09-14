@@ -221,14 +221,21 @@ namespace tud.mci.tangram.TangramLector
         {
             // switch blinking state
             onState = !onState;
-            if (onState)
+            try
             {
-                transparentOverlayPictureBox1.Visible = true;
-                //ShowInactiveTopmost(this);
+                if (onState)
+                {
+                    transparentOverlayPictureBox1.Visible = true;
+                    //ShowInactiveTopmost(this);
+                }
+                else
+                {
+                    transparentOverlayPictureBox1.Visible = false;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                transparentOverlayPictureBox1.Visible = false;
+                Logger.Instance.Log(LogPriority.IMPORTANT, this, ex); 
             }
         }
     }

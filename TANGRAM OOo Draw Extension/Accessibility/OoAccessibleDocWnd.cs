@@ -12,6 +12,7 @@ using unoidl.com.sun.star.lang;
 using unoidl.com.sun.star.view;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace tud.mci.tangram.Accessibility
 {
@@ -326,8 +327,6 @@ namespace tud.mci.tangram.Accessibility
 
         private void addDocumentListeners(object dw)
         {
-
-
             if (xAccessibleListener != null)
             {
                 if (dw != null)
@@ -342,7 +341,6 @@ namespace tud.mci.tangram.Accessibility
 #else
                             ((XAccessibleEventBroadcaster)dw).removeEventListener(xAccessibleListener);
 #endif
-
                         }
                         catch (unoidl.com.sun.star.lang.DisposedException)
                         {
@@ -504,14 +502,22 @@ namespace tud.mci.tangram.Accessibility
         void xWindowListener_WindowEnabled(object sender, EventObjectForwarder e) { windowEnabled(e.E); }
         void xWindowListener_WindowDisabled(object sender, EventObjectForwarder e) { windowDisabled(e.E); }
 
-        void windowDisabled(unoidl.com.sun.star.lang.EventObject e) { fireWindowEvent(WindowEventType.disabled, e); }
-        void windowEnabled(unoidl.com.sun.star.lang.EventObject e) { fireWindowEvent(WindowEventType.enabled, e); }
-        void windowHidden(unoidl.com.sun.star.lang.EventObject e) { fireWindowEvent(WindowEventType.hidden, e); }
-        void windowMoved(WindowEvent e) { fireWindowEvent(WindowEventType.moved, e); }
-        void windowResized(WindowEvent e) { fireWindowEvent(WindowEventType.rezized, e); }
-        void windowShown(unoidl.com.sun.star.lang.EventObject e) { fireWindowEvent(WindowEventType.shown, e); }
+        /// <summary>
+        /// Gets the last known state of the window.
+        /// </summary>
+        /// <value>
+        /// The last known state of the  window.
+        /// </value>
+        public WindowEventType LastKnownWindowState { get; private set; }
 
-        void disposing(unoidl.com.sun.star.lang.EventObject Source) { fireWindowEvent(WindowEventType.disposing, Source); }
+        void windowDisabled(unoidl.com.sun.star.lang.EventObject e) { LastKnownWindowState = WindowEventType.DEACTIVATED; fireWindowEvent(WindowEventType.DEACTIVATED, e); }
+        void windowEnabled(unoidl.com.sun.star.lang.EventObject e) { LastKnownWindowState = WindowEventType.ACTIVATED; fireWindowEvent(WindowEventType.ACTIVATED, e); }
+        void windowHidden(unoidl.com.sun.star.lang.EventObject e) { LastKnownWindowState = WindowEventType.MINIMIZED; fireWindowEvent(WindowEventType.MINIMIZED, e); }
+        void windowMoved(WindowEvent e) { fireWindowEvent(WindowEventType.CHANGED, e); }
+        void windowResized(WindowEvent e) { fireWindowEvent(WindowEventType.CHANGED, e); }
+        void windowShown(unoidl.com.sun.star.lang.EventObject e) { LastKnownWindowState = WindowEventType.OPENED; fireWindowEvent(WindowEventType.OPENED, e); }
+
+        void disposing(unoidl.com.sun.star.lang.EventObject Source) { LastKnownWindowState = WindowEventType.CLOSED; fireWindowEvent(WindowEventType.CLOSED, Source); }
 
         #endregion
 
@@ -650,7 +656,7 @@ namespace tud.mci.tangram.Accessibility
 
         /// <summary>
         /// Return the current active page.
-        /// Trys to call the active page observer only once
+        /// Tries to call the active page observer only once
         /// </summary>
         /// <returns></returns>
         public OoDrawPageObserver GetActivePage()
@@ -722,7 +728,7 @@ namespace tud.mci.tangram.Accessibility
 
 
         XController _lastController = null;
-        volatile bool _gttingController = false;
+        volatile bool _gettingController = false;
         /// <summary>
         /// Tries the get the controller of the document model.
         /// </summary>
@@ -733,17 +739,15 @@ namespace tud.mci.tangram.Accessibility
             get
             {
                 if (_lastController != null) return _lastController;
-                if (_gttingController) return _lastController;
+                if (_gettingController) return _lastController;
 
                 XController contr = null;
                 //lock (_controlerLock)
                 {
-                    _gttingController = true;
+                    _gettingController = true;
                     XModel2 model = DrawPageSupplier as XModel2;
                     if (model != null)
                     {
-                        //FIXME: lead to hang ons
-                        //TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () => { model.lockControllers(); }, "LockControlers");
                         TimeLimitExecutor.WaitForExecuteWithTimeLimit(200,
                                     () =>
                                     {
@@ -763,8 +767,6 @@ namespace tud.mci.tangram.Accessibility
                                     }
                                     , "getControllerOfModel"
                                     );
-                        //FIXME: lead to hang ons
-                        //TimeLimitExecutor.ExecuteWithTimeLimit(50, () => { model.unlockControllers(); }, "UnlockControlers");
                     }
                     _lastController = contr;
 
@@ -798,7 +800,7 @@ namespace tud.mci.tangram.Accessibility
                         }
                     }
 
-                    _gttingController = false;
+                    _gettingController = false;
                 }
                 return contr;
             }
@@ -843,6 +845,46 @@ namespace tud.mci.tangram.Accessibility
                          );
             }
             return pid;
+        }
+
+        [DllImport("user32.dll")]
+        static extern int IsIconic(int hwnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool GetWindowInfo(IntPtr hWnd, out WINDOWINFO pwi);
+
+        [DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, ExactSpelling = true)]
+        static extern bool IsWindow(IntPtr hWnd);
+
+        /// <summary>
+        /// Determines whether this window is visible.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this window is visible; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsVisible()
+        {
+            return (IsWindow(this.Whnd) && IsIconic((int)this.Whnd) == 0);
+        }
+
+        /// <summary>
+        /// Determines whether this window is active.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this window is active; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsActive()
+        {
+            if (IsVisible())
+            {
+                WINDOWINFO pwi;
+                // dwWindowStatus = 0x0001 == ACTIVE
+                if (GetWindowInfo(this.Whnd, out pwi))
+                {
+                    return pwi.dwWindowStatus == 0x0001;
+                }
+            }
+            return false;
         }
 
 
@@ -890,6 +932,124 @@ namespace tud.mci.tangram.Accessibility
 
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct WINDOWINFO
+    {
+        public uint cbSize;
+        public RECT rcWindow;
+        public RECT rcClient;
+        public uint dwStyle;
+        public uint dwExStyle;
+        public uint dwWindowStatus;
+        public uint cxWindowBorders;
+        public uint cyWindowBorders;
+        public ushort atomWindowType;
+        public ushort wCreatorVersion;
+
+        public WINDOWINFO(Boolean? filler)
+            : this()   // Allows automatic initialization of "cbSize" with "new WINDOWINFO(null/true/false)".
+        {
+            cbSize = (UInt32)(Marshal.SizeOf(typeof(WINDOWINFO)));
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int Left, Top, Right, Bottom;
+
+        public RECT(int left, int top, int right, int bottom)
+        {
+            Left = left;
+            Top = top;
+            Right = right;
+            Bottom = bottom;
+        }
+
+        public RECT(System.Drawing.Rectangle r) : this(r.Left, r.Top, r.Right, r.Bottom) { }
+
+        public int X
+        {
+            get { return Left; }
+            set { Right -= (Left - value); Left = value; }
+        }
+
+        public int Y
+        {
+            get { return Top; }
+            set { Bottom -= (Top - value); Top = value; }
+        }
+
+        public int Height
+        {
+            get { return Bottom - Top; }
+            set { Bottom = value + Top; }
+        }
+
+        public int Width
+        {
+            get { return Right - Left; }
+            set { Right = value + Left; }
+        }
+
+        public System.Drawing.Point Location
+        {
+            get { return new System.Drawing.Point(Left, Top); }
+            set { X = value.X; Y = value.Y; }
+        }
+
+        public System.Drawing.Size Size
+        {
+            get { return new System.Drawing.Size(Width, Height); }
+            set { Width = value.Width; Height = value.Height; }
+        }
+
+        public static implicit operator System.Drawing.Rectangle(RECT r)
+        {
+            return new System.Drawing.Rectangle(r.Left, r.Top, r.Width, r.Height);
+        }
+
+        public static implicit operator RECT(System.Drawing.Rectangle r)
+        {
+            return new RECT(r);
+        }
+
+        public static bool operator ==(RECT r1, RECT r2)
+        {
+            return r1.Equals(r2);
+        }
+
+        public static bool operator !=(RECT r1, RECT r2)
+        {
+            return !r1.Equals(r2);
+        }
+
+        public bool Equals(RECT r)
+        {
+            return r.Left == Left && r.Top == Top && r.Right == Right && r.Bottom == Bottom;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is RECT)
+                return Equals((RECT)obj);
+            else if (obj is System.Drawing.Rectangle)
+                return Equals(new RECT((System.Drawing.Rectangle)obj));
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return ((System.Drawing.Rectangle)this).GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{{Left={0},Top={1},Right={2},Bottom={3}}}", Left, Top, Right, Bottom);
+        }
+    }
+
     #region Event Arg Definition
 
     public class OoAccessibleDocWindowEventArgs : EventArgs
@@ -930,17 +1090,44 @@ namespace tud.mci.tangram.Accessibility
 
     #region Enums
 
+    /// <summary>
+    /// Define the type of window event
+    /// </summary>
+    [Flags]
     public enum WindowEventType
     {
-        none,
-        disabled,
-        enabled,
-        hidden,
-        moved,
-        rezized,
-        shown,
-        disposing,
-        unkown
+        /// <summary>
+        /// no defined reason
+        /// </summary>
+        NONE = 0,
+        /// <summary>
+        /// unknown reason
+        /// </summary>
+        UNKNOWN = 1,
+        /// <summary>
+        /// window opened
+        /// </summary>
+        OPENED = 2,
+        /// <summary>
+        /// window activated
+        /// </summary>
+        ACTIVATED = 4,
+        /// <summary>
+        /// window deactivated
+        /// </summary>
+        DEACTIVATED = 8,
+        /// <summary>
+        /// window minimized
+        /// </summary>
+        MINIMIZED = 16,
+        /// <summary>
+        /// window closed
+        /// </summary>
+        CLOSED = 32,
+        /// <summary>
+        /// Some properties have changed
+        /// </summary>
+        CHANGED = 64,
     }
 
     #endregion

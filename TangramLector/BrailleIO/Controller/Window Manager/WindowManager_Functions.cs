@@ -26,6 +26,12 @@ namespace tud.mci.tangram.TangramLector
 
         #region Zooming
 
+        /// <summary>
+        /// Calculates the zoom factor that translates the current document zoom level to a zoom level on a pin matrix display, 
+        /// so that objects on the document would equate in size like they should. 
+        /// </summary>
+        /// <param name="wnd">The Document window of the document.</param>
+        /// <returns>the zoom factor so document objects would equate in size how they should.</returns>
         public static float GetPrintZoomLevel(tud.mci.tangram.Accessibility.OoAccessibleDocWnd wnd = null)
         {
             if (wnd == null && OoConnector.Instance != null && OoConnector.Instance.Observer != null)

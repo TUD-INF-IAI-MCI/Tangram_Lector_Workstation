@@ -283,7 +283,7 @@ namespace tud.mci.tangram.controller.observer
                 doc.SelectionEvent += new EventHandler<OoSelectionChandedEventArgs>(doc_SelectionEvent);
             }
         }
-        
+
 
         void doc_Disposing(object sender, EventArgs e)
         {
@@ -338,10 +338,10 @@ namespace tud.mci.tangram.controller.observer
 
                 switch (e.Type)
                 {
-                    case WindowEventType.shown:
+                    case WindowEventType.OPENED:
                         fireDrawWindowActivatedEvent(drawDoc);
                         break;
-                    case WindowEventType.disposing:
+                    case WindowEventType.CLOSED:
                         break;
                     default:
                         fireDrawWindowPropertyChangeEvent(drawDoc);
@@ -641,7 +641,7 @@ namespace tud.mci.tangram.controller.observer
         // on selection you get access to the real XShape object but not to the accessible component
         void Instance_SelectionChanged(object sender, OoSelectionChandedEventArgs e)
         {
-           
+
 
             //var selection = e.Selection;
             //System.Diagnostics.Debug.WriteLine("Accessibility Observer: Selection changed (global Selection Listener)");
@@ -678,6 +678,12 @@ namespace tud.mci.tangram.controller.observer
 
         #region Fire Event
 
+        /// <summary>
+        /// Gets the last known selection collection.
+        /// </summary>
+        /// <value>
+        /// The last selection.
+        /// </value>
         public OoAccessibilitySelectionEventArgs LastSelection { get; private set; }
         private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
         private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
@@ -688,7 +694,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 try
                 {
-                    DrawWindowOpend.DynamicInvoke(this, new OoWindowEventArgs(window));
+                    DrawWindowOpend.DynamicInvoke(this, new OoWindowEventArgs(window, WindowEventType.OPENED));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "can't fire window opened event", ex); }
             }
@@ -715,7 +721,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 try
                 {
-                    DrawWindowPropertyChange.DynamicInvoke(this, new OoWindowEventArgs(window));
+                    DrawWindowPropertyChange.DynamicInvoke(this, new OoWindowEventArgs(window, WindowEventType.CHANGED));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window property change event", ex); }
             }
@@ -726,7 +732,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 try
                 {
-                    DrawWindowClosed.DynamicInvoke(this, new OoWindowEventArgs(window));
+                    DrawWindowClosed.DynamicInvoke(this, new OoWindowEventArgs(window, WindowEventType.CLOSED | WindowEventType.DEACTIVATED));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window closed event", ex); }
             }
@@ -741,7 +747,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 try
                 {
-                    DrawWindowMinimized.DynamicInvoke(this, new OoWindowEventArgs(window));
+                    DrawWindowMinimized.DynamicInvoke(this, new OoWindowEventArgs(window, WindowEventType.MINIMIZED | WindowEventType.DEACTIVATED));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window minimized event", ex); }
             }
@@ -752,7 +758,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 try
                 {
-                    DrawWindowActivated.DynamicInvoke(this, new OoWindowEventArgs(window));
+                    DrawWindowActivated.DynamicInvoke(this, new OoWindowEventArgs(window, WindowEventType.ACTIVATED));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window activated event", ex); }
             }
@@ -883,6 +889,9 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
+        /// <summary>
+        /// Resets this instance and his related Objects.
+        /// </summary>
         public void Reset()
         {
             drawDocs.Clear();
@@ -907,22 +916,38 @@ namespace tud.mci.tangram.controller.observer
     }
 
     #region Event Args
+    /// <summary>
+    /// Event arguments for window events
+    /// </summary>
+    /// <seealso cref="System.EventArgs" />
     public class OoWindowEventArgs : EventArgs
     {
         /// <summary>
         /// The corresponding and event throwing window.
         /// </summary>
         public readonly OoAccessibleDocWnd Window;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="OoWindowEventArgs"/> class.
+        /// The type/reason for the event
+        /// </summary>
+        public readonly WindowEventType Type;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OoWindowEventArgs" /> class.
         /// </summary>
         /// <param name="window">The corresponding and event throwing window.</param>
-        public OoWindowEventArgs(OoAccessibleDocWnd window)
+        /// <param name="_type">The type of event.</param>
+        public OoWindowEventArgs(OoAccessibleDocWnd window, WindowEventType _type = WindowEventType.UNKNOWN)
         {
             Window = window;
+            Type = _type;
         }
     }
 
+    /// <summary>
+    /// Event arguments for selection events
+    /// </summary>
+    /// <seealso cref="System.EventArgs" />
     public class OoAccessibilitySelectionEventArgs : EventArgs
     {
         /// <summary>
@@ -1014,5 +1039,4 @@ namespace tud.mci.tangram.controller.observer
     }
 
     #endregion
-
 }

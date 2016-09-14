@@ -37,6 +37,7 @@ namespace ShowOffAdapterMediator
             try
             {
                 monitor = new ShowOff();
+                ((ShowOff)monitor).SetTitle("Tangram Lektor - Monitor");
                 monitor.Disposed += new EventHandler(monitor_Disposed);
             }
             catch (Exception ex)
