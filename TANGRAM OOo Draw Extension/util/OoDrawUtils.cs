@@ -1317,10 +1317,8 @@ namespace tud.mci.tangram.util
         {
             System.Drawing.Point p1, p2;
             GetDocumentPositionWithoutScreenPosition(page as XDrawPage, drawView as XDrawView, out p1, out p2);
-            coords1.X = p1.X;
-            coords1.Y = p1.Y;
-            coords2.X = p2.X;
-            coords2.Y = p2.Y;
+            coords1 = p1;
+            coords2 = p2;
         }
 
         /// <summary>
@@ -1455,7 +1453,12 @@ namespace tud.mci.tangram.util
         internal static bool IsFreeform(XShape shape)
         {
             return OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_DESCRIPTOR)
-                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR);
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_BEZIER_CLOSED)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_BEZIER_OPEN)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_POLYLINE)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_POLYPOLYGON)
+                ;
         }
         /// <summary>
         /// Determines whether the specified shape is freeform.
@@ -1476,7 +1479,7 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns>XShape</returns>
-        public static Object BuildFreeForm(Object drawDoc, PolygonKind kind, List<LinkedList<PolyPointDescriptor>> coordinates = null, bool geometry = false)
+        public static Object BuildFreeForm(Object drawDoc, PolygonKind kind, List<List<PolyPointDescriptor>> coordinates = null, bool geometry = false)
         {
             XShape shape = null;
 
@@ -1519,8 +1522,14 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        internal static bool SetPolyPoints(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        internal static bool SetPolyPoints(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         {
+            //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            //watch.Restart();
+
+            //try
+            //{
+
             if (shape != null && coordinates != null && coordinates.Count > 0)
             {
                 #region Polygon
@@ -1538,15 +1547,23 @@ namespace tud.mci.tangram.util
                     return AddPointsToPolyPolygonBezierDescriptor(shape, coordinates, geometry);
                 }
                 #endregion
-                else {
+                else
+                {
 
                     //Debug.GetAllServicesOfObject(shape);
                     //Debug.GetAllProperties(shape);
-                
+
                 } // not a polygon or bezier 
             }
 
             return false;
+
+            //}
+            //finally
+            //{
+            //    watch.Stop();
+            //    System.Diagnostics.Debug.WriteLine("Ticks for setting Polygon Points:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
+            //}
         }
 
         /// <summary>
@@ -1557,7 +1574,7 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        public static bool SetPolyPoints(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        public static bool SetPolyPoints(Object shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         { return SetPolyPoints(shape as XShape, coordinates, geometry); }
 
         /// <summary>
@@ -1568,7 +1585,7 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        internal static bool AddPointsToPolyPolygonBezierDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        internal static bool AddPointsToPolyPolygonBezierDescriptor(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         {
             // Geometry           .drawing.PolyPolygonBezierCoords  -STRUCT-
             // PolyPolygonBezier  .drawing.PolyPolygonBezierCoords  -STRUCT-
@@ -1588,8 +1605,8 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        public static bool AddPointsToPolyPolygonBezierDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
-        {return AddPointsToPolyPolygonBezierDescriptor(shape as XShape, coordinates, geometry);}
+        public static bool AddPointsToPolyPolygonBezierDescriptor(Object shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPointsToPolyPolygonBezierDescriptor(shape as XShape, coordinates, geometry); }
 
         /// <summary>
         /// Adds the points to a poly polygon descriptor.
@@ -1601,7 +1618,7 @@ namespace tud.mci.tangram.util
         /// <returns>
         ///   <c>true</c> if the property could be set successfully
         /// </returns>
-        internal static bool AddPolyPointsToPolyPolygonDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        internal static bool AddPolyPointsToPolyPolygonDescriptor(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         {
             int i = 0;
             Point[][] ps = new Point[coordinates.Count][];
@@ -1632,8 +1649,8 @@ namespace tud.mci.tangram.util
         /// <returns>
         ///   <c>true</c> if the property could be set successfully
         /// </returns>
-        public static bool AddPolyPointsToPolyPolygonDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
-        { return AddPolyPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry);}
+        public static bool AddPolyPointsToPolyPolygonDescriptor(Object shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPolyPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry); }
 
         /// <summary>
         /// Adds the points to a polygon descriptor.
@@ -1643,8 +1660,14 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        internal static bool AddPointsToPolyPolygonDescriptor(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        internal static bool AddPointsToPolyPolygonDescriptor(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         {
+            //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            //watch.Restart();
+
+            //try
+            //{
+
             Point[] p;
             unodrawing.PolygonFlags[] f;
             bool success = TransformToCoordinateAndFlagSequence(coordinates[0], out p, out f, true);
@@ -1656,10 +1679,17 @@ namespace tud.mci.tangram.util
                 }
                 else
                 {
-                    return OoUtils.SetProperty(shape, "Polygon", p);
+                    return OoUtils.SetProperty(shape, "PolyPolygon", new Point[][]{p});
                 }
             }
             return false;
+
+            //}
+            //finally
+            //{
+            //    watch.Stop();
+            //    System.Diagnostics.Debug.WriteLine("-------------------Ticks for finally setting Bezier Points:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
+            //}
         }
         /// <summary>
         /// Adds the points to a polygon descriptor.
@@ -1669,8 +1699,8 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        public static bool AddPointsToPolyPolygonDescriptor(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
-        { return AddPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry);}
+        public static bool AddPointsToPolyPolygonDescriptor(Object shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPointsToPolyPolygonDescriptor(shape as XShape, coordinates, geometry); }
 
         /// <summary>
         /// Adds the points to a poly polygon descriptor.
@@ -1680,8 +1710,13 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        internal static bool AddPointsToPolygon(XShape shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
+        internal static bool AddPointsToPolygon(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
         {
+            //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            //watch.Restart();
+            //try
+            //{
+
             // Geometry         [][].awt.Point     -Sequence-   NOTE: is empty if not a poly!
             // PolyPolygon      [][].awt.Point     -Sequence-   NOTE: is empty if not a poly!  
             // Polygon          [].awt.Point       -Sequence-     
@@ -1698,6 +1733,12 @@ namespace tud.mci.tangram.util
                 }
                 return false;
             }
+            //}
+            //finally
+            //{
+            //    watch.Stop();
+            //    System.Diagnostics.Debug.WriteLine("Ticks for finally setting Polygon Points:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
+            //}
         }
         /// <summary>
         /// Adds the points to a poly polygon descriptor.
@@ -1707,100 +1748,101 @@ namespace tud.mci.tangram.util
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
         /// Normally you should use the absolute coordinates on the page! So use the default value <c>false</c>.</param>
         /// <returns><c>true</c> if the property could be set successfully</returns>
-        public static bool AddPointsToPolygon(Object shape, List<LinkedList<PolyPointDescriptor>> coordinates, bool geometry = false)
-        { return AddPointsToPolygon(shape as XShape, coordinates, geometry);}
+        public static bool AddPointsToPolygon(Object shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false)
+        { return AddPointsToPolygon(shape as XShape, coordinates, geometry); }
 
         #region Point List Handling
 
-        /// <summary>
-        /// Adds a new point to a point descriptor list at a certain position.
-        /// </summary>
-        /// <param name="pd">The point descriptor to add.</param>
-        /// <param name="pdl">The list of point descriptor lists to add to.</param>
-        /// <param name="index">The index to witch the node should be added.</param>
-        /// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
-        /// <returns><c>true</c> if the new entry was added.</returns>
-        public static bool AddPointAtPosition(PolyPointDescriptor pd, ref List<LinkedList<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
-        {
-            if (pdl != null && pdl.Count > polyIndex)
-            {
-                LinkedList<PolyPointDescriptor> entry = pdl[polyIndex];
-                bool success = (AddPointAtPosition(pd, ref entry, index));
-                //TODO: check if this works!!!
-                return success;
-            }
-            return false;
-        }
-        /// <summary>
-        /// Adds a new point to a point descriptor list at a certain position.
-        /// </summary>
-        /// <param name="pds">The point descriptors to add.</param>
-        /// <param name="pdl">The list of point descriptor lists to add to.</param>
-        /// <param name="index">The index to witch the node should be added.</param>
-        /// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
-        /// <returns><c>true</c> if the new entry was added.</returns>
-        public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref List<LinkedList<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
-        {
-            if (pdl != null && pdl.Count > polyIndex)
-            {
-                LinkedList<PolyPointDescriptor> entry = pdl[polyIndex];
-                bool success = (AddPointAtPosition(pds, ref entry, index));
-                //TODO: check if this works!!!
-                return success;
-            }
-            return false;
-        }
+        ///// <summary>
+        ///// Adds a new point to a point descriptor list at a certain position.
+        ///// </summary>
+        ///// <param name="pd">The point descriptor to add.</param>
+        ///// <param name="pdl">The list of point descriptor lists to add to.</param>
+        ///// <param name="index">The index to witch the node should be added.</param>
+        ///// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
+        ///// <returns><c>true</c> if the new entry was added.</returns>
+        //public static bool AddPointAtPosition(PolyPointDescriptor pd, ref List<List<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
+        //{
+        //    if (pdl != null && pdl.Count > polyIndex)
+        //    {
+        //        List<PolyPointDescriptor> entry = pdl[polyIndex];
+        //        bool success = (AddPointAtPosition(pd, ref entry, index));
+        //        //TODO: check if this works!!!
+        //        return success;
+        //    }
+        //    return false;
+        //}
+        ///// <summary>
+        ///// Adds a new point to a point descriptor list at a certain position.
+        ///// </summary>
+        ///// <param name="pds">The point descriptors to add.</param>
+        ///// <param name="pdl">The list of point descriptor lists to add to.</param>
+        ///// <param name="index">The index to witch the node should be added.</param>
+        ///// <param name="polyIndex">Index of the polygon (list) the new point should be added to.</param>
+        ///// <returns><c>true</c> if the new entry was added.</returns>
+        //public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref List<List<PolyPointDescriptor>> pdl, int index, int polyIndex = 0)
+        //{
+        //    if (pdl != null && pdl.Count > polyIndex)
+        //    {
+        //        List<PolyPointDescriptor> entry = pdl[polyIndex];
+        //        bool success = (AddPointAtPosition(pds, ref entry, index));
+        //        //TODO: check if this works!!!
+        //        return success;
+        //    }
+        //    return false;
+        //}
 
-        /// <summary>
-        /// Adds a new point to the point descriptor list at a certain position.
-        /// </summary>
-        /// <param name="pd">The point descriptor to add.</param>
-        /// <param name="pdl">The list of point descriptors to add to.</param>
-        /// <param name="index">The index to witch the node should be added.</param>
-        /// <returns><c>true</c> if the new entry was added.</returns>
-        public static bool AddPointAtPosition(PolyPointDescriptor pd, ref LinkedList<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
-        {
-            return AddElementToLinkedListAtPosition<PolyPointDescriptor>(pd, ref pdl, index);
+        ///// <summary>
+        ///// Adds a new point to the point descriptor list at a certain position.
+        ///// </summary>
+        ///// <param name="pd">The point descriptor to add.</param>
+        ///// <param name="pdl">The list of point descriptors to add to.</param>
+        ///// <param name="index">The index to witch the node should be added.</param>
+        ///// <returns><c>true</c> if the new entry was added.</returns>
+        //public static bool AddPointAtPosition(PolyPointDescriptor pd, ref List<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
+        //{
+        //    return AddElementToListAtPosition<PolyPointDescriptor>(pd, ref pdl, index);
 
-            //if (pdl != null)
-            //{
-            //    if (index >= pdl.Count) { pdl.AddLast(pd); }
-            //    else if (index <= 0) { pdl.AddFirst(pd); }
-            //    else
-            //    {
-            //        try
-            //        {
-            //            LinkedListNode<PolyPointDescriptor> n = null;
-            //            if (index < pdl.Count / 2)
-            //            {
-            //                n = pdl.First;
-            //                for (int i = 0; i < index; i++) { n = n.Next; }
-            //            }
-            //            else
-            //            {
-            //                n = pdl.Last;
-            //                for (int i = pdl.Count-1; i > index; i--) { n = n.Previous; }
-            //            }                        
-            //            pdl.AddBefore(n, pd);
-            //        }
-            //        catch (System.Exception) { return false; }
-            //    }
-            //    return true;
-            //}
+        //    //if (pdl != null)
+        //    //{
+        //    //    if (index >= pdl.Count) { pdl.AddLast(pd); }
+        //    //    else if (index <= 0) { pdl.AddFirst(pd); }
+        //    //    else
+        //    //    {
+        //    //        try
+        //    //        {
+        //    //            ListNode<PolyPointDescriptor> n = null;
+        //    //            if (index < pdl.Count / 2)
+        //    //            {
+        //    //                n = pdl.First;
+        //    //                for (int i = 0; i < index; i++) { n = n.Next; }
+        //    //            }
+        //    //            else
+        //    //            {
+        //    //                n = pdl.Last;
+        //    //                for (int i = pdl.Count-1; i > index; i--) { n = n.Previous; }
+        //    //            }                        
+        //    //            pdl.AddBefore(n, pd);
+        //    //        }
+        //    //        catch (System.Exception) { return false; }
+        //    //    }
+        //    //    return true;
+        //    //}
 
-            //return false;
-        }
-        /// <summary>
-        /// Adds a new point to the point descriptor list at a certain position.
-        /// </summary>
-        /// <param name="pds">The point descriptors to add.</param>
-        /// <param name="pdl">The list of point descriptors to add to.</param>
-        /// <param name="index">The index to witch the node should be added.</param>
-        /// <returns><c>true</c> if the new entry was added.</returns>
-        public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref LinkedList<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
-        {
-            return AddElementToLinkedListAtPosition<PolyPointDescriptor>(pds, ref pdl, index);
-        }
+        //    //return false;
+        //}
+        ///// <summary>
+        ///// Adds a new point to the point descriptor list at a certain position.
+        ///// </summary>
+        ///// <param name="pds">The point descriptors to add.</param>
+        ///// <param name="pdl">The list of point descriptors to add to.</param>
+        ///// <param name="index">The index to witch the node should be added.</param>
+        ///// <returns><c>true</c> if the new entry was added.</returns>
+        //public static bool AddPointAtPosition(IEnumerable<PolyPointDescriptor> pds, ref List<PolyPointDescriptor> pdl, int index = Int32.MaxValue)
+        //{
+
+        //    return AddElementToListAtPosition<PolyPointDescriptor>(pds, ref pdl, index);
+        //}
 
         /// <summary>
         /// Adds an element to a linked list at a certain position.
@@ -1810,7 +1852,7 @@ namespace tud.mci.tangram.util
         /// <param name="list">The list to add to.</param>
         /// <param name="index">The index to add in.</param>
         /// <returns><c>true</c> if successfully added</returns>
-        public static bool AddElementToLinkedListAtPosition<T>(T obj, ref LinkedList<T> list, int index)
+        public static bool AddElementToListAtPosition<T>(T obj, ref LinkedList<T> list, int index)
         {
             if (list != null && obj != null)
             {
@@ -1851,7 +1893,7 @@ namespace tud.mci.tangram.util
         /// <param name="list">The list to add to.</param>
         /// <param name="index">The index to add in.</param>
         /// <returns><c>true</c> if successfully added</returns>
-        public static bool AddElementToLinkedListAtPosition<T>(IEnumerable<T> obj, ref LinkedList<T> list, int index)
+        public static bool AddElementToListAtPosition<T>(IEnumerable<T> obj, ref LinkedList<T> list, int index)
         {
             if (list != null && obj != null)
             {
@@ -1889,13 +1931,134 @@ namespace tud.mci.tangram.util
         #region PolyPointHandling
 
         /// <summary>
+        /// Gets the poly points of a free form shape.
+        /// </summary>
+        /// <param name="shape">The shape [XShape].</param>
+        /// <param name="getGeometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// <returns>List of lists containing the point descriptors for polygon points</returns>
+        public static List<List<PolyPointDescriptor>> GetPolyPoints(Object shape, bool getGeometry = false)
+        { return GetPolyPoints(shape as XShape, getGeometry); }
+
+
+        internal static System.Drawing.Point _toPoint(unoidl.com.sun.star.awt.Point point)
+        {
+            return new System.Drawing.Point(point.X, point.Y);
+        }
+
+
+        /// <summary>
+        /// Gets the poly points of a free form shape.
+        /// </summary>
+        /// <param name="shape">The shape [XShape].</param>
+        /// <param name="getGeometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed bezier coordinates of the polygon). 
+        /// <returns>List of lists containing the point descriptors for polygon points</returns>
+        internal static List<List<PolyPointDescriptor>> GetPolyPoints(XShape shape, bool getGeometry = false)
+        {
+            //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            //watch.Restart();
+
+            //try
+            //{
+                if (shape != null && IsFreeform(shape))
+                {
+                    try
+                    {
+                        // check for the right type
+                        if (getGeometry)
+                        {
+                            // Geometry         [][].awt.Point      -Sequence-
+                            Point[][] geometry = OoUtils.GetProperty(shape, "Geometry") as Point[][];
+                        }
+                        else
+                        {
+                            // PolyPolygon      [][].awt.Point      -Sequence-
+                            Point[][] points = new Point[0][];
+                            points = OoUtils.GetProperty(shape, "PolyPolygon") as Point[][];
+
+                            // PolyPolygonBezier    .drawing.PolyPolygonBezierCoords  -STRUCT-
+                            if (points == null)
+                            {
+                                PolyPolygonBezierCoords coords = OoUtils.GetProperty(shape, "PolyPolygonBezier") as PolyPolygonBezierCoords;
+                                return GetPolyPoints(coords);
+                            }
+                            else
+                            {
+                               return GetPolyPoints(points);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                return null;
+            //}
+            //finally
+            //{
+            //    watch.Stop();
+            //    System.Diagnostics.Debug.WriteLine("Ticks for handling Polygon getting event:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
+            //}
+        }
+
+        /// <summary>
+        /// Gets a List of Lists of PolyPoint descriptors from a property value.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns>
+        /// List of lists containing the point descriptors for polygon points
+        /// </returns>
+        internal static List<List<PolyPointDescriptor>> GetPolyPoints(Point[] coordinates)
+        {
+            List<List<PolyPointDescriptor>> pointLists = new List<List<PolyPointDescriptor>>();
+            if (coordinates != null && coordinates.Length > 0)
+            {
+                List<PolyPointDescriptor> polyPoints = new List<PolyPointDescriptor>();
+                if (coordinates != null)
+                {
+                    foreach (Point p in coordinates)
+                    {
+                        polyPoints.Add(new PolyPointDescriptor(p));
+                    }
+                }
+                pointLists.Add(polyPoints);
+            }
+            return pointLists;
+        }
+
+        /// <summary>
+        /// Gets a List of Lists of PolyPoint descriptors from a property value.
+        /// </summary>
+        /// <param name="coordinates">The coordinates.</param>
+        /// <returns>
+        /// List of lists containing the point descriptors for polygon points
+        /// </returns>
+        internal static List<List<PolyPointDescriptor>> GetPolyPoints(Point[][] coordinates)
+        {
+            List<List<PolyPointDescriptor>> pointLists = new List<List<PolyPointDescriptor>>();
+            if (coordinates != null && coordinates.Length > 0)
+            {
+                foreach (Point[] polygon in coordinates)
+                {
+                    List<PolyPointDescriptor> polyPoints = new List<PolyPointDescriptor>();
+                    if (polygon != null)
+                    {
+                        foreach (Point p in polygon)
+                        {
+                            polyPoints.Add(new PolyPointDescriptor(p));
+                        }
+                    }
+                    pointLists.Add(polyPoints);
+                }
+            }
+            return pointLists;
+        }
+
+        /// <summary>
         /// Gets a List of Lists of PolyPoint descriptors from a property value.
         /// </summary>
         /// <param name="coordinates">The coordinates.</param>
         /// <returns>List of lists containing the point descriptors for bezier points</returns>
-        internal static List<LinkedList<PolyPointDescriptor>> GetPolyPoints(unoidl.com.sun.star.drawing.PolyPolygonBezierCoords coordinates)
+        internal static List<List<PolyPointDescriptor>> GetPolyPoints(unoidl.com.sun.star.drawing.PolyPolygonBezierCoords coordinates)
         {
-            List<LinkedList<PolyPointDescriptor>> pointLists = null;
+            List<List<PolyPointDescriptor>> pointLists = null;
             if (coordinates != null)
             {
                 Point[][] coords = coordinates.Coordinates;
@@ -1903,7 +2066,7 @@ namespace tud.mci.tangram.util
 
                 if (coords != null && coords.Length > 0 && coords[0].Length > 0)
                 {
-                    pointLists = new List<LinkedList<PolyPointDescriptor>>(coords.Length);
+                    pointLists = new List<List<PolyPointDescriptor>>(coords.Length);
 
                     for (int i = 0; i < coords.Length; i++)
                     {
@@ -1920,14 +2083,14 @@ namespace tud.mci.tangram.util
                                     flaglist != null && flaglist.Length > j ? (PolygonFlags)flaglist[j] : (PolygonFlags)unodrawing.PolygonFlags.NORMAL
                                     ));
                             }
-                            pointLists.Add(new LinkedList<PolyPointDescriptor>(points));
+                            pointLists.Add(new List<PolyPointDescriptor>(points));
                         }
                     }
                 }
                 pointLists.TrimExcess();
             }
 
-            return pointLists != null ? pointLists : new List<LinkedList<PolyPointDescriptor>>();
+            return pointLists != null ? pointLists : new List<List<PolyPointDescriptor>>();
         }
 
         /// <summary>
@@ -1935,7 +2098,7 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="points">The points.</param>
         /// <returns>a PolyPolygonBezierCoords, which multidimensional arrays are filled with the given coordinates and flags</returns>
-        internal static PolyPolygonBezierCoords BuildPolyPolygonBezierCoords(List<LinkedList<PolyPointDescriptor>> points)
+        internal static PolyPolygonBezierCoords BuildPolyPolygonBezierCoords(List<List<PolyPointDescriptor>> points)
         {
             PolyPolygonBezierCoords property = new PolyPolygonBezierCoords();
 
@@ -1976,7 +2139,7 @@ namespace tud.mci.tangram.util
         /// <returns>
         ///   <c>true</c> if successfully transformed; otherwise, <c>false</c>.
         /// </returns>
-        internal static bool TransformToCoordinateAndFlagSequence(LinkedList<PolyPointDescriptor> points, out Point[] Coordinates, out unodrawing.PolygonFlags[] Flags, bool filterControlPoints = false)
+        internal static bool TransformToCoordinateAndFlagSequence(List<PolyPointDescriptor> points, out Point[] Coordinates, out unodrawing.PolygonFlags[] Flags, bool filterControlPoints = false)
         {
             bool success = false;
             Coordinates = null;

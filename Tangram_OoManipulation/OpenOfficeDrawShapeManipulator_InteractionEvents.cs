@@ -5,6 +5,7 @@ using TangramLector.OO;
 using tud.mci.tangram.controller.observer;
 using tud.mci.tangram.Accessibility;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.util;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
@@ -129,7 +130,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crr" }).ToList().Count == 2)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle top right");
-                            e.Cancel = handleUP_RIGHT();                            
+                            e.Cancel = handleUP_RIGHT();
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crl" }).ToList().Count == 2)
                         {
@@ -182,7 +183,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             LastSelectedShape = null;
                             playEdit();
                             AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.clear_braille_focus"));
-                            sentTextFeedback(LL.GetTrans("tangram.oomanipulation.no_element_selected"));                          
+                            sentTextFeedback(LL.GetTrans("tangram.oomanipulation.no_element_selected"));
                             e.Cancel = true;
                         }
                         break;
@@ -300,13 +301,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 else
                 {
                     //TODO: get PolygonPoints
-                    //var pPoints = LastSelectedShape.GetPolygonPoints();
-                    //if (pPoints != null && pPoints.Count > 0)
+
+                    OoPolygonPointsObserver ppObs = _shape.GetPolygonPoints();
+                    // FIXME: manipulation example
+                    //if (ppObs != null)
                     //{
-                    //    var pPoint = pPoints[0];
-                    //    if (pPoint != null)
+                    //    try
                     //    {
-                    //        pPoint.MoveHorizontal(10000);
+                    //        for (int i = 0; i < ppObs.Count; i++)
+                    //        {
+                    //            var p = ppObs[i];
+                    //            p.X += 1000;
+                    //            //ppObs[i] = p;
+                    //            ppObs.UpdatePolyPointDescriptor(p, i, false, false); ;
+                    //        }
+
+                    //        ppObs.WritePointsToPolygon();
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
                     //    }
                     //}
 

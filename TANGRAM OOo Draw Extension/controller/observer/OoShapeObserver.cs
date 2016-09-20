@@ -364,6 +364,8 @@ namespace tud.mci.tangram.controller.observer
                 //}
             }
 
+            if (_ppObs != null) { _ppObs.Update(); } // update polypolygon points
+
             // TODO: update children
             isUpdating = false;
             lastUpdateTime = DateTime.Now;

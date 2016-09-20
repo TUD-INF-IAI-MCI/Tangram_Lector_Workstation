@@ -839,7 +839,21 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        #region Pologon Points
+        #region Polygon Points
+
+        OoPolygonPointsObserver _ppObs = null;
+        /// <summary>
+        /// Gets the polygon points.
+        /// </summary>
+        /// <returns>a warper for helping handling polygon points or <c>null</c> if this is not a shape that have polygon points.</returns>
+        public OoPolygonPointsObserver GetPolygonPoints()
+        {
+            if (_ppObs == null && PolygonHelper.IsFreeform(Shape))
+            {
+                _ppObs = new OoPolygonPointsObserver(this);
+            }
+            return _ppObs;
+        }
 
 
         public List<List<PolyPointDescriptor>> GetPolyPolygonPoints()
