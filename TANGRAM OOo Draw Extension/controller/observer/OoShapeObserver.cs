@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using tud.mci.tangram.Accessibility;
 using tud.mci.tangram.models.Interfaces;
 using tud.mci.tangram.util;
 using unoidl.com.sun.star.accessibility;
 using unoidl.com.sun.star.awt;
 using unoidl.com.sun.star.beans;
-using unoidl.com.sun.star.container;
 using unoidl.com.sun.star.document;
 using unoidl.com.sun.star.drawing;
 using unoidl.com.sun.star.frame;
 using unoidl.com.sun.star.io;
 using unoidl.com.sun.star.lang;
-using unoidl.com.sun.star.text;
 
 namespace tud.mci.tangram.controller.observer
 {
@@ -405,9 +404,6 @@ namespace tud.mci.tangram.controller.observer
                     {
                         try
                         {
-                            //util.Debug.GetAllProperties(Shape);
-
-
                             var test1 = Shape.GetHashCode();
                             string uiName = UINameSingular;
                             if (test1 == 0 || String.IsNullOrEmpty(uiName))
@@ -443,8 +439,8 @@ namespace tud.mci.tangram.controller.observer
 
                             valid = true;
                         }
-                        catch (System.Threading.ThreadAbortException) { }
-                        catch (System.Threading.ThreadInterruptedException) { }
+                        catch (System.Threading.ThreadAbortException) { DisableValidationTemporary(); }
+                        catch (System.Threading.ThreadInterruptedException) { DisableValidationTemporary(); }
                     }, "ShapeValidation");
                 }
             }
@@ -454,6 +450,25 @@ namespace tud.mci.tangram.controller.observer
             }
             catch { }
             return valid;
+        }
+
+        /// <summary>
+        /// Disables the validation of all shape observers for a short term.
+        /// This is to prevent deadlocks caused by many parallel requests or by 
+        /// massive changes of Shape or page properties.
+        /// </summary>
+        internal static void DisableValidationTemporary()
+        {
+            Task t = new Task(new Action(() =>
+            {
+                try
+                {
+                    OoShapeObserver.LockValidation = true;
+                    Thread.Sleep(100);
+                }
+                catch { }
+                finally { OoShapeObserver.LockValidation = false; }
+            }));
         }
 
         /// <summary>
@@ -537,7 +552,7 @@ namespace tud.mci.tangram.controller.observer
         /// XShape is related to.
         /// </summary>
         /// <returns>the document object or null</returns>
-        private object getDocument()
+        internal object GetDocument()
         {
             var p = this.Page;
             if (p != null)
@@ -566,7 +581,7 @@ namespace tud.mci.tangram.controller.observer
         public int GetShapeAsPng(out byte[] pngFileData)
         {
             pngFileData = new byte[0];
-            object doc = getDocument();
+            object doc = GetDocument();
             // see https://blog.oio.de/2010/10/27/copy-and-paste-without-clipboard-using-openoffice-org-api/
             if (IsValid() && doc != null && Shape != null)
             {
@@ -667,7 +682,7 @@ namespace tud.mci.tangram.controller.observer
             _updatingBounds = true;
 
             System.Drawing.Rectangle result = (relativeBounds.Height * relativeBounds.Width <= 0) ? GetRelativeScreenBoundsByDom() : new System.Drawing.Rectangle(relativeBounds.X, relativeBounds.Y, relativeBounds.Width, relativeBounds.Height);
-            XModel docModel = (XModel)getDocument();
+            XModel docModel = (XModel)GetDocument();
             if (result.Width * result.Height > 0 && docModel != null)
             {
                 // get page properties like zoom and offset

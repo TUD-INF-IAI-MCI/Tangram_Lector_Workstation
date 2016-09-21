@@ -209,7 +209,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         private void chooseNextElement()
         {
-            if (LastSelectedShape == null)
+            if (LastSelectedShapePolygonPoints != null
+                && LastSelectedShapePolygonPoints.IsValid()
+                && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
+            {
+                selectNextPolygonPoint();
+            }
+            else if (LastSelectedShape == null)
             {
                 //try to get the first shape of the current page
                 var activeDoc = OoConnection.GetActiveDrawDocument() as OoAccessibleDocWnd;
@@ -240,7 +246,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void choosePreviousElement()
         {
-            if (LastSelectedShape == null)
+            if (LastSelectedShapePolygonPoints != null
+                && LastSelectedShapePolygonPoints.IsValid()
+                && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
+            {
+                selectPreviousePolygonPoint();
+            }
+            else if (LastSelectedShape == null)
             {
                 //try to get the last shape of the current page
                 var activeDoc = OoConnection.GetActiveDrawDocument() as OoAccessibleDocWnd;
@@ -300,36 +312,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
                 else
                 {
-                    //TODO: get PolygonPoints
-
-                    OoPolygonPointsObserver ppObs = _shape.GetPolygonPoints();
-                    // FIXME: manipulation example
-                    //if (ppObs != null)
-                    //{
-                    //    try
-                    //    {
-                    //        for (int i = 0; i < ppObs.Count; i++)
-                    //        {
-                    //            var p = ppObs[i];
-                    //            p.X += 1000;
-                    //            //ppObs[i] = p;
-                    //            ppObs.UpdatePolyPointDescriptor(p, i, false, false); ;
-                    //        }
-
-                    //        ppObs.WritePointsToPolygon();
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //    }
-                    //}
-
-                    playError();
+                    selectNextPolygonPoint();
+                    if(LastSelectedShapePolygonPoints == null) playError();
                 }
             }
         }
 
         private void chooseParentOfElement()
         {
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                LastSelectedShapePolygonPoints = null;
+                fire_PolygonPointSelected_Reset();
+                if (LastSelectedShape != null)
+                {
+                    LastSelectedShape = LastSelectedShape;
+                    sayLastSelectedShape();
+                    return;
+                }
+            }
             if (LastSelectedShape == null)
             {
                 //try to get the first shape of the current page
@@ -358,16 +359,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
                 else
                 {
-                    //TODO: get PolygonPoints
-                    //var pPoints = LastSelectedShape.GetPolygonPoints();
-                    //if (pPoints != null && pPoints.Count > 0)
-                    //{
-                    //    var pPoint = pPoints[0];
-                    //    if (pPoint != null)
-                    //    {
-                    //        pPoint.MoveHorizontal(10000);
-                    //    }
-                    //}
                     playError();
                 }
             }
@@ -390,6 +381,164 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
             }
             playError();
+        }
+
+        #endregion
+
+        #region Polygon Point Handling
+
+        private void selectNextPolygonPoint()
+        {
+            if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
+            {
+                LastSelectedShapePolygonPoints = LastSelectedShape.GetPolygonPointsObserver();
+                UpdateLastSelectedPolygonPoints();
+            }
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                PolyPointDescriptor point;
+                if (LastSelectedShapePolygonPoints.HasPoints())
+                {
+                    if (!LastSelectedShapePolygonPoints.HasNext())
+                    {
+                        LastSelectedShapePolygonPoints.ResetIterator();
+                    }
+                    point = LastSelectedShapePolygonPoints.Next();
+                }
+                else
+                {
+                    point = new PolyPointDescriptor();
+                }
+
+                SpeakPolygonPoint(LastSelectedShapePolygonPoints);
+                fire_PolygonPointSelected(LastSelectedShapePolygonPoints, point);
+            }
+            else
+            {
+                fire_PolygonPointSelected_Reset();
+            }
+        }
+
+        private void selectPreviousePolygonPoint()
+        {
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                PolyPointDescriptor point;
+                if (LastSelectedShapePolygonPoints.HasPoints())
+                {
+                    if (LastSelectedShapePolygonPoints.HasPrevious())
+                    {
+                        point = LastSelectedShapePolygonPoints.Previous();
+                    }
+                    else
+                    {
+                        point = LastSelectedShapePolygonPoints.Last();
+                    }
+                }
+                else
+                {
+                    point = new PolyPointDescriptor();
+                }
+
+                SpeakPolygonPoint(LastSelectedShapePolygonPoints);
+                fire_PolygonPointSelected(LastSelectedShapePolygonPoints, point);
+            }
+            else
+            {
+                fire_PolygonPointSelected_Reset();
+            }
+        }
+
+        /// <summary>
+        /// Updates the last selected polygon points if the current selected shape is a freeform.
+        /// This is necessary e.g. to keep position or transformation changes!
+        /// </summary>
+        public void UpdateLastSelectedPolygonPoints()
+        {
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                LastSelectedShapePolygonPoints.Update();
+                // FIXME: reset iterator (call .ResetIterator()) or keep old index?!
+            }
+        }
+
+        /// <summary>
+        /// Returns the polygon point to audio and textual output receivers.
+        /// </summary>
+        /// <param name="pointsObs">The points obs.</param>
+        public void SpeakPolygonPoint(OoPolygonPointsObserver pointsObs)
+        {
+            if (pointsObs != null)
+            {
+                String audio = GetPointAudio(pointsObs);
+                String text = GetPointText(pointsObs);
+
+                sentAudioFeedback(audio);
+                sentTextFeedback(text);
+            }
+        }
+
+        /// <summary>
+        /// Gets an audio description for auditory output for a polygon point.
+        /// </summary>
+        /// <param name="pointsObs">The points observer.</param>
+        /// <returns>a string suitable for auditory output.</returns>
+        public static string GetPointAudio(OoPolygonPointsObserver pointsObs)
+        {
+            if (pointsObs != null)
+            {
+                int index;
+                var point = pointsObs.Current(out index);
+                if (!point.Equals(default(PolyPointDescriptor)))
+                {
+
+                    index += 1;
+                    string nodeType = LL.GetTrans("tangram.oomanipulation.element_speaker.label." + point.Flag.ToString());
+
+                    String audio = LL.GetTrans("tangram.oomanipulation.element_speaker.audio.point",
+                        nodeType,
+                        index,
+                        pointsObs.Count
+                        );
+
+                    return audio;
+                }
+            }
+            return String.Empty;
+        }
+
+        /// <summary>
+        /// Gets a compressed textual description for Braille text output for a polygon point.
+        /// </summary>
+        /// <param name="pointsObs">The points observer.</param>
+        /// <returns>a string suitable for short Braille output.</returns>
+        public static string GetPointText(OoPolygonPointsObserver pointsObs)
+        {
+            if (pointsObs != null)
+            {
+                int index;
+                var point = pointsObs.Current(out index);
+                if (!point.Equals(default(PolyPointDescriptor)))
+                {
+
+                    index += 1;
+                    string nodeType = LL.GetTrans("tangram.oomanipulation.element_speaker.label." + point.Flag.ToString());
+
+
+                    String text = LL.GetTrans("tangram.oomanipulation.element_speaker.text.point",
+                        nodeType,
+                        index,
+                        pointsObs.Count,
+                         (((float)point.X / 1000f)).ToString("0.##cm"),
+                         (((float)point.Y / 1000f)).ToString("0.##cm")
+                        );
+
+                    //point.Flag.ToString() + " (" + index + "/" + pointsObs.Count + ") - x:" + point.X + " y:" + point.Y;
+
+                    return text;
+                }
+            }
+            return String.Empty;
         }
 
         #endregion

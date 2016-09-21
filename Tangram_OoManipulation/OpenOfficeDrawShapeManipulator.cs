@@ -4,6 +4,7 @@ using TangramLector.OO;
 using tud.mci.tangram.controller.observer;
 using tud.mci.LanguageLocalization;
 using tud.mci.tangram.audio;
+using System.Threading.Tasks;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
@@ -57,6 +58,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (_shape != null && !_shape.IsValid())
                     {
                         _shape = null;
+                        _points = null;
                         Mode = ModificationMode.Unknown;
                         fire = true;
                     }
@@ -69,9 +71,44 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 lock (_shapeLock)
                 {
                     _shape = value;
+                    _points = null;
+                    fire_PolygonPointSelected_Reset();
                     Mode = ModificationMode.Unknown;
                 }
                 fire_SelectedShapeChanged();
+            }
+        }
+
+        OoPolygonPointsObserver _points = null;
+        /// <summary>
+        /// Gets the  polygon points of the last selected shape.
+        /// </summary>
+        /// <value>
+        /// The shape polygon point observer of the last selected shape if it is a freeform; otherwise <c>null</c>.
+        /// </value>
+        public OoPolygonPointsObserver LastSelectedShapePolygonPoints
+        {
+            get
+            {
+                lock (_shapeLock)
+                {
+                    //if (_shape != null && (_points == null || _points.Shape != _shape || !_points.IsValid()))
+                    //{
+                    //    _points = _shape.GetPolygonPointsObserver();
+                    //}
+                    return _points;
+                }
+            }
+            private set
+            {
+                lock (_shapeLock)
+                {
+                    _points = value;
+                    if (_points != null)
+                    {
+                        Mode = ModificationMode.Move;
+                    }
+                }
             }
         }
 
@@ -155,7 +192,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         }
 
         /// <summary>
-        /// Send textual feedback to an receiver.
+        /// Send Quickinfo textual feedback to an receiver.
         /// </summary>
         /// <param name="text">the textual feedback to send.</param>
         /// <returns><c>true</c> if the feedback could be sent, otherwise <c>false</c>.</returns>
@@ -225,17 +262,38 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         #region Events
 
         /// <summary>
-        /// Occurs when [selected shape changed].
+        /// Occurs when the selected shape changed.
         /// </summary>
         public event EventHandler<EventArgs> SelectedShapeChanged;
+        /// <summary>
+        /// Occurs when a polygon point was selected.
+        /// </summary>
+        public event EventHandler<PolygonPointSelectedEventArgs> PolygonPointSelected;
+
 
         private void fire_SelectedShapeChanged()
         {
             if (SelectedShapeChanged != null)
             {
-                SelectedShapeChanged.DynamicInvoke(this, null);
+                Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, null); } catch { } }));
+                t.Start();
             }
         }
+
+        private void fire_PolygonPointSelected(OoPolygonPointsObserver ppobs, util.PolyPointDescriptor point)
+        {
+            if (PolygonPointSelected != null)
+            {
+                Task t = new Task(new Action(() => { try { PolygonPointSelected.Invoke(this, new PolygonPointSelectedEventArgs(ppobs, point)); } catch { } }));
+                t.Start();
+            }
+        }
+
+        private void fire_PolygonPointSelected_Reset()
+        {
+            fire_PolygonPointSelected(null, new util.PolyPointDescriptor());
+        }
+
 
         #endregion
 
@@ -284,4 +342,45 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     }
 
     #endregion
+
+    #region Event Args
+
+    /// <summary>
+    /// Event arguments for reporting that a polygon point is selected.
+    /// </summary>
+    /// <seealso cref="System.EventArgs" />
+    public class PolygonPointSelectedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The polygon points observer. Can be <c>null</c>
+        /// </summary>
+        public readonly OoPolygonPointsObserver PolygonPoints;
+        /// <summary>
+        /// The current selected point. Can be an empty one.
+        /// </summary>
+        public readonly tud.mci.tangram.util.PolyPointDescriptor Point;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PolygonPointSelectedEventArgs"/> class.
+        /// </summary>
+        /// <param name="ppobs">polygon points observer.</param>
+        /// <param name="point">current selected point.</param>
+        public PolygonPointSelectedEventArgs(OoPolygonPointsObserver ppobs, tud.mci.tangram.util.PolyPointDescriptor point)
+        {
+            PolygonPoints = ppobs;
+            Point = point;
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PolygonPointSelectedEventArgs"/> class with empty Members. 
+        /// Should only be used to reset the listeners.
+        /// </summary>
+        public PolygonPointSelectedEventArgs()
+        {
+            PolygonPoints = null;
+            Point = new util.PolyPointDescriptor();
+        }
+    }
+
+    #endregion
+
 }

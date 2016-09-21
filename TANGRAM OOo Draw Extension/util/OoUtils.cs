@@ -257,7 +257,8 @@ namespace tud.mci.tangram.util
         /// <param name="propName">Name of the property.</param>
         /// <param name="value">The value of the property.</param>
         /// <param name="doc">The undo manager.</param>
-        public static void SetPropertyUndoable(Object obj, String propName, Object value, XUndoManagerSupplier doc)
+        /// <returns><c>true</c> if the property could be changed successfully</returns>
+        public static bool SetPropertyUndoable(Object obj, String propName, Object value, XUndoManagerSupplier doc)
         {
             if (obj is XControl)
             {
@@ -268,7 +269,7 @@ namespace tud.mci.tangram.util
             XPropertySet objXPropertySet;
             if (obj is XPropertySet)
             {
-                // If the right interface was passed in, just typecaset it.
+                // If the right interface was passed in, just typecast it.
                 objXPropertySet = (XPropertySet)obj;
             }
             else
@@ -279,7 +280,7 @@ namespace tud.mci.tangram.util
             }
 
             // Now just call our sibling using the correct interface.
-            SetPropertyUndoable(objXPropertySet, propName, value, doc);
+            return SetPropertyUndoable(objXPropertySet, propName, value, doc);
         }
 
         #endregion

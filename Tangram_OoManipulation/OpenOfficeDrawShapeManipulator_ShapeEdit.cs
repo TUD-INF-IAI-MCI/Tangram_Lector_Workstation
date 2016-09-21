@@ -13,6 +13,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #region Modification Mode Carousel
 
+        private TimeSpan doubleKlickTolerance = new TimeSpan(0, 0, 0, 0, 300);
+        private DateTime lastRequest = DateTime.Now;
+
         private readonly int _maxMode = Enum.GetValues(typeof(ModificationMode)).Cast<int>().Max();
 
         private void rotateThroughModes()
@@ -21,11 +24,29 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 return;
             }
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                Mode = ModificationMode.Move;
+                playError();
+                return;
+            }
+
+            DateTime timestamp = DateTime.Now;
+
             object val = Convert.ChangeType(Mode, Mode.GetTypeCode());
             int m = Convert.ToInt32(val);
 
+            // mode switch
             // should not rotate to UNKOWN = 0
-            m = Math.Max(1, (++m) % (_maxMode + 1));
+            if (timestamp - lastRequest > doubleKlickTolerance) {
+                m = Math.Max(1, (++m) % (_maxMode + 1));
+            }
+            else { // double click ... rotate backwards
+                m = (m - 2) % (_maxMode + 1);
+                if (m <= 0) m = _maxMode + m;
+            }
+
+            lastRequest = timestamp;
 
             Mode = (ModificationMode)Enum.ToObject(typeof(ModificationMode), m);
             Logger.Instance.Log(LogPriority.MIDDLE, this, "[MODE SWITCH] to the new mode: " + Mode);
@@ -342,7 +363,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "directories inside application folder: " + (foundDirs != null ? foundDirs.Length.ToString() : "null"));
                 if (foundDirs != null && foundDirs.Length > 0)
                 {
-                    var openOfficePath = foundDirs[foundDirs.Length-1];
+                    var openOfficePath = foundDirs[foundDirs.Length - 1];
                     Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "used directory: " + openOfficePath);
                     arrPatterns = Directory.GetFiles(openOfficePath, "*.png", SearchOption.AllDirectories);
                     //remove files named name_TS.png
@@ -564,6 +585,19 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void moveShape(int horizontalSteps, int verticalSteps)
         {
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                int i;
+                var point = LastSelectedShapePolygonPoints.Current(out i);
+                point.X += horizontalSteps;
+                point.Y += verticalSteps;
+                var successs = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, false);
+                successs = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+
+                if (successs) { playEdit(); }
+                else { playError(); }
+                return;
+            }
             if (LastSelectedShape != null)
             {
                 var pos = LastSelectedShape.Position;
@@ -668,7 +702,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.move");
                     if (LastSelectedShape != null && LastSelectedShape.Position != null)
                     {
-                        audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": " 
+                        audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.move.status.audio"
                             , ((float)((float)LastSelectedShape.Position.X / 1000)).ToString("0.#")
                             , ((float)((float)LastSelectedShape.Position.Y / 1000)).ToString("0.#"));
@@ -688,7 +722,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.rotate");
                     if (LastSelectedShape != null)
                     {
-                        audio += ", "+ LL.GetTrans("tangram.oomanipulation.current") + ": " 
+                        audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.rotate.status.audio"
                             , (LastSelectedShape.Rotation / 100).ToString("0."));
                     }
@@ -700,7 +734,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         if (LastSelectedShape.GetProperty("FillBitmap") == null) audio += ", " + LL.GetTrans("tangram.oomanipulation.manipulation.filling.status.none");
                         else
                         {
-                            audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": " 
+                            audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                                 + LL.GetTrans("tangram.oomanipulation.manipulation.filling.status"
                                 , LastSelectedShape.GetBackgroundBitmapName());
                         }
@@ -731,6 +765,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 case ModificationMode.Unknown:
                     break;
                 case ModificationMode.Move:
+
+                    if (LastSelectedShapePolygonPoints != null) { return GetPointText(LastSelectedShapePolygonPoints); }
+
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.move");
                     if (LastSelectedShape != null && LastSelectedShape.Position != null)
                     {

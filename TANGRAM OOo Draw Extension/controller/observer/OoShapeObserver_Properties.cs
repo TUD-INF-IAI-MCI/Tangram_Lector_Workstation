@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using tud.mci.tangram.models.Interfaces;
-using unoidl.com.sun.star.beans;
 using tud.mci.tangram.util;
+using unoidl.com.sun.star.awt;
+using unoidl.com.sun.star.beans;
+using unoidl.com.sun.star.container;
 using unoidl.com.sun.star.document;
 using unoidl.com.sun.star.drawing;
-using unoidl.com.sun.star.awt;
 using unoidl.com.sun.star.frame;
-using unoidl.com.sun.star.container;
 using unoidl.com.sun.star.text;
-using System.Threading.Tasks;
 
 namespace tud.mci.tangram.controller.observer
 {
@@ -383,7 +382,7 @@ namespace tud.mci.tangram.controller.observer
                     if (!OoUtils.ElementSupportsService(Shape, OO.Services.DRAW_SHAPE_TEXT))
                     // uncommenting still crashes, 
                     {
-                        XModel docModel = (XModel)getDocument();
+                        XModel docModel = (XModel)GetDocument();
                         if (docModel != null)
                         {
                             XActionLockable docModelLockable = docModel as XActionLockable;
@@ -588,7 +587,7 @@ namespace tud.mci.tangram.controller.observer
 
                             var oldPos = Position;
                             OoUtils.AddActionToUndoManager(
-                                getDocument() as XUndoManagerSupplier,
+                                GetDocument() as XUndoManagerSupplier,
                                 new ActionUndo(
                                         "Move Shape " + Name,
                                         () => { Position = oldPos; },
@@ -630,7 +629,7 @@ namespace tud.mci.tangram.controller.observer
 
                             var oldSize = Size;
                             OoUtils.AddActionToUndoManager(
-                                getDocument() as XUndoManagerSupplier,
+                                GetDocument() as XUndoManagerSupplier,
                                 new ActionUndo(
                                         "Scale Shape " + Name,
                                         () => { Size = oldSize; },
@@ -846,7 +845,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the polygon points.
         /// </summary>
         /// <returns>a warper for helping handling polygon points or <c>null</c> if this is not a shape that have polygon points.</returns>
-        public OoPolygonPointsObserver GetPolygonPoints()
+        public OoPolygonPointsObserver GetPolygonPointsObserver()
         {
             if (_ppObs == null && PolygonHelper.IsFreeform(Shape))
             {
@@ -855,7 +854,10 @@ namespace tud.mci.tangram.controller.observer
             return _ppObs;
         }
 
-
+        /// <summary>
+        /// Gets the direct access to the poly polygon points.
+        /// </summary>
+        /// <returns>list of polygon point lists</returns>
         public List<List<PolyPointDescriptor>> GetPolyPolygonPoints()
         {
             var points = PolygonHelper.GetPolyPoints(Shape);
@@ -876,7 +878,7 @@ namespace tud.mci.tangram.controller.observer
                 Task t = new Task(
                     () => {
                         LockValidation = true;
-                        try { PolygonHelper.SetPolyPoints(Shape, points); }
+                        try { PolygonHelper.SetPolyPoints(Shape, points, false, GetDocument()); }
                         finally { LockValidation = false; }
                     }
                 );
@@ -888,101 +890,6 @@ namespace tud.mci.tangram.controller.observer
                 //System.Diagnostics.Debug.WriteLine("Ticks for handling Polygon setting Points:" + watch.ElapsedTicks + " / Milliseconds:" + watch.ElapsedMilliseconds);
             }
         }
-
-        #region OLD DEPRECATED POLYGON POINT STUFF
-
-        ///// <summary>
-        ///// Gets a list of polygon point observers.
-        ///// </summary>
-        ///// <returns>a list of polygon point observers</returns>
-        //public List<OoPolygonPointObserver> GetPolygonPoints()
-        //{
-        //    List<OoPolygonPointObserver> points = new List<OoPolygonPointObserver>();
-        //    if (Shape != null && IsValid())
-        //    {
-        //        unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
-        //        if (poly != null)
-        //        {
-        //            for (int i = 0; i < poly.Length; i++)
-        //            {
-        //                OoPolygonPointObserver pObs = new OoPolygonPointObserver(this, poly[i], i);
-        //                points.Add(pObs);
-        //            }
-        //        }
-        //    }
-        //    return points;
-        //}
-
-        ///// <summary>
-        ///// Sets the polygon points.
-        ///// </summary>
-        ///// <param name="points">The points.</param>
-        ///// <returns><c>true if the points could be ste to the polygon</c></returns>
-        //public bool SetPolygonPoints(List<OoPolygonPointObserver> points)
-        //{
-        //    if (Shape != null && IsValid())
-        //    {
-        //        if (points == null || points.Count == 0)
-        //        {
-        //            return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[0][]);
-        //        }
-
-        //        unoidl.com.sun.star.awt.Point[] poly = new unoidl.com.sun.star.awt.Point[points.Count];
-
-        //        Parallel.For(0, points.Count,
-        //            (i) =>
-        //            {
-        //                var p = points[(int)i];
-        //                Point pP = new Point();
-        //                if (p != null)
-        //                {
-        //                    pP.X = p.P.X;
-        //                    pP.Y = p.P.Y;
-        //                }
-        //                poly[i] = pP;
-        //            }
-        //        );
-        //        return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[][]{poly});
-        //    }
-        //    return false;
-        //}
-        ///// <summary>
-        ///// Sets the polygon points.
-        ///// </summary>
-        ///// <param name="point">The point.</param>
-        ///// <param name="index">The index.</param>
-        ///// <returns>
-        /////   <c>true if the point could be ste to the polygon</c>
-        ///// </returns>
-        //public bool SetPolygonPoint(OoPolygonPointObserver point, int index)
-        //{
-        //    if (point != null) { return SetPolygonPoint(point.P.X, point.P.Y, index); }
-        //    return false;
-        //}
-        ///// <summary>
-        ///// Sets the polygon points.
-        ///// </summary>
-        ///// <param name="x">The x.</param>
-        ///// <param name="y">The y.</param>
-        ///// <param name="index">The index.</param>
-        ///// <returns>
-        /////   <c>true if the point could be ste to the polygon</c>
-        ///// </returns>
-        //public bool SetPolygonPoint(int x, int y, int index)
-        //{
-        //    if (index >= 0 && Shape != null && IsValid())
-        //    {
-        //        unoidl.com.sun.star.awt.Point[] poly = GetProperty("Polygon") as unoidl.com.sun.star.awt.Point[];
-        //        if (poly != null && poly.Length > index)
-        //        {
-        //            poly[index] = new Point(x, y);
-        //            return SetProperty("PolyPolygon", new unoidl.com.sun.star.awt.Point[][] { poly });
-        //        }
-        //    }
-        //    return false;
-        //}
-
-        #endregion
 
         #endregion
 
@@ -1006,7 +913,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="value">The value.</param>
         public bool SetProperty(string name, Object value)
         {
-            return OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, getDocument() as XUndoManagerSupplier);
+            return OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, GetDocument() as XUndoManagerSupplier);
         }
 
         #region String
@@ -1048,7 +955,7 @@ namespace tud.mci.tangram.controller.observer
         private bool setBoolProperty(string name, bool value)
         {
             if (OoUtils.GetBooleanProperty(Shape as XPropertySet, name).Equals(value)) return true;
-            OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, getDocument() as XUndoManagerSupplier);
+            OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, GetDocument() as XUndoManagerSupplier);
             bool newVal = getBoolProperty(name);
             return newVal.Equals(value);
         }
@@ -1067,7 +974,7 @@ namespace tud.mci.tangram.controller.observer
 
             int oldVal = getIntProperty(name);
             //if (OoUtils.GetIntProperty(Shape, name).Equals(value)) return true;
-            OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, getDocument() as XUndoManagerSupplier);
+            OoUtils.SetPropertyUndoable(Shape as XPropertySet, name, value, GetDocument() as XUndoManagerSupplier);
             int newVal = getIntProperty(name);
 
             return newVal.Equals(value);

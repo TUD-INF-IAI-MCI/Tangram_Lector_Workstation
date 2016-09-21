@@ -62,8 +62,22 @@ namespace tud.mci.tangram.controller.observer
             if (!PolygonHelper.IsFreeform(shape.Shape)) throw new ArgumentException("shape must be a polygon or a bezier curve", "shape");
 
             Shape = shape;
+            Shape.BoundRectChangeEventHandlers += Shape_BoundRectChangeEventHandlers;
+            Shape.ObserverDisposing += Shape_ObserverDisposing;
             Update();
 
+        }
+
+        void Shape_ObserverDisposing(object sender, EventArgs e)
+        {
+            Shape = null;
+            CachedPolyPointList = null;
+        }
+
+        void Shape_BoundRectChangeEventHandlers()
+        {
+            //System.Diagnostics.Debug.WriteLine("[P] ------ Bound rect changed observed in Polygon Points observer!!!");
+            Update();
         }
 
         #endregion
@@ -100,7 +114,7 @@ namespace tud.mci.tangram.controller.observer
                 OoShapeObserver.LockValidation = true;
                 try
                 {
-                    bool success = PolygonHelper.AddPolyPointsToPolyPolygonDescriptor(Shape.Shape, CachedPolyPointList, geometry);
+                    bool success = PolygonHelper.SetPolyPoints(Shape.Shape, CachedPolyPointList, geometry, Shape.GetDocument());
                     Update();
                     return success;
                 }
@@ -125,7 +139,7 @@ namespace tud.mci.tangram.controller.observer
                 OoShapeObserver.LockValidation = true;
                 try
                 {
-                    bool success = PolygonHelper.AddPolyPointsToPolyPolygonDescriptor(Shape.Shape, newPoints, geometry);
+                    bool success = PolygonHelper.SetPolyPoints(Shape.Shape, newPoints, geometry, Shape.GetDocument());
                     Update();
                     return success;
                 }
@@ -520,12 +534,38 @@ namespace tud.mci.tangram.controller.observer
 
         #region IUpdateable
 
+        bool _updating = false;
         /// <summary>
         /// Updates this instance and his related Objects. Especially the cached poly polygon points
         /// </summary>
         public void Update()
         {
-            CachedPolyPointList = IsValid() ? PolygonHelper.GetPolyPoints(Shape.Shape) : null;
+            if (_updating) return;
+            try
+            {
+                _updating = true;
+                if (IsValid())
+                {
+                    OoShapeObserver.LockValidation = true;
+                    try
+                    {
+                        CachedPolyPointList = PolygonHelper.GetPolyPoints(Shape.Shape);
+                    }
+                    finally
+                    {
+                        OoShapeObserver.LockValidation = false;
+                        _updating = false;
+                    }
+                }
+                else
+                {
+                    CachedPolyPointList = null;
+                }
+            }
+            finally
+            {
+                _updating = false;
+            }
         }
 
         #endregion
@@ -668,7 +708,7 @@ namespace tud.mci.tangram.controller.observer
 
         #region Iterator Like Access
 
-        volatile int _iteratorIndex = -1;
+        int _iteratorIndex = -1;
 
         /// <summary>
         /// Resets the iterator.
@@ -677,6 +717,21 @@ namespace tud.mci.tangram.controller.observer
         {
             _iteratorIndex = -1;
         }
+        /// <summary>
+        /// Gets the current index of the iterator.
+        /// </summary>
+        /// <returns>current index of the iterator</returns>
+        public int GetIteratorIndex()
+        {
+            return _iteratorIndex;
+        }
+        /// <summary>
+        /// Determines whether this instance has points.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if this instance has points; otherwise, <c>false</c>.
+        /// </returns>
+        public bool HasPoints() { return Count > 0; }
         /// <summary>
         /// Determines whether this instance has a next polygon point.
         /// </summary>
@@ -692,6 +747,15 @@ namespace tud.mci.tangram.controller.observer
         {
             _iteratorIndex = (_iteratorIndex + 1);
             return GetPolyPointDescriptor(_iteratorIndex);
+        }
+        /// <summary>
+        /// Get the first Point of this instance and resets the iterator.
+        /// </summary>
+        /// <returns>the first Point of this instance</returns>
+        public PolyPointDescriptor First()
+        {
+            ResetIterator();
+            return Next();
         }
 
         /// <summary>
@@ -711,7 +775,25 @@ namespace tud.mci.tangram.controller.observer
             return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
         }
 
+        /// <summary>
+        /// Get the last Point of this instance and sets the iterator to this element.
+        /// </summary>
+        /// <returns>the last point</returns>
+        public PolyPointDescriptor Last()
+        {
+            _iteratorIndex = (Count - 1);
+            return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
+        }
 
+        /// <summary>
+        /// Gets the current selected polygon point of this instance without moving the internal iterator.
+        /// </summary>
+        /// <returns>the current iterated polygon point</returns>
+        public PolyPointDescriptor Current(out int currentIterator)
+        {
+            currentIterator = _iteratorIndex;
+            return GetPolyPointDescriptor(currentIterator);
+        }
 
         #endregion
 
