@@ -591,8 +591,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 var point = LastSelectedShapePolygonPoints.Current(out i);
                 point.X += horizontalSteps;
                 point.Y += verticalSteps;
-                var successs = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, false);
-                successs = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                var successs = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, true);
+                //successs = LastSelectedShapePolygonPoints.WritePointsToPolygon();
 
                 if (successs) { playEdit(); }
                 else { playError(); }

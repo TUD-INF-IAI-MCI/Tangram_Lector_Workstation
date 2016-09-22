@@ -18,6 +18,7 @@ namespace tud.mci.tangram.controller.observer
     {
         #region Member
 
+        volatile bool _updating = false;
         private readonly Object _lock = new Object();
         private List<List<PolyPointDescriptor>> _cachedPolyPointList;
         /// <summary>
@@ -173,9 +174,14 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>the list of polygon point descriptors or an empty list if there is no polygon at the requested index.</returns>
         public List<PolyPointDescriptor> GetPolygonPoints(int index)
         {
-            if (CachedPolyPointList != null && CachedPolyPointList.Count > index)
-                return CachedPolyPointList[index];
-            return new List<PolyPointDescriptor>();
+            try
+            {
+                _updating = true;
+                if (CachedPolyPointList != null && CachedPolyPointList.Count > index)
+                    return CachedPolyPointList[index];
+                return new List<PolyPointDescriptor>();
+            }
+            finally { _updating = false; }
         }
 
         /// <summary>
@@ -186,8 +192,13 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>Point descriptor for the requested position or empty Point descriptor</returns>
         public PolyPointDescriptor GetPolyPointDescriptor(int index, int polygonIndex)
         {
-            return CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex && CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index ?
-                CachedPolyPointList[polygonIndex][index] : new PolyPointDescriptor();
+            try
+            {
+                _updating = true;
+                return CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex && CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index ?
+                    CachedPolyPointList[polygonIndex][index] : new PolyPointDescriptor();
+            }
+            finally { _updating = false; }
         }
         /// <summary>
         /// Gets the poly point descriptor of a certain polygon at a certain index.
@@ -221,16 +232,21 @@ namespace tud.mci.tangram.controller.observer
         {
             if (IsValid())
             {
-                if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
+                try
                 {
-                    if (CachedPolyPointList[polygonIndex] == null) CachedPolyPointList[polygonIndex] = new List<PolyPointDescriptor>();
-                    if (CachedPolyPointList[polygonIndex].Count > index)
+                    _updating = true;
+                    if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
                     {
-                        CachedPolyPointList[polygonIndex][index] = ppd;
-                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                        else { return true; }
+                        if (CachedPolyPointList[polygonIndex] == null) CachedPolyPointList[polygonIndex] = new List<PolyPointDescriptor>();
+                        if (CachedPolyPointList[polygonIndex].Count > index)
+                        {
+                            CachedPolyPointList[polygonIndex][index] = ppd;
+                            if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                            else { return true; }
+                        }
                     }
                 }
+                finally { _updating = false; }
             }
             return false;
         }
@@ -276,24 +292,28 @@ namespace tud.mci.tangram.controller.observer
             {
                 if (CachedPolyPointList != null)
                 {
-
-                    if (CachedPolyPointList.Count > polygonIndex)
+                    try
                     {
-                        if (CachedPolyPointList[polygonIndex] == null) CachedPolyPointList[polygonIndex] = new List<PolyPointDescriptor>();
-                        if (index < CachedPolyPointList[polygonIndex].Count) { CachedPolyPointList[polygonIndex].Insert(Math.Max(index, 0), ppd); }
-                        else { CachedPolyPointList[polygonIndex].Add(ppd); }
-                    }
-                    else
-                    {
-                        CachedPolyPointList.Add(
-                            new List<PolyPointDescriptor>(){
+                        _updating = true;
+                        if (CachedPolyPointList.Count > polygonIndex)
+                        {
+                            if (CachedPolyPointList[polygonIndex] == null) CachedPolyPointList[polygonIndex] = new List<PolyPointDescriptor>();
+                            if (index < CachedPolyPointList[polygonIndex].Count) { CachedPolyPointList[polygonIndex].Insert(Math.Max(index, 0), ppd); }
+                            else { CachedPolyPointList[polygonIndex].Add(ppd); }
+                        }
+                        else
+                        {
+                            CachedPolyPointList.Add(
+                                new List<PolyPointDescriptor>(){
                                 ppd
                             }
-                        );
-                    }
+                            );
+                        }
 
-                    if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                    else { return true; }
+                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                        else { return true; }
+                    }
+                    finally { _updating = false; }
                 }
 
             }
@@ -339,17 +359,22 @@ namespace tud.mci.tangram.controller.observer
         {
             if (IsValid())
             {
-                if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
+                try
                 {
-                    if (CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index)
+                    _updating = true;
+                    if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
                     {
-                        return UpdatePolyPointDescriptor(ppd, index, polygonIndex, updateDirectly, geometry);
-                    }
-                    else
-                    {
-                        return AddPolyPointDescriptor(ppd, index, polygonIndex, updateDirectly, geometry);
+                        if (CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index)
+                        {
+                            return UpdatePolyPointDescriptor(ppd, index, polygonIndex, updateDirectly, geometry);
+                        }
+                        else
+                        {
+                            return AddPolyPointDescriptor(ppd, index, polygonIndex, updateDirectly, geometry);
+                        }
                     }
                 }
+                finally { _updating = false; }
             }
 
             return false;
@@ -391,16 +416,21 @@ namespace tud.mci.tangram.controller.observer
         {
             if (IsValid())
             {
-                if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
+                try
                 {
-                    if (CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index)
+                    _updating = true;
+                    if (CachedPolyPointList != null && CachedPolyPointList.Count > polygonIndex)
                     {
-                        CachedPolyPointList[polygonIndex].RemoveAt(index);
+                        if (CachedPolyPointList[polygonIndex] != null && CachedPolyPointList[polygonIndex].Count > index)
+                        {
+                            CachedPolyPointList[polygonIndex].RemoveAt(index);
 
-                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                        else { return true; }
+                            if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                            else { return true; }
+                        }
                     }
                 }
+                finally { _updating = false; }
             }
 
             return true;
@@ -441,17 +471,22 @@ namespace tud.mci.tangram.controller.observer
             {
                 if (CachedPolyPointList != null && points != null)
                 {
-                    if (polygonIndex < CachedPolyPointList.Count)
+                    try
                     {
-                        CachedPolyPointList.Insert(Math.Max(0, polygonIndex), points);
-                    }
-                    else
-                    {
-                        CachedPolyPointList.Add(points);
-                    }
+                        _updating = true;
+                        if (polygonIndex < CachedPolyPointList.Count)
+                        {
+                            CachedPolyPointList.Insert(Math.Max(0, polygonIndex), points);
+                        }
+                        else
+                        {
+                            CachedPolyPointList.Add(points);
+                        }
 
-                    if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                    else { return true; }
+                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                        else { return true; }
+                    }
+                    finally { _updating = false; }
                 }
             }
             return false;
@@ -478,20 +513,25 @@ namespace tud.mci.tangram.controller.observer
             {
                 if (CachedPolyPointList != null)
                 {
-                    if (polygonIndex < CachedPolyPointList.Count)
+                    try
                     {
-                        if (points != null)
+                        _updating = true;
+                        if (polygonIndex < CachedPolyPointList.Count)
                         {
-                            CachedPolyPointList[polygonIndex] = points;
-                        }
-                        else
-                        {
-                            CachedPolyPointList.RemoveAt(polygonIndex);
-                        }
+                            if (points != null)
+                            {
+                                CachedPolyPointList[polygonIndex] = points;
+                            }
+                            else
+                            {
+                                CachedPolyPointList.RemoveAt(polygonIndex);
+                            }
 
-                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                        else { return true; }
+                            if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                            else { return true; }
+                        }
                     }
+                    finally { _updating = false; }
                 }
             }
             return false;
@@ -516,13 +556,18 @@ namespace tud.mci.tangram.controller.observer
             {
                 if (CachedPolyPointList != null)
                 {
-                    if (polygonIndex < CachedPolyPointList.Count)
+                    try
                     {
-                        CachedPolyPointList.RemoveAt(polygonIndex);
+                        _updating = true;
+                        if (polygonIndex < CachedPolyPointList.Count)
+                        {
+                            CachedPolyPointList.RemoveAt(polygonIndex);
 
-                        if (updateDirectly) { return WritePointsToPolygon(geometry); }
-                        else { return true; }
+                            if (updateDirectly) { return WritePointsToPolygon(geometry); }
+                            else { return true; }
+                        }
                     }
+                    finally { _updating = false; }
                 }
             }
 
@@ -534,7 +579,6 @@ namespace tud.mci.tangram.controller.observer
 
         #region IUpdateable
 
-        bool _updating = false;
         /// <summary>
         /// Updates this instance and his related Objects. Especially the cached poly polygon points
         /// </summary>
