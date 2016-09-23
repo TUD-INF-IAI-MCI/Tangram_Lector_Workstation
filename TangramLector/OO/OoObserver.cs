@@ -211,7 +211,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
                 }
                 else
-                {
+                {    
                     BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
                 }
