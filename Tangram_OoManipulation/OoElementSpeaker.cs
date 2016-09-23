@@ -17,7 +17,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element and send it to the audio renderer.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties and befor the label (if available).</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties and befor the label (if available).</param>
         /// <returns>The describing string of the element in the following form: [ROLE] [NAME] [TITLE] (addintionalText) [TEXT]</returns>
         public static string PlayElement(OoShapeObserver element, string additionalText = "")
         {
@@ -33,7 +33,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element and send it to the audio renderer.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties and befor the label (if available).</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties and befor the label (if available).</param>
         /// <returns>The describing string of the element in the following form: [ROLE] [NAME] (addintionalText)</returns>
         public static string PlayElement(OoAccComponent element, string additionalText = "")
         {
@@ -49,7 +49,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element and send it immediately to the audio renderer.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties and befor the label (if available).</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties and befor the label (if available).</param>
         /// <returns>The describing string of the element in the following form: [ROLE] [NAME] [TITLE] (addintionalText) [TEXT]</returns>
         public static string PlayElementImmediately(OoShapeObserver element, string additionalText = "")
         {
@@ -65,7 +65,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element and send it immediately to the audio renderer.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties and befor the label (if available).</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties and befor the label (if available).</param>
         /// <returns>The describing string of the element in the following form: [ROLE] [NAME] (addintionalText)</returns>
         public static string PlayElementImmediately(OoAccComponent element, string additionalText = "")
         {
@@ -92,7 +92,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties and befor the label (if available).</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties and befor the label (if available).</param>
         /// <returns>A string that should describe the element in the following form: [ROLE] [NAME] [TITLE] (addintionalText) [TEXT]</returns>
         public static String GetElementAudioText(OoShapeObserver element, string additionalText = "")
         {
@@ -175,7 +175,7 @@ namespace TangramLector.OO
         /// Gets the audio text for the given element.
         /// </summary>
         /// <param name="element">The element to get the text of.</param>
-        /// <param name="additionalText">An addintional text, that is put behind the element properties</param>
+        /// <param name="additionalText">An additional text, that is put behind the element properties</param>
         /// <returns>A string that should describe the element in the following form: [ROLE] [NAME] (addintionalText)</returns>
         public static String GetElementAudioText(OoAccComponent element, string additionalText = "")
         {

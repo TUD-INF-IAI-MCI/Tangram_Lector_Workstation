@@ -78,6 +78,7 @@ namespace tud.mci.tangram.TangramLector.OO
             OoDrawAccessibilityObserver.Instance.DrawSelectionChanged += new EventHandler<OoAccessibilitySelectionEventArgs>(Instance_DrawSelectionChanged);
 
             shapeManipulatorFunctionProxy.SelectedShapeChanged += new EventHandler<EventArgs>(shapeManipulatorFunctionProxy_SelectedShapeChanged);
+            shapeManipulatorFunctionProxy.PolygonPointSelected += shapeManipulatorFunctionProxy_PolygonPointSelected;
 
             // make the observes aware of the currently open DRAW docs (still opened before started this instance)
             List<OoAccessibleDocWnd> docList = OoDrawAccessibilityObserver.Instance.GetDrawDocs();
@@ -187,6 +188,38 @@ namespace tud.mci.tangram.TangramLector.OO
             }
         }
 
+
+        void shapeManipulatorFunctionProxy_PolygonPointSelected(object sender, PolygonPointSelectedEventArgs e)
+        {
+
+            if (sender != null && sender is OpenOfficeDrawShapeManipulator)
+            {
+                //OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
+                stopFocusHighlightModes();
+
+                // memorize original properties to be restored after blinking
+                if (((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape != null)
+                    InitBrailleDomFocusHighlightMode();
+            }
+
+            if (BrailleDomFocusRenderer != null)
+            {
+                if (e != null && e.PolygonPoints != null)
+                {
+                    Point p = e.PolygonPoints.TransformPointCoordinatesIntoScreenCoordinates(e.Point);
+                    BrailleDomFocusRenderer.CurrentPoint = p;
+                    //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
+                }
+                else
+                {
+                    BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
+                    //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
+                }
+            }
+
+
+        }
+
         #region Renderer Hook Registration and Update
 
         private void initRendererHook()
@@ -293,7 +326,7 @@ namespace tud.mci.tangram.TangramLector.OO
             }
             else
             {
-                this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(0, 0, 0, 0);
+                this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
             }
         }
 
@@ -311,8 +344,8 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     Logger.Instance.Log(LogPriority.MIDDLE, this, "[GUI INTERACTION] deselection");
                     SelectedItem = null;
-                    SelectedBoundingBox = new Rectangle(0, 0, 0, 0);
-                    this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(0, 0, 0, 0);
+                    SelectedBoundingBox = new Rectangle(-1, -1, 0, 0);
+                    this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
                 }
 
                 if (windowManager.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)

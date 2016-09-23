@@ -1,18 +1,18 @@
 ﻿using System;
-using unoidl.com.sun.star.awt;
-using unoidl.com.sun.star.drawing;
-using unoidl.com.sun.star.lang;
 using System.Collections.Generic;
-using unoidl.com.sun.star.uno;
-using unoidl.com.sun.star.container;
-using uno;
-using unoidl.com.sun.star.frame;
-using unoidl.com.sun.star.view;
-using unoidl.com.sun.star.beans;
-using unodrawing = unoidl.com.sun.star.drawing;
-using unoidl.com.sun.star.accessibility;
-using System.Threading;
 using System.Linq;
+using System.Threading;
+using uno;
+using unoidl.com.sun.star.accessibility;
+using unoidl.com.sun.star.awt;
+using unoidl.com.sun.star.beans;
+using unoidl.com.sun.star.container;
+using unoidl.com.sun.star.drawing;
+using unoidl.com.sun.star.frame;
+using unoidl.com.sun.star.lang;
+using unoidl.com.sun.star.uno;
+using unoidl.com.sun.star.view;
+using unodrawing = unoidl.com.sun.star.drawing;
 
 namespace tud.mci.tangram.util
 {
@@ -29,12 +29,15 @@ namespace tud.mci.tangram.util
      * See:  http://www.gnu.org/licenses/lgpl.html
      */
 
-
-    /**
-     *
-     * @author danny brewer, jens bornschein
+    /*
+     * Highly modified by Jens Bornschein Copyright 2013 - 2016
+     * under BSD license. 
      */
 
+    /// <summary>
+    /// General static helper functions for handling DRAW objects and documents
+    /// @author jens bornschein, danny brewer 
+    /// </summary>
     public static class OoDrawUtils
     {
         #region Get Draw PageSupplieirs
@@ -1088,6 +1091,7 @@ namespace tud.mci.tangram.util
         #endregion
 
         #region 100thmm to pixel conversion
+
         /// <summary>
         /// Calculates pixel value from a length value in 100th/mm and given zoom (in %) and given dpi.
         /// Dots per mm = DPI / 25.4
@@ -1098,7 +1102,7 @@ namespace tud.mci.tangram.util
         /// <returns>
         /// The length in pixels.
         /// </returns>
-        public static int convertToPixel(int valueIn100thMm, int zoomInPercent, double pixelPerMeter = (96.0 / 25.4) * 1000.0)
+        public static int ConvertToPixel(int valueIn100thMm, int zoomInPercent, double pixelPerMeter = (96.0 / 25.4) * 1000.0)
         {
             return (int)(zoomInPercent * valueIn100thMm * pixelPerMeter / 10000000.0);
         }
@@ -1115,7 +1119,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         internal static Point convertToPixel(Point pos, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new Point(convertToPixel(pos.X, zoomInPercent, pxPerMeterX), convertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
+            return new Point(ConvertToPixel(pos.X, zoomInPercent, pxPerMeterX), ConvertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
         }
 
         /// <summary>
@@ -1130,7 +1134,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         public static System.Drawing.Point convertToPixel(System.Drawing.Point pos, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new System.Drawing.Point(convertToPixel(pos.X, zoomInPercent, pxPerMeterX), convertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
+            return new System.Drawing.Point(ConvertToPixel(pos.X, zoomInPercent, pxPerMeterX), ConvertToPixel(pos.Y, zoomInPercent, pxPerMeterY));
         }
 
         /// <summary>
@@ -1145,7 +1149,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         internal static Size convertToPixel(Size size, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new Size(convertToPixel(size.Width, zoomInPercent, pxPerMeterX), convertToPixel(size.Height, zoomInPercent, pxPerMeterY));
+            return new Size(ConvertToPixel(size.Width, zoomInPercent, pxPerMeterX), ConvertToPixel(size.Height, zoomInPercent, pxPerMeterY));
         }
 
         /// <summary>
@@ -1160,7 +1164,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         public static System.Drawing.Size convertToPixel(System.Drawing.Size size, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new System.Drawing.Size(convertToPixel(size.Width, zoomInPercent, pxPerMeterX), convertToPixel(size.Height, zoomInPercent, pxPerMeterY));
+            return new System.Drawing.Size(ConvertToPixel(size.Width, zoomInPercent, pxPerMeterX), ConvertToPixel(size.Height, zoomInPercent, pxPerMeterY));
         }
 
         /// <summary>
@@ -1175,10 +1179,9 @@ namespace tud.mci.tangram.util
         /// </returns>
         internal static unoidl.com.sun.star.awt.Rectangle convertToPixel(unoidl.com.sun.star.awt.Rectangle rect, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new unoidl.com.sun.star.awt.Rectangle(convertToPixel(rect.X, zoomInPercent, pxPerMeterX), convertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
-                convertToPixel(rect.Width, zoomInPercent, pxPerMeterX), convertToPixel(rect.Height, zoomInPercent, pxPerMeterY));
+            return new unoidl.com.sun.star.awt.Rectangle(ConvertToPixel(rect.X, zoomInPercent, pxPerMeterX), ConvertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
+                ConvertToPixel(rect.Width, zoomInPercent, pxPerMeterX), ConvertToPixel(rect.Height, zoomInPercent, pxPerMeterY));
         }
-
 
         /// <summary>
         /// Converts a rectangle from 100th/mm coordinates to pixel coordinates and size.
@@ -1192,8 +1195,8 @@ namespace tud.mci.tangram.util
         /// </returns>
         public static System.Drawing.Rectangle convertToPixel(System.Drawing.Rectangle rect, int zoomInPercent, double pxPerMeterX = (96.0 / 25.4) * 1000.0, double pxPerMeterY = (96.0 / 25.4) * 1000.0)
         {
-            return new System.Drawing.Rectangle(convertToPixel(rect.X, zoomInPercent, pxPerMeterX), convertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
-                convertToPixel(rect.Width, zoomInPercent, pxPerMeterX), convertToPixel(rect.Height, zoomInPercent, pxPerMeterY));
+            return new System.Drawing.Rectangle(ConvertToPixel(rect.X, zoomInPercent, pxPerMeterX), ConvertToPixel(rect.Y, zoomInPercent, pxPerMeterY),
+                ConvertToPixel(rect.Width, zoomInPercent, pxPerMeterX), ConvertToPixel(rect.Height, zoomInPercent, pxPerMeterY));
         }
 
         /// <summary>
@@ -1216,7 +1219,7 @@ namespace tud.mci.tangram.util
         /// <param name="pos">The original coordinate.</param>
         /// <param name="homogenMatrix">The transformation matrix.</param>
         /// <returns>The transformed matrix.</returns>
-        internal static Point transform(Point pos, HomogenMatrix3 homogenMatrix)
+        internal static Point Transform(Point pos, HomogenMatrix3 homogenMatrix)
         {
             // x' = a11 * x + a12 * y + a13
             // y' = a21 * x + a22 * y + a23
@@ -1234,7 +1237,7 @@ namespace tud.mci.tangram.util
         /// <param name="rect">The original bounding rectangle.</param>
         /// <param name="homogenMatrix">The transformation matrix.</param>
         /// <returns>The bounding box of the transformed rectangle.</returns>
-        internal static Rectangle transformBoundingBox(Rectangle rect, HomogenMatrix3 homogenMatrix)
+        internal static Rectangle TransformBoundingBox(Rectangle rect, HomogenMatrix3 homogenMatrix)
         {
             // transform all corners
             // p1       p2
@@ -1242,10 +1245,10 @@ namespace tud.mci.tangram.util
             // │        │
             // └────────┘
             // p3       p4
-            Point p1 = transform(new Point(rect.X, rect.Y), homogenMatrix);
-            Point p2 = transform(new Point(rect.X + rect.Width, rect.Y), homogenMatrix);
-            Point p3 = transform(new Point(rect.X + rect.Width, rect.Y + rect.Height), homogenMatrix);
-            Point p4 = transform(new Point(rect.X, rect.Y + rect.Height), homogenMatrix);
+            Point p1 = Transform(new Point(rect.X, rect.Y), homogenMatrix);
+            Point p2 = Transform(new Point(rect.X + rect.Width, rect.Y), homogenMatrix);
+            Point p3 = Transform(new Point(rect.X + rect.Width, rect.Y + rect.Height), homogenMatrix);
+            Point p4 = Transform(new Point(rect.X, rect.Y + rect.Height), homogenMatrix);
             int minX = Math.Min(Math.Min(Math.Min(p1.X, p2.X), p3.X), p4.X);
             int maxX = Math.Max(Math.Max(Math.Max(p1.X, p2.X), p3.X), p4.X);
             int minY = Math.Min(Math.Min(Math.Min(p1.Y, p2.Y), p3.Y), p4.Y);
@@ -2007,6 +2010,9 @@ namespace tud.mci.tangram.util
         BITMAP = unoidl.com.sun.star.drawing.FillStyle.BITMAP
     }
 
+    /// <summary>
+    /// The BitmapMode selects an algorithm for filling an area with a bitmap.
+    /// </summary>
     public enum BitmapMode
     {
         /// <summary>

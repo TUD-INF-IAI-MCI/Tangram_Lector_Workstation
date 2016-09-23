@@ -636,7 +636,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>Bounding box in pixels as screen position relative to the openoffice draw view area.</returns>
         public System.Drawing.Rectangle GetRelativeScreenBoundsByDom()
         {
-            System.Drawing.Rectangle result = new System.Drawing.Rectangle(0, 0, 0, 0);
+            System.Drawing.Rectangle result = new System.Drawing.Rectangle(-1, -1, 0, 0);
             if (Shape != null && Page != null && Page.PagesObserver != null)
             {
                 // get page properties like zoom and offset
@@ -682,8 +682,10 @@ namespace tud.mci.tangram.controller.observer
             _updatingBounds = true;
 
             System.Drawing.Rectangle result = (relativeBounds.Height * relativeBounds.Width <= 0) ? GetRelativeScreenBoundsByDom() : new System.Drawing.Rectangle(relativeBounds.X, relativeBounds.Y, relativeBounds.Width, relativeBounds.Height);
-            XModel docModel = (XModel)GetDocument();
-            if (result.Width * result.Height > 0 && docModel != null)
+            //XModel docModel = (XModel)GetDocument();
+            if (result.Width * result.Height > 0 
+                //&& docModel != null
+                )
             {
                 // get page properties like zoom and offset
                 //docModel.lockControllers();

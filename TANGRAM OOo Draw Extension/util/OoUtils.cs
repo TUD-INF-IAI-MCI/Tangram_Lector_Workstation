@@ -29,11 +29,12 @@ namespace tud.mci.tangram.util
      *
      * @author  danny brewer and Jens Bornschein
      */
+    /// <summary>
+    /// Basic static helper functions for handling OpenOffice/LibreOffice   
+    /// </summary>
     public class OoUtils
     {
-        //----------------------------------------------------------------------
-        //  Conveniences to make some structures
-        //----------------------------------------------------------------------
+        #region Structures creation
 
         /// <summary>
         /// Create a basic property value object.
@@ -85,9 +86,11 @@ namespace tud.mci.tangram.util
             return rect;
         }
 
+        #endregion
+
         #region Property
 
-        #region SET
+        #region Properties SET
 
         #region Normal
 
@@ -213,8 +216,6 @@ namespace tud.mci.tangram.util
 
         #region Undo / Redo
 
-        //TODO:
-
         /// <summary>
         /// Sets a property and add the change in the uno manager.
         /// </summary>
@@ -287,7 +288,7 @@ namespace tud.mci.tangram.util
 
         #endregion
 
-        #region GET
+        #region Properties GET
 
         /// <summary>
         /// Gets a property value.
@@ -446,36 +447,7 @@ namespace tud.mci.tangram.util
 
         #endregion
 
-        /// <summary>
-        /// Try to compare two OpenOffice objects to be equal.
-        /// Therefore at least the implementation id is compared. 
-        /// </summary>
-        /// <param name="a">Object a.</param>
-        /// <param name="b">Object b.</param>
-        /// <returns></returns>
-        public static bool AreOoObjectsEqual(Object a, Object b)
-        {
-            if (a.Equals(b)) return true;
-            else
-            {
-                if (a != null && b != null)
-                {
-                    byte[] idA = GetImplementationId(a);
-                    byte[] idB = GetImplementationId(b);
-
-                    if (!idA.Equals(new byte[0]) && !idB.Equals(new byte[0]))
-                    {
-                        return idA.Equals(idB);
-                    }
-                }
-            }
-            return false;
-        }
-
-
-        //----------------------------------------------------------------------
-        //  Colors.
-        //----------------------------------------------------------------------
+        #region Colors
 
         /// <summary>
         /// Gets a color number corresponding to the color representation of OO.
@@ -523,9 +495,9 @@ namespace tud.mci.tangram.util
             return ConvertToColorInt(BitConverter.GetBytes(c.R)[0], BitConverter.GetBytes(c.G)[0], BitConverter.GetBytes(c.B)[0]);
         }
 
-        //----------------------------------------------------------------------
-        //  Sugar coating for com.sun.star.container.XNamed interface.
-        //----------------------------------------------------------------------
+        #endregion
+
+        #region XNamed
 
         /// <summary>
         /// Gets a named property of an XNameAccess object.
@@ -608,15 +580,16 @@ namespace tud.mci.tangram.util
             return xNamed != null ? xNamed.getName() : String.Empty;
         }
 
-        //----------------------------------------------------------------------
-        //  Service Testing
-        //----------------------------------------------------------------------
+        #endregion
+
+        #region  Service Testing
+
         /// <summary>
         /// Determines if the given object supports the requested service.
         /// </summary>
         /// <param name="element">The element.</param>
         /// <param name="service">The service.</param>
-        /// <returns><c>true</c> if the elemnt support the requested service, otherwise <c>false</c></returns>
+        /// <returns><c>true</c> if the element support the requested service, otherwise <c>false</c></returns>
         public static bool ElementSupportsService(Object element, String service)
         {
             if (element != null && element is XServiceInfo)
@@ -626,9 +599,35 @@ namespace tud.mci.tangram.util
             return false;
         }
 
-        //----------------------------------------------------------------------
-        //  Basic tool
-        //----------------------------------------------------------------------
+        #endregion
+
+        #region Basic Helper Functions
+
+        /// <summary>
+        /// Try to compare two OpenOffice objects to be equal.
+        /// Therefore at least the implementation id is compared. 
+        /// </summary>
+        /// <param name="a">Object a.</param>
+        /// <param name="b">Object b.</param>
+        /// <returns></returns>
+        public static bool AreOoObjectsEqual(Object a, Object b)
+        {
+            if (a.Equals(b)) return true;
+            else
+            {
+                if (a != null && b != null)
+                {
+                    byte[] idA = GetImplementationId(a);
+                    byte[] idB = GetImplementationId(b);
+
+                    if (!idA.Equals(new byte[0]) && !idB.Equals(new byte[0]))
+                    {
+                        return idA.Equals(idB);
+                    }
+                }
+            }
+            return false;
+        }
 
         /// <summary>
         /// Gets the Oo process ID.
@@ -640,6 +639,10 @@ namespace tud.mci.tangram.util
             return (localByName != null && localByName.Length > 0) ? localByName[0].Id : -1;
         }
 
+        /// <summary>
+        /// Gets the process id of the soffice.bin process.
+        /// </summary>
+        /// <returns>the id of the office process if it is running; otherwise -1</returns>
         public static int GetOoBinProcessID()
         {
             Process[] localByName = Process.GetProcessesByName("soffice.bin");
@@ -711,6 +714,11 @@ namespace tud.mci.tangram.util
             }
             return null;
         }
+
+        #endregion
+
+        #region Graphic Handling
+
         /// <summary>
         /// 
         /// </summary>
@@ -744,11 +752,51 @@ namespace tud.mci.tangram.util
 
         }
 
+        /// <summary>
+        /// Creates the bitmap URL from a file path, so it can be loaded.
+        /// </summary>
+        /// <param name="path">The path to the bitmap.</param>
+        /// <returns>a confirm bitmap URL string</returns>
         public static string CreateBitmapUrl(string path)
         {
             return @"file:///" + path.Replace("\\", "/");
         }
 
+        #endregion
+
+        #region Coordination Convention
+
+        #region PInvoke user32.dll
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr GetDC(IntPtr hWnd);
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        #endregion
+
+        /// <summary>
+        /// Gets the device resolution as pixel per meter.
+        /// </summary>
+        /// <param name="_ppmX">The pixel per meter in x dimension.</param>
+        /// <param name="_ppmY">The pixel per meter in y dimension.</param>
+        public static void GetDeviceResolutionPixelPerMeter(out double _ppmX, out double _ppmY)
+        {
+            int dpiX = 96, dpiY = 96;
+            // get DPI resolution x and y
+            IntPtr hDC = GetDC(IntPtr.Zero);    // device context for the whole screen, see http://pinvoke.net/default.aspx/gdi32.GetDC
+            dpiX = GetDeviceCaps(hDC, 88 /*LOGPIXELSX*/);   // see http://pinvoke.net/default.aspx/gdi32/GetDeviceCaps.html
+            dpiY = GetDeviceCaps(hDC, 90 /*LOGPIXELSY*/);
+            ReleaseDC(IntPtr.Zero, hDC);        // release device context
+            _ppmX = ((double)dpiX / 25.4) * 1000.0;
+            _ppmY = ((double)dpiX / 25.4) * 1000.0;
+        }
+
+        #endregion
 
         #region Undo / Redo
 
@@ -780,6 +828,8 @@ namespace tud.mci.tangram.util
         #endregion
     }
 
+    #region Undo / Redo Classes
+
     /// <summary>
     /// Class implementing the XUndoAction interface. This can be added to an
     /// Undo manager to support the undo redo of an property change.
@@ -791,6 +841,14 @@ namespace tud.mci.tangram.util
         readonly Dictionary<String, Object> OldParameters;
         readonly Dictionary<String, Object> NewParameters;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParameterUndo"/> class.
+        /// A small handler for changing object properties.
+        /// </summary>
+        /// <param name="title">The title of the done operation - will be listed in the undo/redo history.</param>
+        /// <param name="target">The target object to change properties of.</param>
+        /// <param name="oldParameters">The old parameters and values.</param>
+        /// <param name="newParameters">The new parameters and values.</param>
         public ParameterUndo(string title, Object target, Dictionary<String, Object> oldParameters, Dictionary<String, Object> newParameters)
         {
             Title = title;
@@ -799,6 +857,15 @@ namespace tud.mci.tangram.util
             Target = target;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParameterUndo" /> class.
+        /// A small handler for changing object properties.
+        /// </summary>
+        /// <param name="title">The title of the done operation - will be listed in the undo/redo history.</param>
+        /// <param name="target">The target object to change properties of.</param>
+        /// <param name="name">The name of the property to change.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
         public ParameterUndo(string title, Object target, String name, Object oldValue, Object newValue)
         {
             Dictionary<String, Object> oldParams = new Dictionary<String, Object>();
@@ -812,12 +879,21 @@ namespace tud.mci.tangram.util
 
         }
 
+        /// <summary>
+        /// The title of the done operation - will be listed in the undo/redo history.
+        /// </summary>
+        /// <value>
+        /// The title.
+        /// </value>
         public string Title
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// sets the new properties again.
+        /// </summary>
         public void redo()
         {
             if (NewParameters != null)
@@ -833,6 +909,9 @@ namespace tud.mci.tangram.util
             }
         }
 
+        /// <summary>
+        /// restore the old properties.
+        /// </summary>
         public void undo()
         {
             if (OldParameters != null)
@@ -859,12 +938,24 @@ namespace tud.mci.tangram.util
         Action _redo;
         Action _undo;
 
+        /// <summary>
+        /// Is the human-readable, localized description of the action.
+        /// </summary>
+        /// <value>
+        /// The title.
+        /// </value>
         public string Title
         {
             get;
             private set;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ActionUndo"/> class.
+        /// </summary>
+        /// <param name="title">The title of this change - will be displayed in the undo/redo history.</param>
+        /// <param name="undo">The undo action.</param>
+        /// <param name="redo">The redo action.</param>
         public ActionUndo(String title, Action undo, Action redo)
         {
             Title = title;
@@ -873,17 +964,25 @@ namespace tud.mci.tangram.util
 
         }
 
+        /// <summary>
+        /// Repeats the action represented by the instance, after it had previously been reverted.
+        /// </summary>
         public void redo()
         {
             try { _redo.Invoke(); }
             catch { }
         }
 
+        /// <summary>
+        /// Reverts the action represented by the instance  .
+        /// </summary>
         public void undo()
         {
             try { _undo.Invoke(); }
             catch { }
         }
     }
+
+    #endregion
 
 }

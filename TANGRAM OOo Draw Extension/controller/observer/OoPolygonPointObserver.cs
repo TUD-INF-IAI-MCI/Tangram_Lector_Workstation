@@ -214,7 +214,6 @@ namespace tud.mci.tangram.controller.observer
             return GetPolyPointDescriptor(i, pi);
         }
 
-
         /// <summary>
         /// Updates a poly point descriptor.
         /// </summary>
@@ -644,12 +643,35 @@ namespace tud.mci.tangram.controller.observer
             }
         }
 
-        //public Point TransformPointCoordinatesIntoScreenCoordinates(int x, int y)
-        //{
 
+        public Point TransformPointCoordinatesIntoScreenCoordinates(PolyPointDescriptor polyPointDescriptor)
+        {
+            return TransformPointCoordinatesIntoScreenCoordinates(polyPointDescriptor.X, polyPointDescriptor.Y);
+        }
+        public Point TransformPointCoordinatesIntoScreenCoordinates(int x, int y)
+        {
+            Point p = new Point(x, y);
 
+            try
+            {
+                if (IsValid()
+                        && Shape.Page != null
+                        && Shape.Page.PagesObserver != null)
+                {
+                    Point offset = Shape.Page.PagesObserver.ViewOffset;
+                    int currentZoom = Shape.Page.PagesObserver.ZoomValue;
+                    p.X = OoDrawUtils.ConvertToPixel(x - offset.X, currentZoom, OoDrawPagesObserver.PixelPerMeterX);
+                    p.Y = OoDrawUtils.ConvertToPixel(y - offset.Y, currentZoom, OoDrawPagesObserver.PixelPerMeterY);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(LogPriority.ALWAYS, this, "[ERROR] when transforming polygon points" + ex);
+            }
 
-        //}
+            return p;
+        }
+
 
         #endregion
 
@@ -842,6 +864,7 @@ namespace tud.mci.tangram.controller.observer
         #endregion
 
         #endregion
+
 
     }
 }

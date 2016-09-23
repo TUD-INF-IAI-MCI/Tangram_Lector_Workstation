@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using BrailleIO.Interface;
 using tud.mci.tangram.controller.observer;
+using tud.mci.tangram.util;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
@@ -20,7 +21,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>
         /// The current bounding box to display
         /// </summary>
-        public Rectangle CurrentBoundingBox;
+        private Rectangle _currentBoundingBox = new Rectangle(-1, -1, 0, 0);
+
+        /// <summary>
+        /// The current bounding box to display
+        /// </summary>
+        public Rectangle CurrentBoundingBox
+        {
+            get { return _currentBoundingBox; }
+            set { _currentBoundingBox = value; }
+        }
+
+
+        /// <summary>
+        /// The current point
+        /// </summary>
+        public Point CurrentPoint = new Point(-1, -1);
+
 
         /// <summary>
         /// Sets the current bounding box by shape.
@@ -32,7 +49,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 CurrentBoundingBox = currentSelectedShape.GetAbsoluteScreenBoundsByDom();
             }
-            else CurrentBoundingBox = new Rectangle(0, 0, 0, 0);
+            else CurrentBoundingBox = new Rectangle(-1, -1, 0, 0);
         }
 
         /// <summary>
@@ -75,134 +92,255 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         private void doBlinkingBoundingBox(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
             //draw frame as bool pins
-            if (DoRenderBoundingBox && !(CurrentBoundingBox.Width * CurrentBoundingBox.Height < 1) )
+            if (DoRenderBoundingBox &&
+                CurrentPoint.X < 0 && CurrentPoint.Y < 0 &&
+                !(CurrentBoundingBox.Width * CurrentBoundingBox.Height < 1))
             {
-                if (view is IZoomable && view is IPannable)
+                result = paintBoundingBoxMarker(view, result);
+            }
+            else
+            {
+                result = paintPolygonPointMarker(view, result);
+            }
+        }
+
+        private bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] result)
+        {
+            if (view is IZoomable && view is IPannable)
+            {
+                double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                int xOffset = ((IPannable)view).GetXOffset();
+                int yOffset = ((IPannable)view).GetYOffset();
+
+                //if (WindowManager.Instance != null && WindowManager.Instance.ScreenObserver != null && WindowManager.Instance.ScreenObserver.ScreenPos is System.Drawing.Rectangle)
+                //{
+
+                Rectangle pageBounds = getPageBounds();
+
+                if (pageBounds.Width > 0 && pageBounds.Height > 0)
                 {
-                    double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
-                    int xOffset = ((IPannable)view).GetXOffset();
-                    int yOffset = ((IPannable)view).GetYOffset();
+                    // coords of the shapes bounding box, relative to the whole captured image
+                    Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
+                    // converted to braille output coords, as shown in the original view (with zoom factor and panning position applied)
+                    Rectangle out_bBox = new Rectangle(
+                        (int)Math.Round((relbBox.X * zoom) + xOffset - 1), // x
+                        (int)Math.Round((relbBox.Y * zoom) + yOffset - 1), // y
+                        (int)Math.Round((relbBox.Width * zoom) + 2),       // w
+                        (int)Math.Round((relbBox.Height * zoom) + 2));     // h
 
-                    //if (WindowManager.Instance != null && WindowManager.Instance.ScreenObserver != null && WindowManager.Instance.ScreenObserver.ScreenPos is System.Drawing.Rectangle)
-                    //{
+                    // check for minimal height and width
+                    if (out_bBox.Width < MIN_FRAME_SIZE)
+                    {
+                        int oldWidth = out_bBox.Width;
+                        out_bBox.Width = MIN_FRAME_SIZE;
+                        int change = out_bBox.Width - oldWidth;
+                        out_bBox.X -= ((change) / 2);
+                    }
 
-                        Rectangle pageBounds = getPageBounds();
+                    if (out_bBox.Height < MIN_FRAME_SIZE)
+                    {
+                        int oldHeight = out_bBox.Height;
+                        out_bBox.Height = MIN_FRAME_SIZE;
+                        int change = out_bBox.Height - oldHeight;
 
-                        if (pageBounds.Width > 0 && pageBounds.Height > 0)
+                        out_bBox.Y -= ((change) / 2);
+                    }
+
+                    if (out_bBox.Width > 0 && out_bBox.Height > 0)
+                    {
+                        int result_x_max = result.GetLength(1) - 1;
+                        int result_y_max = result.GetLength(0) - 1;
+                        // rectangle coords within matrix:
+                        int x1 = Math.Max(0, out_bBox.X);                                // from bBox x (or 0)
+                        int x2 = Math.Min(out_bBox.X + out_bBox.Width, result_x_max);    // to bBox x + w (or x rightmost of matrix)
+                        int y1 = Math.Max(0, out_bBox.Y);                                // from bBox y (or 0)
+                        int y2 = Math.Min(out_bBox.Y + out_bBox.Height, result_y_max);   // to bBox y + h (or y bottom of matrix)
+
+                        // TODO capture on blink one frame, one blink out frame of matrix withing bounding box to let the content blink after capturing without having to modify dom any more
+                        // TODO: check if shape is in visible view port --> if shape is not visible, do not blink
+
+                        if (y2 >= y1 && x2 >= x1)
                         {
-                            // coords of the shapes bounding box, relative to the whole captured image
-                            Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
-                            // converted to braille output coords, as shown in the original view (with zoom factor and panning position applied)
-                            Rectangle out_bBox = new Rectangle(
-                                (int)(relbBox.X * zoom) + xOffset - 1, // x
-                                (int)(relbBox.Y * zoom) + yOffset - 1, // y
-                                (int)(relbBox.Width * zoom) + 2,       // w
-                                (int)(relbBox.Height * zoom) + 2);     // h
+                            /* draw outer (inflated box) and inner (deflated box) lowered pins around the raised pins bounding box itself to improve contrast
+                                *   ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
+                                * ○ ● ● ● ● ● ● ● ● ● ● ● ● ● ● ○
+                                * ○ ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ○
+                                * ○ ● ○                     ○ ● ○
+                                * ○ ● ○                     ○ ● ○
+                                * ○ ● ○                     ○ ● ○
+                                * ○ ● ○                     ○ ● ○
+                                * ○ ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ○
+                                * ○ ● ● ● ● ● ● ● ● ● ● ● ● ● ● ○
+                                *   ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ 
+                            */
 
-                            // check for minimal height and width
-                            if (out_bBox.Width < MIN_FRAME_SIZE)
-                            {
-                                int oldWidth = out_bBox.Width;
-                                out_bBox.Width = MIN_FRAME_SIZE;
-                                int change = out_bBox.Width - oldWidth;
-                                out_bBox.X -= ((change) / 2);
-                            }
+                            bool[,] target = result;
 
-                            if (out_bBox.Height < MIN_FRAME_SIZE)
-                            {
-                                int oldHeight = out_bBox.Height;
-                                out_bBox.Height = MIN_FRAME_SIZE;
-                                int change = out_bBox.Height - oldHeight;
-
-                                out_bBox.Y -= ((change) / 2);
-                            }
-
-                            if (out_bBox.Width > 0 && out_bBox.Height > 0)
-                            {
-                                int result_x_max = result.GetLength(1) - 1;
-                                int result_y_max = result.GetLength(0) - 1;
-                                // rectangle coords within matrix:
-                                int x1 = Math.Max(0, out_bBox.X);                                // from bBox x (or 0)
-                                int x2 = Math.Min(out_bBox.X + out_bBox.Width, result_x_max);    // to bBox x + w (or x rightmost of matrix)
-                                int y1 = Math.Max(0, out_bBox.Y);                                // from bBox y (or 0)
-                                int y2 = Math.Min(out_bBox.Y + out_bBox.Height, result_y_max);   // to bBox y + h (or y bottom of matrix)
-
-                                // TODO capture on blink one frame, one blink out frame of matrix withing bounding box to let the content blink after capturing without having to modify dom any more
-                                // TODO: check if shape is in visible view port --> if shape is not visible, do not blink
-
-                                if (y2 >= y1 && x2 >= x1)
+                            // draw horizontal lines
+                            Parallel.For(x1, x2,
+                                (x) =>
                                 {
-                                    /* draw outer (inflated box) and inner (deflated box) lowered pins around the raised pins bounding box itself to improve contrast
-                                        *   ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
-                                        * ○ ● ● ● ● ● ● ● ● ● ● ● ● ● ● ○
-                                        * ○ ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ○
-                                        * ○ ● ○                     ○ ● ○
-                                        * ○ ● ○                     ○ ● ○
-                                        * ○ ● ○                     ○ ● ○
-                                        * ○ ● ○                     ○ ● ○
-                                        * ○ ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ○
-                                        * ○ ● ● ● ● ● ● ● ● ● ● ● ● ● ● ○
-                                        *   ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ 
-                                    */
-
-                                    bool[,] target = result;
-
-                                    // draw horizontal lines
-                                    Parallel.For(x1, x2,
-                                        (x) =>
+                                    if (x >= 0 && x <= result_x_max)
+                                    {
+                                        if (y1 >= 0 && y1 <= result_y_max)
                                         {
-                                            if (x >= 0 && x <= result_x_max)
-                                            {
-                                                if (y1 >= 0 && y1 <= result_y_max)
-                                                {
-                                                    // top border
-                                                    if (y1 > 0) target[y1 - 1, x] = false;   // outer (lowered pins)
-                                                    if (y1 < result_y_max && x > x1 && x < x2) target[y1 + 1, x] = false;   // inner (lowered pins)
-                                                    target[y1, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
+                                            // top border
+                                            if (y1 > 0) target[y1 - 1, x] = false;   // outer (lowered pins)
+                                            if (y1 < result_y_max && x > x1 && x < x2) target[y1 + 1, x] = false;   // inner (lowered pins)
+                                            target[y1, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
 
-                                                }
-                                                if (y2 >= 0 && y2 <= result_y_max)
-                                                {
-                                                    // bottom border
-                                                    if (y2 > 0 && x > x1 && x < x2) target[y2 - 1, x] = false;   // inner (lowered pins)
-                                                    if (y2 < result_y_max) target[y2 + 1, x] = false;   // outer (lowered pins)
-                                                    target[y2, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                                }
-                                            }
                                         }
-                                       );
-
-                                    // draw vertical lines
-                                    Parallel.For(y1, y2 + 1,
-                                        (y) =>
+                                        if (y2 >= 0 && y2 <= result_y_max)
                                         {
-                                            if (y >= 0 && y <= result_y_max)
-                                            {
-                                                if (x1 >= 0 && x1 <= result_x_max)
-                                                {
-                                                    // left border 
-                                                    if (x1 > 0) target[y, x1 - 1] = false;  // outer (lowered pins)
-                                                    if (x1 < result_x_max && y > y1 && y < y2) target[y, x1 + 1] = false;  // inner (lowered pins)
-                                                    target[y, x1] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                                }
-                                                if (x2 >= 0 && x2 <= result_x_max)
-                                                {
-                                                    // right border 
-                                                    if (x2 > 0 && y > y1 && y < y2) target[y, x2 - 1] = false;  // inner (lowered pins)
-                                                    if (x2 < result_x_max) target[y, x2 + 1] = false;  // outer (lowered pins)
-                                                    target[y, x2] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                                }
-                                            }
+                                            // bottom border
+                                            if (y2 > 0 && x > x1 && x < x2) target[y2 - 1, x] = false;   // inner (lowered pins)
+                                            if (y2 < result_y_max) target[y2 + 1, x] = false;   // outer (lowered pins)
+                                            target[y2, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
                                         }
-                                        );
-
-                                    result = target;
+                                    }
                                 }
-                            }
+                               );
+
+                            // draw vertical lines
+                            Parallel.For(y1, y2 + 1,
+                                (y) =>
+                                {
+                                    if (y >= 0 && y <= result_y_max)
+                                    {
+                                        if (x1 >= 0 && x1 <= result_x_max)
+                                        {
+                                            // left border 
+                                            if (x1 > 0) target[y, x1 - 1] = false;  // outer (lowered pins)
+                                            if (x1 < result_x_max && y > y1 && y < y2) target[y, x1 + 1] = false;  // inner (lowered pins)
+                                            target[y, x1] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
+                                        }
+                                        if (x2 >= 0 && x2 <= result_x_max)
+                                        {
+                                            // right border 
+                                            if (x2 > 0 && y > y1 && y < y2) target[y, x2 - 1] = false;  // inner (lowered pins)
+                                            if (x2 < result_x_max) target[y, x2 + 1] = false;  // outer (lowered pins)
+                                            target[y, x2] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
+                                        }
+                                    }
+                                }
+                                );
+
+                            result = target;
                         }
-                    //}
+                    }
+                }
+                //}
+            }
+            return result;
+        }
+
+        private bool[,] paintPolygonPointMarker(IViewBoxModel view, bool[,] result)
+        {
+            // point;
+            if (result != null
+                //&& CurrentBoundingBox.X >= 0 && CurrentBoundingBox.Y >= 0
+                && CurrentPoint.X > 0 && CurrentPoint.Y > 0
+                )
+            {
+                int result_x_max = result.GetLength(1);
+                int result_y_max = result.GetLength(0);
+
+                if (result_x_max * result_y_max > 0)
+                {
+
+                    if (view is IZoomable && view is IPannable)
+                    {
+                        //Rectangle pageBounds = getPageBounds();
+                        double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                        int xOffset = ((IPannable)view).GetXOffset();
+                        int yOffset = ((IPannable)view).GetYOffset();
+                        // coords of the shapes bounding box, relative to the whole captured image
+                        // Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
+
+                        Point relPoint = new Point(CurrentPoint.X
+                            //- pageBounds.X
+                            , CurrentPoint.Y
+                            //- pageBounds.Y
+                            );
+
+                        // converted to braille output coords, as shown in the original view (with zoom factor and panning position applied)
+                        Point out_bBox = new Point(
+                            (int)Math.Round((relPoint.X * zoom) + xOffset - 1), // x
+                            (int)Math.Round((relPoint.Y * zoom) + yOffset - 1)); // y
+
+                        int x = out_bBox.X;
+                        int y = out_bBox.Y;
+
+                        /*
+                         * DoRenderBoundingBox
+                         *     true             |  false
+                         *      ○               |  
+                         *    ○ ● ○             |    ○
+                         *  ○ ● + ● ○           |  ○ + ○
+                         *    ○ ● ○             |    ○
+                         *      ○               |
+                         */
+
+                        // cross
+                        setSaveDot(x, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x - 1, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x + 1, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x, y - 1, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x, y + 1, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+
+                        if (DoRenderBoundingBox)
+                        {
+                            // cross spacing
+                            setSaveDot(x - 2, y, ref result, false, result_x_max, result_y_max);
+                            setSaveDot(x + 2, y, ref result, false, result_x_max, result_y_max);
+
+                            setSaveDot(x - 1, y - 1, ref result, false, result_x_max, result_y_max);
+                            setSaveDot(x - 1, y + 1, ref result, false, result_x_max, result_y_max);
+
+                            setSaveDot(x, y - 2, ref result, false, result_x_max, result_y_max);
+                            setSaveDot(x, y + 2, ref result, false, result_x_max, result_y_max);
+
+                            setSaveDot(x + 1, y - 1, ref result, false, result_x_max, result_y_max);
+                            setSaveDot(x + 1, y + 1, ref result, false, result_x_max, result_y_max);
+                        }
+                    }
                 }
             }
+            return result;
+        }
+
+        /// <summary>
+        /// Sets a binary dot in a matrix in a save way.
+        /// </summary>
+        /// <param name="x">The horizontal position.</param>
+        /// <param name="y">The vertical position.</param>
+        /// <param name="m">The matrix to manipulate.</param>
+        /// <param name="value">value of the dot.</param>
+        /// <param name="max_x">The maximum horizontal dimension.</param>
+        /// <param name="max_y">The maximum vertical dimension.</param>
+        /// <returns><c>true</c> if the dot could be set.</returns>
+        static bool setSaveDot(int x, int y, ref bool[,] m, bool value, int max_x = 0, int max_y = 0)
+        {
+            if (m != null && x > -1 && y > -1)
+            {
+                try
+                {
+                    if (max_x < 1) max_x = m.GetLength(1);
+                    if (max_y < 1) max_y = m.GetLength(0);
+
+                    if (max_x * max_y > 0)
+                    {
+                        if (x < max_x && y < max_y)
+                        {
+                            m[y, x] = value;
+                            return true;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            return false;
         }
 
         Rectangle getPageBounds()

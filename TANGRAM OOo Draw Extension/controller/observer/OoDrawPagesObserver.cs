@@ -96,19 +96,6 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        #region PInvoke user32.dll
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern IntPtr GetDC(IntPtr hWnd);
-
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
-        #endregion
-
         #region Constructor / Destructor
 
         /// <summary>
@@ -116,16 +103,18 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         static OoDrawPagesObserver()
         {
-            int dpiX = 96, dpiY = 96;
-            // get DPI resolution x and y
-            IntPtr hDC = GetDC(IntPtr.Zero);    // device context for the whole screen, see http://pinvoke.net/default.aspx/gdi32.GetDC
-            dpiX = GetDeviceCaps(hDC, 88 /*LOGPIXELSX*/);   // see http://pinvoke.net/default.aspx/gdi32/GetDeviceCaps.html
-            dpiY = GetDeviceCaps(hDC, 90 /*LOGPIXELSY*/);
-            ReleaseDC(IntPtr.Zero, hDC);        // release device context
-            PixelPerMeterX = ((double)dpiX / 25.4) * 1000.0;
-            PixelPerMeterY = ((double)dpiX / 25.4) * 1000.0;
+            double ppmX, ppmY;
+            OoUtils.GetDeviceResolutionPixelPerMeter(out ppmX, out ppmY);
+            PixelPerMeterX = ppmX;
+            PixelPerMeterY = ppmY;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OoDrawPagesObserver"/> class.
+        /// </summary>
+        /// <param name="dp">The Draw document.</param>
+        /// <param name="doc">The document related accessibility component.</param>
+        /// <param name="docWnd">The related document accessible window component.</param>
         public OoDrawPagesObserver(XDrawPagesSupplier dp, OoAccComponent doc, OoAccessibleDocWnd docWnd = null)
         {
             this.PagesSupplier = dp;
@@ -626,7 +615,6 @@ namespace tud.mci.tangram.controller.observer
             return sobs;
         }
 
-
         /// <summary>
         /// Gets the registered shape observer.
         /// </summary>
@@ -765,7 +753,6 @@ namespace tud.mci.tangram.controller.observer
             }
             return result;
         }
-
 
         //TODO: unfinished
         private OoShapeObserver searchUnregisteredShapeByAccessible(string accName, XAccessibleContext cont)
@@ -933,10 +920,36 @@ namespace tud.mci.tangram.controller.observer
 
         #region XPropertyChangeListener
 
+        /// <summary>
+        /// Gets the current zoom value of this document in percent.
+        /// </summary>
+        /// <value>
+        /// The zoom value.
+        /// </value>
         public int ZoomValue { get; private set; }
+        /// <summary>
+        /// Gets the view offset.
+        /// Defines the offset from the top left position of the displayed page to the 
+        /// top left position of the view area in 100th/mm.
+        /// </summary>
+        /// <value>
+        /// The view offset.
+        /// </value>
         public System.Drawing.Point ViewOffset { get; private set; }
 
+        /// <summary>
+        /// Gets the horizontal resolution in pixel per meter.
+        /// </summary>
+        /// <value>
+        /// The pixel per meter in x direction.
+        /// </value>
         public static double PixelPerMeterX { get; private set; }
+        /// <summary>
+        /// Gets the vertical resolution in pixel per meter.
+        /// </summary>
+        /// <value>
+        /// The pixel per meter in y direction.
+        /// </value>
         public static double PixelPerMeterY { get; private set; }
 
         private void addVisibleAreaPropertyChangeListener()
@@ -988,7 +1001,10 @@ namespace tud.mci.tangram.controller.observer
             }
         }
 
-        // implementing XPropertyChangeListener method
+        /// <summary>
+        /// implementing XPropertyChangeListener method
+        /// </summary>
+        /// <param name="evt">The evt.</param>
         protected override void propertyChange(PropertyChangeEvent evt)
         {
             if (evt.Source == ((XModel)this.PagesSupplier).getCurrentController())
@@ -1001,7 +1017,10 @@ namespace tud.mci.tangram.controller.observer
             }
         }
 
-        // get current ZoomValue and view ViewOffset properties
+        /// <summary>
+        /// get current ZoomValue and view ViewOffset properties
+        /// </summary>
+        /// <param name="drawViewProperties">The draw view properties.</param>
         private void refreshDrawViewProperties(XPropertySet drawViewProperties)
         {
             if (drawViewProperties == null) return;
@@ -1021,14 +1040,18 @@ namespace tud.mci.tangram.controller.observer
             if (ViewOrZoomChangeEventHandlers != null) ViewOrZoomChangeEventHandlers();
         }
 
-        // delegate for Bounding Box change event handling
+        /// <summary>
+        /// delegate for Bounding Box change event handling
+        /// </summary>
         public delegate void ViewOrZoomChangeEventHandler();
-        // event object
+        /// <summary>
+        /// Occurs when view or zoom changed.
+        /// </summary>
         public event ViewOrZoomChangeEventHandler ViewOrZoomChangeEventHandlers;
 
         #endregion
 
-        #region Childs
+        #region Children
 
         //TODO check the child an build a off screen model
 
@@ -1193,7 +1216,6 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-
         #region IDisposingObserver
 
         /// <summary>
@@ -1223,7 +1245,5 @@ namespace tud.mci.tangram.controller.observer
         }
 
         #endregion
-
-
     }
 }
