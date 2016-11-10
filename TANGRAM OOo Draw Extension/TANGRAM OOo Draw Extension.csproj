@@ -141,16 +141,13 @@
     <Compile Include="models\menus\MenueBase.cs" />
     <Compile Include="models\menus\ToolBar.cs" />
     <Compile Include="models\Any.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="util\CommandUrlHelper.cs" />
     <Compile Include="util\Debug.cs" />
     <Compile Include="util\FunctionHelper.cs" />
     <Compile Include="util\Oo.cs" />
     <Compile Include="util\OoDrawUtils.cs" />
     <Compile Include="util\OoUtils.cs" />
     <Compile Include="util\TimeLimitExecutor.cs" />
-    <Compile Include="util\UnoCallHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
