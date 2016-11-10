@@ -14,7 +14,7 @@ namespace tud.mci.tangram.TangramLector
         public static DesktopOverlayWindow Instance { get { return _instance; } }
 
         // import user32 functions for extended window styling
-        // Retrieve window attribue
+        // Retrieve window attribute
         [DllImport("user32.dll", SetLastError = true)]
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         // Changes an attribute of the specified window (hWnd is the WindowHandle, index GWL_EXSTYLE (-20) is for extended window style.
@@ -35,12 +35,12 @@ namespace tud.mci.tangram.TangramLector
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        static void ShowInactiveTopmost(Form frm, int posX=Int32.MinValue, int posY = Int32.MinValue)
+        static void ShowInactiveTopmost(Form frm, int posX = Int32.MinValue, int posY = Int32.MinValue)
         {
             ShowWindow(frm.Handle, 4 /*SW_SHOWNOACTIVATE*/);
             if (posX == Int32.MinValue) posX = frm.Left;
             if (posY == Int32.MinValue) posY = frm.Top;
-            SetWindowPos(frm.Handle.ToInt32(), -1/*HWND_TOPMOST*/,frm.Left, frm.Top, frm.Width, frm.Height,0x0010/*SWP_NOACTIVATE*/);
+            SetWindowPos(frm.Handle.ToInt32(), -1/*HWND_TOPMOST*/, frm.Left, frm.Top, frm.Width, frm.Height, 0x0010/*SWP_NOACTIVATE*/);
         }
 
         private DesktopOverlayWindow()
@@ -51,9 +51,9 @@ namespace tud.mci.tangram.TangramLector
             // WS_EX_LAYERED: system automatically composes and repaints layered windows and the windows of underlying applications. As a result, layered windows are rendered smoothly, without the flickering typical of complex window regions. In addition, layered windows can be partially translucent, that is, alpha-blended.
             // WS_EX_TRANSPARENT: make window (click) transparent
             // WS_EX_TOOLWINDOW: hide from alt+tab
-            SetWindowLong(this.Handle, -20/*GWL_EXSTYLE*/, 
+            SetWindowLong(this.Handle, -20/*GWL_EXSTYLE*/,
                 Convert.ToInt32(GetWindowLong(Handle, -20/*GWL_EXSTYLE*/)) |
-                    0x00080000/*WS_EX_LAYERED*/ | 0x00000020/*WS_EX_TRANSPARENT*/ | 0x00000080/*WS_EX_TOOLWINDOW*/ | 0x00000008/*WS_EX_TOPMOST*/ | 0x08000000/*WS_EX_NOACTIVATE*/ | 0x40000000/*WS_CHILD*/); 
+                    0x00080000/*WS_EX_LAYERED*/ | 0x00000020/*WS_EX_TRANSPARENT*/ | 0x00000080/*WS_EX_TOOLWINDOW*/ | 0x00000008/*WS_EX_TOPMOST*/ | 0x08000000/*WS_EX_NOACTIVATE*/ | 0x40000000/*WS_CHILD*/);
         }
 
         // override ShowWithoutActivation to not steal focus from other windows when showing
@@ -123,9 +123,9 @@ namespace tud.mci.tangram.TangramLector
         private void _refreshBounds(Rectangle boundingBox, ref byte[] pngImageByteArray)
         {
             if (totalDisplayTimer.Enabled)
-            { 
+            {
                 MoveWindow(this.Handle, boundingBox.X, boundingBox.Y, boundingBox.Width, boundingBox.Height, true);
-                if (pngImageByteArray.Length>0)
+                if (pngImageByteArray.Length > 0)
                 {
                     loadBitmap(ref pngImageByteArray);
                 }
@@ -144,19 +144,9 @@ namespace tud.mci.tangram.TangramLector
             this.BeginInvoke(RefreshBoundsCallback, new object[2] { boundingBox, pngImageByteArray });
         }
 
-        private void loadBitmap(ref byte[] byteArray)
-        {
-            Bitmap foregroundBitmap = new Bitmap(Size.Width, Size.Height);
-            Bitmap backgroundBitmap = new Bitmap(Size.Width, Size.Height);
-            MemoryStream stream = new MemoryStream(byteArray);
-            try
-            {
-                Image png = Image.FromStream(stream);
-                //get a graphics object from the new image
-                Graphics g = Graphics.FromImage(foregroundBitmap);
-                Graphics gBg = Graphics.FromImage(backgroundBitmap);
-                // create the negative color matrix
-                ColorMatrix colorMatrixRed = new ColorMatrix(new float[][]
+
+        // create the negative color matrix
+        static ColorMatrix colorMatrixRed = new ColorMatrix(new float[][]
                 {
                     // more red
                     new float[] {2f, 0, 0, 0, 0},
@@ -165,7 +155,7 @@ namespace tud.mci.tangram.TangramLector
                     new float[] {0, 0, 0, 1f, 0},
                     new float[] {.2f, 0f, 0f, 0, 1f}
                 });
-                ColorMatrix colorMatrixInverse = new ColorMatrix(new float[][]
+        static ColorMatrix colorMatrixInverse = new ColorMatrix(new float[][]
                 {
                     // invert
                     new float[] {-1f, 0, 0, 0, 0},
@@ -174,24 +164,50 @@ namespace tud.mci.tangram.TangramLector
                     new float[] {0, 0, 0, 1f, 0},
                     new float[] {1f, 1f, 1f, 0, 1f}
                 });
-                // create some image attributes
-                ImageAttributes attributes = new ImageAttributes();
-                attributes.SetColorMatrix(colorMatrixRed);
-                ImageAttributes attributesBg = new ImageAttributes();
-                attributesBg.SetColorMatrix(colorMatrixInverse);
-                // draw with color matrix
-                g.DrawImage(png, new Rectangle(0, 0, Size.Width, Size.Height), 0, 0, Size.Width, Size.Height, GraphicsUnit.Pixel, attributes);
-                gBg.DrawImage(png, new Rectangle(0, 0, Size.Width, Size.Height), 0, 0, Size.Width, Size.Height, GraphicsUnit.Pixel, attributesBg);
 
-                //dispose the Graphics object
-                g.Dispose();
-                gBg.Dispose();
-                this.BackgroundImage = backgroundBitmap;
-                transparentOverlayPictureBox1.Image = foregroundBitmap;
-            }
-            catch (ArgumentException ex)
+
+        private void loadBitmap(ref byte[] byteArray)
+        {
+            Bitmap foregroundBitmap = new Bitmap(Size.Width, Size.Height);
+            Bitmap backgroundBitmap = new Bitmap(Size.Width, Size.Height);
+            using (MemoryStream stream = new MemoryStream(byteArray))
             {
-                Logger.Instance.Log(LogPriority.DEBUG, ex.Source, ex);
+                try
+                {
+                    using (Image png = Image.FromStream(stream))
+                    {
+                        //get a graphics object from the new image
+                        Graphics g = Graphics.FromImage(foregroundBitmap);
+                        Graphics gBg = Graphics.FromImage(backgroundBitmap);
+                        
+                        // create some image attributes
+                        ImageAttributes attributes = new ImageAttributes();
+                        attributes.SetColorMatrix(colorMatrixRed);
+                        ImageAttributes attributesBg = new ImageAttributes();
+                        attributesBg.SetColorMatrix(colorMatrixInverse);
+                        // draw with color matrix
+                        g.DrawImage(png, new Rectangle(0, 0, Size.Width, Size.Height), 0, 0, Size.Width, Size.Height, GraphicsUnit.Pixel, attributes);
+                        gBg.DrawImage(png, new Rectangle(0, 0, Size.Width, Size.Height), 0, 0, Size.Width, Size.Height, GraphicsUnit.Pixel, attributesBg);
+
+                        //dispose the Graphics object
+                        g.Dispose();
+                        gBg.Dispose();
+
+                        //try
+                        //{
+                        //    this.BackgroundImage.Dispose();
+                        //    transparentOverlayPictureBox1.Image.Dispose();
+                        //}
+                        //catch { }
+
+                        this.BackgroundImage = backgroundBitmap;
+                        transparentOverlayPictureBox1.Image = foregroundBitmap;
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    Logger.Instance.Log(LogPriority.DEBUG, ex.Source, ex);
+                }
             }
         }
 
@@ -203,7 +219,7 @@ namespace tud.mci.tangram.TangramLector
 
 
         private List<int> onOffStepIntervalls = new List<int>();
-        private int onOffStepIndex=0;
+        private int onOffStepIndex = 0;
         private bool onState = false;
 
         private void onOffStepTimer_Tick(object sender, EventArgs e)
@@ -212,7 +228,7 @@ namespace tud.mci.tangram.TangramLector
             // resume with next timer interval
             onOffStepIndex++;
             // resume with first index if overflow
-            if (onOffStepIndex >= onOffStepIntervalls.Count) onOffStepIndex=0;
+            if (onOffStepIndex >= onOffStepIntervalls.Count) onOffStepIndex = 0;
             // adopt timing
             onOffStepTimer.Interval = onOffStepIntervalls[onOffStepIndex];
         }
@@ -235,7 +251,7 @@ namespace tud.mci.tangram.TangramLector
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(LogPriority.IMPORTANT, this, ex); 
+                Logger.Instance.Log(LogPriority.IMPORTANT, this, ex);
             }
         }
     }

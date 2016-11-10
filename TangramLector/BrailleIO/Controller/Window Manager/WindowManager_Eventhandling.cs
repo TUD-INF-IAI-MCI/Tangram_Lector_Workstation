@@ -455,6 +455,8 @@ namespace tud.mci.tangram.TangramLector
                 {
                     if (e.PressedGenericKeys == null || e.PressedGenericKeys.Count < 1)
                     {
+                        #region 1 key
+
                         if (e.ReleasedGenericKeys.Count == 1)
                         {
                             switch (e.ReleasedGenericKeys[0])
@@ -572,6 +574,10 @@ namespace tud.mci.tangram.TangramLector
                                     break;
                             }
                         }
+                        #endregion
+
+                        #region 2 keys
+
                         else if (e.ReleasedGenericKeys.Count == 2)
                         {
                             // Standard-Schwellwert
@@ -585,6 +591,11 @@ namespace tud.mci.tangram.TangramLector
                                 }
                             }
                         }
+
+                        #endregion 
+
+                        #region 3 keys
+
                         else if (e.ReleasedGenericKeys.Count == 3)
                         {
                             // Kopfbereich ein/aus
@@ -634,6 +645,10 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
+
+                        #endregion
+
+                        #region 4 keys
                         else if (e.ReleasedGenericKeys.Count == 4)
                         {
                             // Detailbereich ein/aus
@@ -682,6 +697,11 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
+
+                        #endregion 
+
+                        #region 5 keys
+
                         else if (e.ReleasedGenericKeys.Count == 5)
                         {
                             // Vollbildmodus
@@ -703,6 +723,10 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
+                        #endregion 
+
+                        #region 6 keys
+
                         else if (e.ReleasedGenericKeys.Count == 6)
                         {
                             // Zoomstufe abfragen
@@ -725,6 +749,7 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
+                        #endregion 
                     }
                 }
                 #endregion

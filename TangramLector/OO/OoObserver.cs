@@ -435,17 +435,23 @@ namespace tud.mci.tangram.TangramLector.OO
                 if (e != null && e.Window != null)
                 {
                     fireWindowActivatedEvent(e);
-                    if (windowManager != null)
-                    {
-                        windowManager.SetTopRegionContent(e.Window.Title);
-                    }
+                    setTitelregionToDocTitle(e.Window);
                 }
-
             }
             catch (System.Exception ex)
             {
                 wm.ScreenObserver.ObserveScreen();
                 Logger.Instance.Log(LogPriority.DEBUG, ex);
+            }
+        }
+
+        private void setTitelregionToDocTitle(OoAccessibleDocWnd wnd)
+        {
+            if (windowManager != null && wnd != null)
+            {
+                string appTitle = wnd.Title;
+                appTitle += getPageNumInfosOfWindow(wnd);
+                windowManager.SetTopRegionContent(appTitle);
             }
         }
 
@@ -556,7 +562,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     {
                         if (windowManager != null)
                         {
-                            windowManager.SetTopRegionContent(e.Window.Title);
+                            setTitelregionToDocTitle(e.Window);
                         }
 
                         Thread.Sleep(50); // gives the element the chance to finish the changes before requesting the new properties. Should prevent a hang on. 
@@ -794,6 +800,32 @@ namespace tud.mci.tangram.TangramLector.OO
             InitBrailleDomFocusHighlightMode();
         }
 
+        /// <summary>
+        /// Gets the infos about the amount of pages and the current page number of a window.
+        /// </summary>
+        /// <param name="win">The DRAW doc window.</param>
+        /// <returns>a String of type ' X/Y', where X is the current page and Y the amount of pages; otherwise the empty string.</returns>
+        private static string getPageNumInfosOfWindow(OoAccessibleDocWnd win)
+        {
+            String result = String.Empty;
+            if (win != null)
+            {
+                int pC = win.GetPageCount();
+                if (pC > 1)
+                {
+                    var aPObs = win.GetActivePageObserver();
+                    if (aPObs != null)
+                    {
+                        int cP = aPObs.GetPageNum();
+                        if (cP > 0)
+                        {
+                            result += " " + cP + "/" + pC;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
         #endregion
 
         #region IOoDrawConnection

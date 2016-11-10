@@ -137,7 +137,7 @@ namespace tud.mci.tangram.controller.observer
                 XShape s = getNextSiblingByXShape();
                 OoShapeObserver sobs = getShapeObserverFromXShape(s);
 
-                if (sobs.Disposed)
+                if (sobs == null || sobs.Disposed)
                 {
                     sobs = new OoShapeObserver(s, Page);
                     Page.PagesObserver.RegisterUniqueShape(sobs);

@@ -115,7 +115,10 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         public Object DrawPageSupplier
         {
-            get { return _dps; }
+            get {
+                if (_dps == null) getXDrawPageSupplier();
+                return _dps; 
+            }
             set
             {
                 _dps = value as XDrawPagesSupplier;
@@ -406,53 +409,68 @@ namespace tud.mci.tangram.Accessibility
             }
         }
 
+        volatile bool _dpsSerach = false;
         /// <summary>
         /// Try to find the corresponding XDrawPageSupplier to the given Window.
         /// </summary>
         private bool getXDrawPageSupplier()
         {
-            List<XDrawPagesSupplier> dps = OoDrawUtils.GetDrawPageSuppliers(OO.GetDesktop());
-            if (dps.Count > 0)
+            if (_dpsSerach)
             {
-                foreach (var item in dps)
+                while (_dpsSerach) { Thread.Sleep(10); }
+                return true;
+            }
+
+            _dpsSerach = true;
+            try
+            {
+                List<XDrawPagesSupplier> dps = OoDrawUtils.GetDrawPageSuppliers(OO.GetDesktop());
+                if (dps.Count > 0)
                 {
-                    //string runtimeID = OoUtils.GetStringProperty(item, "RuntimeUID");
-                    //string buildID = OoUtils.GetStringProperty(item, "BuildId");
-
-                    XAccessible acc = OoDrawUtils.GetXAccessibleFromDrawPagesSupplier(item);
-                    if (acc != null)
+                    foreach (var item in dps)
                     {
-                        var root = OoAccessibility.GetRootPaneFromElement(acc);
-                        if (root != null)
+                        //string runtimeID = OoUtils.GetStringProperty(item, "RuntimeUID");
+                        //string buildID = OoUtils.GetStringProperty(item, "BuildId");
+
+                        XAccessible acc = OoDrawUtils.GetXAccessibleFromDrawPagesSupplier(item);
+                        if (acc != null)
                         {
-                            if (root.Equals(MainWindow))
+                            var root = OoAccessibility.GetRootPaneFromElement(acc);
+                            if (root != null)
                             {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "XDrawPageSuppliere found!!");
-                                DrawPageSupplier = item;
+                                if (root.Equals(MainWindow))
+                                {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "XDrawPageSuppliere found!!");
+                                    DrawPageSupplier = item;
 
-                                //prepareForSelection(item); // Bad hack for getting accessible selection events
+                                    //prepareForSelection(item); // Bad hack for getting accessible selection events
 
-                                DrawPagesObs = new OoDrawPagesObserver(DrawPageSupplier as XDrawPagesSupplier, DocumentComponent, this);
-                                return true;
+                                    DrawPagesObs = new OoDrawPagesObserver(DrawPageSupplier as XDrawPagesSupplier, DocumentComponent, this);
+                                    return true;
+                                }
+                                else
+                                {
+                                    Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find root element from DrawPagesSupplier (root is not MainWindow)");
+                                }
                             }
                             else
                             {
-                                Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find root element from DrawPagesSupplier (root is not MainWindow)");
+                                Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find root element from DrawPagesSupplier (root is null)");
                             }
                         }
                         else
                         {
-                            Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find root element from DrawPagesSupplier (root is null)");
+                            Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find XAccessible for DrawPagesSupplier (root is null)");
                         }
                     }
-                    else
-                    {
-                        Logger.Instance.Log(LogPriority.OFTEN, this, "[ERROR] - Can't find XAccessible for DrawPagesSupplier (root is null)");
-                    }
                 }
+                Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] cannot find XDrawPageSuppliere for window");
+                return false;
             }
-            Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] cannot find XDrawPageSuppliere for window");
-            return false;
+            finally
+            {
+                _dpsSerach = false;
+            }
         }
 
         /// <summary>
@@ -678,6 +696,20 @@ namespace tud.mci.tangram.Accessibility
             return null;
         }
 
+        /// <summary>
+        /// Gets the page count.
+        /// </summary>
+        /// <returns>The number of available pages or 0</returns>
+        public int GetPageCount()
+        {
+            if (DrawPageSupplier != null && DrawPageSupplier is XDrawPagesSupplier)
+            {
+                var pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
+                if (pages != null) return pages.getCount();
+            }
+
+            return 0;
+        }
 
         volatile bool _runing = false;
         /// <summary>

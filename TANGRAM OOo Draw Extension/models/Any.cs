@@ -20,6 +20,7 @@ namespace tud.mci.tangram.models
 
         public static uno.Any Get(Object o)
         {
+            if (o is uno.Any) return (uno.Any) o;
             var a = new uno.Any(o != null ? o.GetType() : (new Object()).GetType(), o);
             return a; 
         }

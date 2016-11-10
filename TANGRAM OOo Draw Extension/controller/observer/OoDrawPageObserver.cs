@@ -49,7 +49,6 @@ namespace tud.mci.tangram.controller.observer
         public readonly List<OoShapeObserver> shapeList = new List<OoShapeObserver>();
         #endregion
 
-
         #region private
 
         private System.Timers.Timer refreshPagePropertiesTimer;  // e.g. every 2.5s
@@ -144,6 +143,8 @@ namespace tud.mci.tangram.controller.observer
             _pageUpdating = false;
         }
 
+        #region Properties
+
         public bool UpdatePageProperties()
         {
             bool successs = false;
@@ -183,6 +184,23 @@ namespace tud.mci.tangram.controller.observer
             }
             return successs;
         }
+
+        private int _lastPageNum = 0;
+        /// <summary>
+        /// Gets the page number.
+        /// </summary>
+        /// <returns>The current number of this page (Numbers are starting with 1)</returns>
+        public int GetPageNum()
+        {
+            TimeLimitExecutor.WaitForExecuteWithTimeLimit(
+                100,
+                new Action(() => { _lastPageNum = OoUtils.GetIntProperty(DrawPage, "Number"); })
+                , "PageObserver-GetPageNum");
+
+            return _lastPageNum;
+        }
+
+        #endregion
 
 
         /// <summary>

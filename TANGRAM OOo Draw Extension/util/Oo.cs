@@ -228,19 +228,18 @@ namespace tud.mci.tangram.util
                     xMcf = GetMultiComponentFactory(xCompContext);
                 }
 
-                _xMsf = xMcf.createInstanceWithContext(Services.MULTI_SERVICE_FACTORY, xCompContext) as XMultiServiceFactory;
-
-                //String[] bla = xMcf.getAvailableServiceNames();
-                //System.Diagnostics.Debug.WriteLine("Services:\n" + String.Join("\n", bla));
-
                 if (_xMsf == null)
                 {
-                    xCompContext = GetContext(true);
-                    xMcf = GetMultiComponentFactory(xCompContext, true);
-
-                    _xMsf = xMcf.createInstanceWithContext(Services.MULTI_SERVICE_FACTORY, xCompContext) as XMultiServiceFactory;
-
+                    if (xCompContext != null && xCompContext is XComponentContext)
+                    {
+                        _xMsf = ((XComponentContext)xCompContext).getServiceManager() as XMultiServiceFactory;
+                    }
                 }
+
+                if (_xMsf == null) {
+                    _xMsf = xMcf.createInstanceWithContext(Services.MULTI_SERVICE_FACTORY, xCompContext) as XMultiServiceFactory;
+                }
+
                 addListener(_xMsf);
 
             }
@@ -291,6 +290,29 @@ namespace tud.mci.tangram.util
             }
         }
 
+        private static object syncLock = new Object();
+
+        /// <summary>
+        /// Tries to establish a connection to OpenOffice / LibreOffice
+        /// </summary>
+        /// <returns><c>true</c> if a connection could be established; otherwise <c>false</c>.</returns>
+        public static bool ConnectToOO()
+        {
+            bool success = false;
+            lock (syncLock)
+            {
+                var cont = OO.GetContext();
+                XMultiComponentFactory xMcf = OO.GetMultiComponentFactory(cont);
+                success = xMcf != null;
+
+                //if (!success)
+                //{
+                //    cont = OO.GetContext(true);
+                //} 
+            }
+
+            return success;
+        }
 
         #endregion
 
@@ -469,6 +491,11 @@ namespace tud.mci.tangram.util
             /// </summary>
             public const String MULTI_SERVICE_FACTORY = "com.sun.star.lang.MultiServiceFactory";
 
+            /// <summary>
+            /// Provides an easy way to dispatch an URL using one call instead of multiple ones.
+            /// </summary>
+            public const String DISPATCH_HELPER = "com.sun.star.frame.DispatchHelper";
+            
             /// <summary>
             /// abstract service which specifies a storable and printable document
             /// </summary>
@@ -1057,6 +1084,52 @@ namespace tud.mci.tangram.util
             /// </summary>
             COUNT = 8
         }
+
+        /// <summary>
+        /// These values are used to specify the behavior of a Property.
+        /// </summary>
+        [Flags]
+        public enum PropertyAttribute : short
+        {
+            UNKNOWN = 0,
+            /// <summary>
+            /// indicates that a property value can be void. It does not mean that the type of the property is void!
+            /// </summary>
+            MAYBEVOID = 1,
+            /// <summary>
+            /// indicates that a PropertyChangeEvent will be fired to all registered XPropertyChangeListeners whenever the value of this property changes.
+            /// </summary>
+            BOUND = 2,
+            /// <summary>
+            /// indicates that a PropertyChangeEvent will be fired to all registered XVetoableChangeListeners whenever the value of this property changes. This always implies that the property is bound, too.
+            /// </summary>
+            CONSTRAINED = 4,
+            /// <summary>
+            /// indicates that the value of the property is not persistent.
+            /// </summary>
+            TRANSIENT = 8,
+            /// <summary>
+            /// indicates that the value of the property is read-only.
+            /// </summary>
+            READONLY = 16,
+            /// <summary>
+            /// indicates that the value of the property can be ambiguous.
+            /// </summary>
+            MAYBEAMBIGUOUS = 32,
+            /// <summary>
+            /// indicates that the property can be set to default.
+            /// </summary>
+            MAYBEDEFAULT = 64,
+            /// <summary>
+            /// indicates that the property can be removed (i.e., by calling XPropertyContainer::removeProperty).
+            /// </summary>
+            REMOVEABLE = 128,
+            /// <summary>
+            /// indicates that a property is optional. This attribute is not of interest for concrete property implementations. It's needed for property specifications inside service specifications in UNOIDL.
+            /// </summary>
+            OPTIONAL = 256
+        }
+
 
         #endregion
 

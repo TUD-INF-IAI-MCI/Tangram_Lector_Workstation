@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-//using TangramLector.OO;
 
 namespace tud.mci.tangram.TangramLector.OO
 {
@@ -38,7 +37,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
         private void initialize()
         {
-            if (Tangram.ConnectToOO())
+            if (tud.mci.tangram.util.OO.ConnectToOO())
             {
                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[NOTICE] Connection to OpenOffice established");
                 Observer = new OoObserver();
@@ -51,7 +50,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 Task ts = new Task(
                     () =>
                     {
-                        while (!Tangram.ConnectToOO() && run)
+                        while (!tud.mci.tangram.util.OO.ConnectToOO() && run)
                         { 
                             Thread.Sleep(5000); 
                         }

@@ -8,6 +8,9 @@ using unoidl.com.sun.star.container;
 using tud.mci.tangram.models;
 using unoidl.com.sun.star.beans;
 using unoidl.com.sun.star.graphic;
+using unoidl.com.sun.star.datatransfer;
+using unoidl.com.sun.star.frame;
+using unoidl.com.sun.star.view;
 
 namespace tud.mci.tangram.util
 {
@@ -402,6 +405,138 @@ namespace tud.mci.tangram.util
             return "";
         }
 
+        internal static Dictionary<String, uno.Any> GetAllProperties(Object obj)
+        {
+            // Debug.GetAllInterfacesOfObject(obj);
+            Dictionary<String, uno.Any> props = new Dictionary<string, uno.Any>();
+
+            if (obj != null && obj is XPropertySet)
+            {
+                XPropertySetInfo bla = ((XPropertySet)obj).getPropertySetInfo();
+                if (bla != null)
+                {
+                    Property[] properties = bla.getProperties();
+                    List<String> storable = new List<string>();
+
+                    foreach (Property item in properties)
+                    {
+                        if (item != null)
+                        {
+                            OO.PropertyAttribute att = ((OO.PropertyAttribute)item.Attributes);
+                            //if (item.Attributes == 0) { storable.Add(item.Name); }
+                            if (!att.HasFlag(OO.PropertyAttribute.READONLY))
+                            {
+                                //if (att.HasFlag(OO.PropertyAttribute.MAYBEDEFAULT))
+                                //{
+                                //}
+                                storable.Add(item.Name);
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        if (obj is XMultiPropertySet)
+                        {
+                            var values = ((XMultiPropertySet)obj).getPropertyValues(storable.ToArray());
+
+                            if (values.Length == storable.Count)
+                            {
+                                for (int i = 0; i < values.Length; i++)
+                                {
+                                    props.Add(storable[i], values[i]);
+                                }
+                            }
+                            else
+                            {
+                                // does not get all values
+                            }
+
+                            return props;
+                        }
+                    }
+                    catch (Exception ex) { }
+                }
+            }
+            return null;
+        }
+
+        internal static bool SetAllProperties(Object obj, Dictionary<String, uno.Any> props)
+        {
+            try
+            {
+                if (obj is XMultiPropertySet)
+                {
+
+                    String[] keys = new String[props.Count];
+                    props.Keys.CopyTo(keys, 0);
+                    uno.Any[] vals = new uno.Any[props.Count];
+                    props.Values.CopyTo(vals, 0);
+
+                    ((XMultiPropertySet)obj).setPropertyValues(keys, vals);
+                }
+            }
+            catch (Exception ex) { }
+
+            return false;
+        }
+
+
+        internal static Object CreateObjectFromService(Object _msf, String[] services)
+        {
+
+            try
+            {
+
+
+
+                //// get MCF
+                //var mcf = OO.GetMultiComponentFactory();
+                //if (mcf != null)
+                //{
+                //    object component = mcf.createInstanceWithContext(services[0], OO.GetContext());
+
+                //    Debug.GetAllServicesOfObject(component);
+
+                //    return component;
+                //}
+
+                // get MSF
+                XMultiServiceFactory msf = _msf as XMultiServiceFactory;
+
+                if (msf == null)
+                    msf = OO.GetMultiServiceFactory();
+                if (msf != null && services != null && services.Length > 0)
+                {
+
+                    string[] serv = msf.getAvailableServiceNames();
+                    System.Diagnostics.Debug.WriteLine("Available Service Names: " + String.Join("\n\t", serv));
+
+                    //object component = msf.createInstance(services[0]);
+                    // object component = msf.createInstance("com.sun.star.document.ExportGraphicObjectResolver");
+                    object component = msf.createInstance("com.sun.star.document.ImportEmbeddedObjectResolver");
+
+
+
+                    //Debug.GetAllServicesOfObject(component);
+                    Debug.GetAllInterfacesOfObject(component);
+
+                    var n = ((XNameAccess)component).getElementNames();
+
+
+                    return component;
+                }
+
+            }
+            catch (Exception ex)
+            {
+            }
+
+
+            return null;
+        }
+
+
         #endregion
 
         #endregion
@@ -442,7 +577,7 @@ namespace tud.mci.tangram.util
         /// <returns>the runtime unique implementation id byte array as a string for this OpenOffice object</returns>
         public static String GetImplementationIdString(Object element)
         {
-            return getStringFromByte(GetImplementationId(element));
+            return GetStringFromByte(GetImplementationId(element));
         }
 
         #endregion
@@ -612,7 +747,7 @@ namespace tud.mci.tangram.util
         /// <returns></returns>
         public static bool AreOoObjectsEqual(Object a, Object b)
         {
-            if (a.Equals(b)) return true;
+            if (a != null && a.Equals(b)) return true;
             else
             {
                 if (a != null && b != null)
@@ -682,7 +817,7 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="str">The String.</param>
         /// <returns>the byte array that corresponds to the string</returns>
-        static byte[] getBytesFromString(string str)
+        public static byte[] GetBytesFromString(string str)
         {
             byte[] bytes = new byte[str.Length * sizeof(char)];
             System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
@@ -694,7 +829,7 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="bytes">The byte array.</param>
         /// <returns>A string that corresponds to the byte array</returns>
-        static string getStringFromByte(byte[] bytes)
+        public static string GetStringFromByte(byte[] bytes)
         {
             char[] chars = new char[bytes.Length / sizeof(char)];
             System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
@@ -826,6 +961,107 @@ namespace tud.mci.tangram.util
         }
 
         #endregion
+
+        #region Copy / Paste
+
+        internal static XTransferableSupplier FindTransferableSupplier(XModel2 xModel2)
+        {
+            XTransferableSupplier result = null;
+
+            try
+            {
+                if (xModel2 != null)
+                {
+                    XEnumeration xEnumeration = xModel2.getControllers();
+
+                    while (xEnumeration.hasMoreElements())
+                    {
+                        XController xController = (XController)xEnumeration.nextElement().Value;
+                        if (xController is XTransferableSupplier)
+                        {
+                            result = xController as XTransferableSupplier;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+
+            return result;
+        }
+
+
+        public static void Copy(Object document, Object selection)
+        {
+
+            Debug.GetAllInterfacesOfObject(document);
+
+
+            if (document is XModel)
+            {
+                //return 
+                Copy(document as XModel, selection);
+            }
+            else if (document is XController)
+            {
+                //return 
+                Copy(document as XController, selection);
+            }
+        }
+
+        internal static void Copy(XModel document, Object selection)
+        {
+
+            if (document != null)
+            {
+                //return 
+                Copy(document.getCurrentController(), selection);
+            }
+
+        }
+
+        internal static void Copy(XController controller, Object selection)
+        {
+            XTransferableSupplier xTransferableSupplier = controller as XTransferableSupplier;
+
+            Debug.GetAllInterfacesOfObject(controller);
+
+
+            Copy(controller, selection, xTransferableSupplier);
+        }
+
+        private static void Copy(XController controller, Object selection, XTransferableSupplier xTransferableSupplier)
+        {
+            if (xTransferableSupplier != null)
+            {
+                // get selection supplier
+                XSelectionSupplier xSelectionSupplier = controller as XSelectionSupplier;
+
+                if (xSelectionSupplier != null)
+                {
+                    // select the objects to select
+                    try
+                    {
+                        xSelectionSupplier.select(Any.Get(selection));
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ArgumentException("Object can't be set as selection", "selection", ex);
+                    }
+
+                    XTransferable transfarable = xTransferableSupplier.getTransferable();
+
+
+                }
+            }
+        }
+
+
+        #endregion
+
     }
 
     #region Undo / Redo Classes

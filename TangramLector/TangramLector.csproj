@@ -92,7 +92,6 @@
     <Reference Include="UIAutomationClient" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_ZoomingComparisonTestFunctions.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_FeedbackReceiver.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_SpecializedFunctionProxy.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_TopMostSpFProxy.cs" />
@@ -107,7 +106,6 @@
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_Eventhandling.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_Functions.cs" />
-    <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_LNDW_Functions.cs" />
     <Compile Include="BrailleIO\LectorBIO.cs" />
     <Compile Include="BrailleIO\Screencapture.cs" />
     <Compile Include="BrailleIO\Utils.cs" />

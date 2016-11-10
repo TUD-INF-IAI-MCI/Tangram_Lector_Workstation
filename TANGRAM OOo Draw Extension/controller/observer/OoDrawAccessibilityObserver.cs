@@ -420,8 +420,9 @@ namespace tud.mci.tangram.controller.observer
                 //    break;
                 //case tud.mci.tangram.Accessibility.AccessibleEventId.NAME_CHANGED:
                 //    break;
-                //case tud.mci.tangram.Accessibility.AccessibleEventId.PAGE_CHANGED:
-                //    break;
+                case tud.mci.tangram.Accessibility.AccessibleEventId.PAGE_CHANGED:
+                    fireDrawWindowActivatedEvent(doc);
+                    break;
                 //case tud.mci.tangram.Accessibility.AccessibleEventId.SECTION_CHANGED:
                 //    break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.SELECTION_CHANGED:
@@ -592,7 +593,6 @@ namespace tud.mci.tangram.controller.observer
                         }
                         return selectionHandlerThread;
                     }
-
                 }
 
                 selectionHandlerThread = new Thread(waitForNewSelectionChanges);
@@ -879,13 +879,13 @@ namespace tud.mci.tangram.controller.observer
         #endregion
 
 
-        #region AllAccesibleElements
+        //#region AllAccesibleElements
 
-        List<OoAccComponent> accComponents = new List<OoAccComponent>();
+        //List<OoAccComponent> accComponents = new List<OoAccComponent>();
 
-        Dictionary<String, Object> accCompDict = new Dictionary<String, Object>();
+        //Dictionary<String, Object> accCompDict = new Dictionary<String, Object>();
 
-        #endregion
+        //#endregion
 
         #endregion
 
@@ -911,6 +911,12 @@ namespace tud.mci.tangram.controller.observer
         void IDisposable.Dispose()
         {
             //TODO: do some disposables
+            try{
+                foreach (var item in this.drawDocs)
+                {
+                    item.Value.Dispose();
+                }
+            }catch{}
             instance = null;
         }
     }
@@ -989,7 +995,6 @@ namespace tud.mci.tangram.controller.observer
             this.Silent = silent;
         }
 
-        //TODO: test this
         private void updateBounds(List<OoShapeObserver> items)
         {
             System.Drawing.Rectangle bounds = new System.Drawing.Rectangle();
