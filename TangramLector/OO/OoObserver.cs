@@ -560,17 +560,17 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
                     else
                     {
-                        if (windowManager != null)
-                        {
-                            setTitelregionToDocTitle(e.Window);
-                        }
-
                         Thread.Sleep(50); // gives the element the chance to finish the changes before requesting the new properties. Should prevent a hang on. 
 
                         tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
                         try
                         {
                             Logger.Instance.Log(LogPriority.DEBUG, this, "ooDraw wnd property changed " + e.Window.ToString());
+
+                            if (windowManager != null)
+                            {
+                                setTitelregionToDocTitle(e.Window);
+                            }
 
                             var bounds = e.Window.DocumentComponent.ScreenBounds;
                             var whndl = e.Window.Whnd;
@@ -813,7 +813,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 int pC = win.GetPageCount();
                 if (pC > 1)
                 {
-                    var aPObs = win.GetActivePageObserver();
+                    var aPObs = win.GetActivePage();
                     if (aPObs != null)
                     {
                         int cP = aPObs.GetPageNum();

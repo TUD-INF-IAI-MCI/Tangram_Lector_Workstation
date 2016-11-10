@@ -188,7 +188,7 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Goes to the previous DOM sibling if possible
         /// </summary>
-        /// <returns>The observer for the prevoiuse sibling (infinite child loop) or the same if there is only on child or <c>null</c> if no sibling could be found.</returns>
+        /// <returns>The observer for the previous sibling (infinite child loop) or the same if there is only on child or <c>null</c> if no sibling could be found.</returns>
         public OoShapeObserver GetPreviousSibling()
         {
             if (this.Page != null && this.Page.PagesObserver != null)
@@ -196,7 +196,7 @@ namespace tud.mci.tangram.controller.observer
                 XShape s = getPreviousSiblingByXShape();
                 OoShapeObserver sobs = getShapeObserverFromXShape(s);
 
-                if (sobs.Disposed)
+                if (sobs == null || sobs.Disposed)
                 {
                     sobs = new OoShapeObserver(s, Page);
                     Page.PagesObserver.RegisterUniqueShape(sobs);

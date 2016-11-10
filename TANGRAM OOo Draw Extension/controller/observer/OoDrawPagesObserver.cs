@@ -560,7 +560,7 @@ namespace tud.mci.tangram.controller.observer
                     if (pageShape == null)
                     {
                         Logger.Instance.Log(LogPriority.DEBUG, this, "[EROR] Can't get page to requested NEW shape");
-                        page = this.DocWnd.GetActivePageObserver();
+                        page = this.DocWnd.GetActivePage();
 
                     }
                     else
@@ -1202,7 +1202,7 @@ namespace tud.mci.tangram.controller.observer
                 catch { }
                 try
                 {
-                    if (domshapes.TryRemove(sO.Shape, out trash))
+                    if (sO.Shape != null && domshapes.TryRemove(sO.Shape, out trash))
                     {
                         if (trash != sO)
                         {

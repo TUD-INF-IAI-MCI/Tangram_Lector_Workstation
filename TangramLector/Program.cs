@@ -92,6 +92,7 @@ namespace tud.mci.tangram.TangramLector
                 System.Diagnostics.Debug.WriteLine("Unable to start Tangram Lector Tray Task Manager. Exception:\r\n" + ex.ToString());
             }
 
+            // here the TANGRAM Lector will be started
             var lgui = new LectorGUI();
             if (lgui != null) lgui.Disposed += new EventHandler(lgui_Disposed);
             try

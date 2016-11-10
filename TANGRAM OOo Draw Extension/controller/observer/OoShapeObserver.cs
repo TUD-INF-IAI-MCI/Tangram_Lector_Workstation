@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using tud.mci.tangram.Accessibility;
@@ -137,9 +138,13 @@ namespace tud.mci.tangram.controller.observer
             XPropertySet shapePropertySet = (XPropertySet)Shape;
             if (shapePropertySet != null)
             {
+
                 // init value for bounding box
                 Rectangle propertyBoundRect = (Rectangle)shapePropertySet.getPropertyValue("BoundRect").Value;
-                currentBoundRect = new System.Drawing.Rectangle(propertyBoundRect.X, propertyBoundRect.Y, propertyBoundRect.Width, propertyBoundRect.Height);
+
+                currentBoundRect = propertyBoundRect != null ?
+                    new System.Drawing.Rectangle(propertyBoundRect.X, propertyBoundRect.Y, propertyBoundRect.Width, propertyBoundRect.Height)
+                    : new System.Drawing.Rectangle();
 
                 try
                 {
@@ -379,7 +384,7 @@ namespace tud.mci.tangram.controller.observer
         /// change of properties such as polygon points.
         /// </summary>
         internal static volatile bool LockValidation = false;
-        
+
         bool valid = true;
 
         /// <summary>
@@ -408,7 +413,6 @@ namespace tud.mci.tangram.controller.observer
                             string uiName = UINameSingular;
                             if (test1 == 0 || String.IsNullOrEmpty(uiName))
                             {
-                                //TODO: dispose?
                                 valid = false;
                                 Dispose();
                                 return;
@@ -442,6 +446,10 @@ namespace tud.mci.tangram.controller.observer
                         catch (System.Threading.ThreadAbortException) { DisableValidationTemporary(); }
                         catch (System.Threading.ThreadInterruptedException) { DisableValidationTemporary(); }
                     }, "ShapeValidation");
+                }
+                else
+                {
+                    valid = false;
                 }
             }
             catch (unoidl.com.sun.star.lang.DisposedException)
@@ -517,7 +525,7 @@ namespace tud.mci.tangram.controller.observer
                         shapePropertySet.removePropertyChangeListener("Position", eventForwarder);
                     }
                 }
-                catch{ }
+                catch { }
             }
 
             //this.Shape = null;
@@ -580,6 +588,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>the png file size (only > 0 if successful)</returns>
         public int GetShapeAsPng(out byte[] pngFileData)
         {
+
             pngFileData = new byte[0];
             object doc = GetDocument();
             // see https://blog.oio.de/2010/10/27/copy-and-paste-without-clipboard-using-openoffice-org-api/
@@ -588,7 +597,7 @@ namespace tud.mci.tangram.controller.observer
                 System.Drawing.Rectangle rectDom = GetRelativeScreenBoundsByDom();
 
                 // See <http://www.oooforum.org/forum/viewtopic.phtml?t=50783> 
-                // properties for the png exprt filter:
+                // properties for the png export filter:
                 PropertyValue[] aFilterData = new PropertyValue[5];
                 aFilterData[0] = new PropertyValue(); aFilterData[0].Name = "PixelWidth"; aFilterData[0].Value = tud.mci.tangram.models.Any.Get(rectDom.Width); // bounding box width
                 aFilterData[1] = new PropertyValue(); aFilterData[1].Name = "PixelHeight"; aFilterData[1].Value = tud.mci.tangram.models.Any.Get(rectDom.Height);// bounding box height
@@ -608,7 +617,7 @@ namespace tud.mci.tangram.controller.observer
                 XStream memoryStream = (XStream)OO.GetContext().getServiceManager().createInstanceWithContext("com.sun.star.comp.MemoryStream", OO.GetContext());
                 //XStream memoryStream = (XStream)xmsf.createInstance("com.sun.star.comp.MemoryStream");
 
-                // the filter media descriptor: media type, destination, and fitlerdata containing the export settings from above
+                // the filter media descriptor: media type, destination, and filterdata containing the export settings from above
                 PropertyValue[] aArgs = new PropertyValue[3];
                 aArgs[0] = new PropertyValue(); aArgs[0].Name = "MediaType"; aArgs[0].Value = tud.mci.tangram.models.Any.Get("image/png");
                 aArgs[1] = new PropertyValue(); aArgs[1].Name = "OutputStream"; aArgs[1].Value = tud.mci.tangram.models.Any.Get(memoryStream);   // filter to our memory stream
@@ -683,7 +692,7 @@ namespace tud.mci.tangram.controller.observer
 
             System.Drawing.Rectangle result = (relativeBounds.Height * relativeBounds.Width <= 0) ? GetRelativeScreenBoundsByDom() : new System.Drawing.Rectangle(relativeBounds.X, relativeBounds.Y, relativeBounds.Width, relativeBounds.Height);
             //XModel docModel = (XModel)GetDocument();
-            if (result.Width * result.Height > 0 
+            if (result.Width * result.Height > 0
                 //&& docModel != null
                 )
             {
@@ -752,6 +761,53 @@ namespace tud.mci.tangram.controller.observer
                     ObserverDisposing.Invoke(this, null);
                 }
                 catch { }
+            }
+        }
+
+        #endregion
+
+
+        #region DELETE
+
+        /// <summary>
+        /// Deletes the Shape from the DrawPage and disposes this instance.
+        /// </summary>
+        /// <returns><c>true</c> if the delete call was handled successfully.</returns>
+        public bool Delete()
+        {
+            bool success = false;
+            try
+            {
+                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DELETE] shape: " + this.Name);
+
+                if (this.Page != null)
+                {
+                    var pObs = this.Page.PagesObserver;
+                    if (pObs != null)
+                    {
+                        var contrl = pObs.Controller;
+                        if (contrl != null)
+                        {
+                            OoDispatchHelper.ActionWithChangeAndResetSelection(
+                                                new Action(() =>
+                                                {
+                                                    success = OoDispatchHelper.CallDispatch(
+                                                        DispatchURLs.SID_DELETE,
+                                                        contrl as XDispatchProvider
+                                                        );
+                                                }),
+                                                contrl as unoidl.com.sun.star.view.XSelectionSupplier,
+                                                Shape
+                                            );
+                            success = !IsValid();
+                        }
+                    }
+                }                
+                return success;
+            }
+            finally
+            {
+                Dispose();
             }
         }
 

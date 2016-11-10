@@ -169,6 +169,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             chooseFirstChildOfElement();
                             e.Cancel = true;
                         }
+                        else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k4", "k5" }).ToList().Count == 3)
+                        {
+                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] delete selected shape");
+                            deleteSelectedShape();
+                            e.Cancel = true;
+                        }
                         break;
 
                     #endregion
@@ -227,6 +233,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         LastSelectedShape = first;
                         sayLastSelectedShape();
                     }
+                    else {
+                        playError();
+                    }
                 }
             }
             else
@@ -263,6 +272,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         LastSelectedShape = last;
                         sayLastSelectedShape();
+                    }
+                    else
+                    {
+                        playError();
                     }
                 }
             }

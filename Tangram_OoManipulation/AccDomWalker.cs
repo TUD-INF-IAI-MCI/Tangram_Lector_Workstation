@@ -13,7 +13,7 @@ namespace TangramLector.OO
     static class AccDomWalker
     {
 
-        #region Fisrt / Last
+        #region First / Last
 
         /// <summary>
         /// Gets the first shape of document.
@@ -25,7 +25,7 @@ namespace TangramLector.OO
         {
             if (doc != null)
             {
-                if (pages == null) { pages = doc.GetActivePageObserver(); }
+                if (pages == null) { pages = doc.GetActivePage(); }
                 if (pages != null && doc.DocumentComponent != null && doc.DocumentComponent.ChildCount > 0)
                 {
                     // a page doesn't have children in the accessible tree --> damn
@@ -50,7 +50,7 @@ namespace TangramLector.OO
         {
             if (doc != null)
             {
-                if (pages == null) { pages = doc.GetActivePageObserver(); }
+                if (pages == null) { pages = doc.GetActivePage(); }
                 if (pages != null && doc.DocumentComponent != null && doc.DocumentComponent.ChildCount > 0)
                 {
                     // a page doesn't have children in the accessible tree --> damn

@@ -115,9 +115,10 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         public Object DrawPageSupplier
         {
-            get {
+            get
+            {
                 if (_dps == null) getXDrawPageSupplier();
-                return _dps; 
+                return _dps;
             }
             set
             {
@@ -687,7 +688,7 @@ namespace tud.mci.tangram.Accessibility
 
             if (!_runing)
             {
-                OoDrawPageObserver pObs = GetActivePageObserver();
+                OoDrawPageObserver pObs = getActivePageObserver();
                 if (pObs != null)
                 {
                     return pObs;
@@ -712,52 +713,65 @@ namespace tud.mci.tangram.Accessibility
         }
 
         volatile bool _runing = false;
+        OoDrawPageObserver _lastPageObs = null;
         /// <summary>
         /// Return the observer of the current active page.
         /// </summary>
         /// <returns></returns>
-        public OoDrawPageObserver GetActivePageObserver()
+        private OoDrawPageObserver getActivePageObserver()
         {
+            // if this is hanging or called multiple times
+            int tries = 0;
+            while (_runing && tries++ < 10) { Thread.Sleep(10); }
+            if (_runing) { return _lastPageObs; }
+
             _runing = true;
             OoDrawPageObserver pageObs = null;
-            if (DrawPagesObs != null && DrawPagesObs.HasDrawPages()
-                && DrawPageSupplier != null && DrawPageSupplier is XModel2
-                )
+            try
             {
-                var dps = DrawPagesObs.GetDrawPages();
-                if (dps.Count > 1) // if only one page is known - take it
+                if (DrawPagesObs != null && DrawPagesObs.HasDrawPages()
+                    && DrawPageSupplier != null && DrawPageSupplier is XModel2
+                    )
                 {
-                    // get the controller of the Draw application
-                    XController contr = Controller as XController;
-
-                    int pid = getCurrentActivePageId(contr);
-
-                    // find the OoDrawPageObserver for the correct page number
-                    if (pid > 0)
+                    var dps = DrawPagesObs.GetDrawPages();
+                    if (dps.Count > 1) // if only one page is known - take it
                     {
-                        foreach (var page in DrawPagesObs.GetDrawPages())
+                        // get the controller of the Draw application
+                        XController contr = Controller as XController;
+
+                        int pid = getCurrentActivePageId(contr);
+
+                        // find the OoDrawPageObserver for the correct page number
+                        if (pid > 0)
                         {
-                            if (page != null && page.DrawPage != null)
+                            foreach (var page in dps)
                             {
-                                int pNum = util.OoUtils.GetIntProperty(page.DrawPage, "Number");
-                                if (pNum == pid)
+                                if (page != null && page.DrawPage != null)
                                 {
-                                    pageObs = page;
-                                    break;
+                                    int pNum = util.OoUtils.GetIntProperty(page.DrawPage, "Number");
+                                    if (pNum == pid)
+                                    {
+                                        pageObs = page;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
+                    else
+                    {
+                        pageObs = dps.Count > 0 ? dps[0] : null;
+                    }
                 }
-                else
-                {
-                    pageObs = dps[0];
-                }
-            }
-            _runing = false;
-            return pageObs;
-        }
 
+                _lastPageObs = pageObs;
+                return pageObs;
+            }
+            finally
+            {
+                _runing = false;
+            }
+        }
 
         XController _lastController = null;
         volatile bool _gettingController = false;

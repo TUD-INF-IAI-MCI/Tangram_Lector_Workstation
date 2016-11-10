@@ -15,7 +15,7 @@ namespace tud.mci.tangram.TangramLector
     {
         #region Members
 
-        #region private Memeber
+        #region private Member
 
         readonly Logger logger = Logger.Instance;
         BrailleIOMediator io; // Mediator and entry point for the BrailleIO framework 
@@ -64,7 +64,7 @@ namespace tud.mci.tangram.TangramLector
                         logger.Priority = p;
                     }
                 }
-                catch{ }
+                catch { }
 
 
 #if DEBUG
@@ -145,6 +145,24 @@ namespace tud.mci.tangram.TangramLector
         private void initializeAudioRenderer()
         {
             logger.Log(LogPriority.DEBUG, this, "Installed voices: [" + String.Join("] [", audioRenderer.GetVoices()) + "]");
+
+            // get voice from user-settings
+            String stdVoice = Properties.Settings.Default.sound_voice;
+            if (!String.IsNullOrWhiteSpace(stdVoice))
+            {
+                logger.Log(LogPriority.DEBUG, this, "User setting 'sound_voice': " + stdVoice);
+                audioRenderer.SetStandardVoiceName(stdVoice);
+            }
+
+            // get speed from user-settings
+            int vSpeed = Properties.Settings.Default.sound_speed;
+            logger.Log(LogPriority.DEBUG, this, "User setting 'sound_speed': " + vSpeed);
+            AudioRenderer.Speed = vSpeed;
+
+            // get volume from user-settings
+            int vVolume = Properties.Settings.Default.sound_volume;
+            logger.Log(LogPriority.DEBUG, this, "User setting 'sound_volume': " + vVolume);
+            AudioRenderer.Volume = vVolume;
 
             audioRenderer.PlayWave(StandardSounds.Start);
             audioRenderer.PlaySound(LL.GetTrans("tangram.lector.bio.welcome"));
@@ -343,7 +361,8 @@ namespace tud.mci.tangram.TangramLector
         /// Gets the blocked extension list.
         /// </summary>
         /// <returns>list of all configured extension (folder) names, that should be blocked while loading</returns>
-        public static List<String> GetBlockedExtensionList(){
+        public static List<String> GetBlockedExtensionList()
+        {
 
             if (_blocked.Count < 1)
             {
@@ -368,7 +387,7 @@ namespace tud.mci.tangram.TangramLector
 
             return _blocked;
         }
-       
+
 
         static List<IBrailleIOAdapterSupplier> loadAllAdpaterSuppliers(string path)
         {
@@ -391,7 +410,7 @@ namespace tud.mci.tangram.TangramLector
                 {
                     foreach (var suppl in adptrs)
                     {
-                        if(blocked.Contains(suppl.Key)) continue;
+                        if (blocked.Contains(suppl.Key)) continue;
 
                         try
                         {

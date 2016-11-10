@@ -10,19 +10,19 @@ namespace tud.mci.tangram.util
         public const string PRE_THREAD_IDENTIFIER = "TLE_";
 
         /// <summary>
-        /// Executes an <code>Action</code> with a time limit of 2000 milliseconds in an seperate asynchronous Thread.
+        /// Executes an <code>Action</code> with a time limit of 2000 milliseconds in an separate asynchronous Thread.
         /// </summary>
-        /// <param name="codeBlock">The code block. Us a e.g. an annoymous delegate such as
+        /// <param name="codeBlock">The code block. Us a e.g. an anonymous delegate such as
         /// <code>() =&gt; { /* Write your time bounded code here*/ }</code></param>
         /// <param name="name">The name.</param>
         /// <returns>the executing Thread</returns>
         public static Thread ExecuteWithTimeLimit(Action codeBlock, string name = "") { return ExecuteWithTimeLimit(2000, codeBlock, name); }
 
         /// <summary>
-        /// Executes an <code>Action</code> with a time limit in an seperate asynchronous Thread.
+        /// Executes an <code>Action</code> with a time limit in an separate asynchronous Thread.
         /// </summary>
         /// <param name="maxTime">The maximum execution time in milliseconds. After this time the thread will be abort!</param>
-        /// <param name="codeBlock">The code block. Us a e.g. an annoymous delegate such as
+        /// <param name="codeBlock">The code block. Us a e.g. an anonymous delegate such as
         /// <code>() =&gt; { /* Write your time bounded code here*/ }</code></param>
         /// <param name="name">The name.</param>
         /// <returns>The executing Thread</returns>
@@ -31,12 +31,11 @@ namespace tud.mci.tangram.util
             return innerExecution(maxTime, codeBlock, name);
         }
 
-
         /// <summary>
-        /// Executes an <code>Action</code> with a time limit in an seperate asynchronous Thread and waits until it ends for the return.
+        /// Executes an <code>Action</code> with a time limit in an separate asynchronous Thread and waits until it ends for the return.
         /// </summary>
         /// <param name="maxTime">The maximum execution time in milliseconds. After this time the thread will be abort!</param>
-        /// <param name="codeBlock">The code block. Us a e.g. an annoymous delegate such as
+        /// <param name="codeBlock">The code block. Us a e.g. an anonymous delegate such as
         /// <code>() =&gt; { /* Write your time bounded code here*/ }</code></param>
         /// <param name="name">The name.</param>
         /// <returns>indication if the execution was done successfully</returns>
@@ -61,7 +60,6 @@ namespace tud.mci.tangram.util
             return success;
         }
 
-
         /// <summary>
         /// starts the execution and the observation of the maximum runtime.
         /// </summary>
@@ -69,13 +67,6 @@ namespace tud.mci.tangram.util
         /// <param name="codeBlock">The code block.</param>
         private static Thread innerExecution(int timeSpan, Action codeBlock, string name = "")
         {
-
-//#if LIBRE
-
-//            codeBlock.Invoke();
-//            return null;
-//#else
-
             if (Thread.CurrentThread != null && Thread.CurrentThread.Name != null && Thread.CurrentThread.Name.StartsWith(PRE_THREAD_IDENTIFIER))
             {
                 codeBlock.Invoke();
@@ -83,7 +74,6 @@ namespace tud.mci.tangram.util
             }
             else
             {
-
                 int sleep = Math.Max(10, (timeSpan / 100));
                 Thread task = new Thread(new ThreadStart(codeBlock));
                 task.Name = PRE_THREAD_IDENTIFIER + name;
@@ -125,19 +115,18 @@ namespace tud.mci.tangram.util
 
                     // start the observation
                     thread.Start();
-                    //sw.Start();
                 }
                 catch (System.Threading.ThreadAbortException) { }
                 return task;
-            } 
-//#endif
+            }
         }
 
         /// <summary>
         /// get the start time of the current running stopwatch
         /// </summary>
         /// <returns>elapsed milliseconds since the last start of the stopwatch</returns>
-        private static long getStartTime(){
+        private static long getStartTime()
+        {
             long startTime = 0;
 
             if (_stopwatch.IsRunning) startTime = _stopwatch.ElapsedMilliseconds + 1;
@@ -145,7 +134,6 @@ namespace tud.mci.tangram.util
 
             return startTime;
         }
-
 
         static volatile Stopwatch _stopwatch = new Stopwatch();
         /// <summary>
@@ -163,17 +151,17 @@ namespace tud.mci.tangram.util
         /// releases the stopwatch (decrement the reference counter) and reset the 
         /// stopwatch if there is no referencing task using it.
         /// </summary>
-        private static void freeStopwatch(){
+        private static void freeStopwatch()
+        {
             _refCounter--;
             if (_refCounter < 1) _stopwatch.Stop();
         }
-
 
         /// <summary>
         /// Determines if the duration time is elapsed or not
         /// </summary>
         /// <param name="startTime">The start time.</param>
-        /// <param name="duration">The amximal duration.</param>
+        /// <param name="duration">The maximal duration.</param>
         /// <returns></returns>
         private static bool timeIsElapsed(long startTime, int duration)
         {

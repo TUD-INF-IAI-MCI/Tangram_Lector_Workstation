@@ -239,7 +239,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 if (doc != lastCachedDoc || (now - lastCache > cachingPeriode))
                 {
                     // get text elements
-                    var pageObs = doc.GetActivePageObserver();
+                    var pageObs = doc.GetActivePage();
 
                     if (pageObs != null)
                     {

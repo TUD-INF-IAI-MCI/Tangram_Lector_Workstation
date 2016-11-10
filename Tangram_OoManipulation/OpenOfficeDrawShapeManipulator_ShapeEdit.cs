@@ -38,10 +38,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             // mode switch
             // should not rotate to UNKOWN = 0
-            if (timestamp - lastRequest > doubleKlickTolerance) {
+            if (timestamp - lastRequest > doubleKlickTolerance)
+            {
                 m = Math.Max(1, (++m) % (_maxMode + 1));
             }
-            else { // double click ... rotate backwards
+            else
+            { // double click ... rotate backwards
                 m = (m - 2) % (_maxMode + 1);
                 if (m <= 0) m = _maxMode + m;
             }
@@ -146,8 +148,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             sentTextFeedback(getDetailRegionFeedback(Mode));
             return true;
         }
-
-
 
         private bool handleDOWN()
         {
@@ -685,6 +685,50 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #endregion
 
+        #region Delete
+
+        private void deleteSelectedShape()
+        {
+            // FIXME: show MessageBox
+            // TODO: handle PolygonPoint
+            var _shape = LastSelectedShape;
+            if (_shape != null)
+            {
+                String n = String.Empty;
+                String t = n;
+
+                if (_shape != null) // kill the shape without validation
+                {
+                    n = _shape.Name;
+                    t = _shape.Title;
+
+                    var success = _shape.Delete();
+
+                    if (success)
+                    {
+                        LastSelectedShape = null;
+
+                        var name = LL.GetTrans("tangram.oomanipulation.delete.element", n + " " + t);
+                        var audio = LL.GetTrans("tangram.oomanipulation.element_speaker.delete.element", n);
+                        sendDetailInfo(name);
+                        sentAudioFeedback(audio);
+                    }
+                    else
+                    {
+                        String msg = LL.GetTrans("tangram.oomanipulation.command.not_successfull", LL.GetTrans("tangram.oomanipulation.command.DELETE"));
+
+                        if (AudioRenderer.Instance != null)
+                        {
+                            AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Critical);
+                            AudioRenderer.Instance.PlaySound(msg);
+                        }
+                        sentTextNotification(msg);
+                    }
+                }
+            }
+        }
+
+        #endregion
 
         #endregion
 
