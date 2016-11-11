@@ -23,6 +23,7 @@ namespace tud.mci.tangram.TangramLector
             if (io != null && io.AdapterManager != null)
             {
                 io.AdapterManager.ActiveAdapterChanged += AdapterManager_ActiveAdapterChanged;
+                io.AdapterManager.NewAdapterRegistered += AdapterManager_NewAdapterRegistered;
             }
             
             // INTERACTION MANGER
@@ -32,6 +33,15 @@ namespace tud.mci.tangram.TangramLector
                 InteractionManager.InteractionModeChanged += new EventHandler<InteractionModeChangedEventArgs>(InteractionManager_InteractionModeChanged);
             }
             registerTopMostSpFProxy();
+        }
+
+        void AdapterManager_NewAdapterRegistered(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        {
+            if (e != null && e.Adapter != null && e.Adapter.Device != null)
+            {
+                InteractionManager.AddNewDevice(e.Adapter);
+                // TODO: monitor new adapter!
+            }
         }
 
         void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)

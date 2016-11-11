@@ -32,6 +32,9 @@ namespace ShowOffAdapterMediator
 
         #region Constructor
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShowOffAdapterSupplier"/> class.
+        /// </summary>
         public ShowOffAdapterSupplier()
         {
             try
@@ -79,7 +82,7 @@ namespace ShowOffAdapterMediator
 
         bool IBrailleIOAdapterSupplier.IsMonitor(out List<String> monitoringAdapter)
         {
-            monitoringAdapter = new List<String>() { "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet" };
+            monitoringAdapter = new List<String>() { "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet", "BrailleIOHbsAdapter.BrailleIOAdapter_HyperBrailleS" };
             //monitoringAdapter = new List<Type>();
             return true;
         }

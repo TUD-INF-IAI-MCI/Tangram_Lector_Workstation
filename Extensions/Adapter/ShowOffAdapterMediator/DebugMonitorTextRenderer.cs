@@ -16,7 +16,7 @@ namespace ShowOffAdapterMediator
     {
         #region Members
 
-       // WindowManager wm;
+        // WindowManager wm;
 
         Thread renderingThread;
         volatile bool _run = true;
@@ -36,9 +36,8 @@ namespace ShowOffAdapterMediator
         {
             this.monitor = monitor;
             this.io = io;
-            startRenderingThread();
-            //this.wm = wm;
             preparePen();
+            startRenderingThread();
         }
 
         private static void preparePen()
@@ -47,7 +46,7 @@ namespace ShowOffAdapterMediator
             {
                 dashedPen.Width = 1.5f;
                 dashedPen.DashCap = System.Drawing.Drawing2D.DashCap.Round;
-                dashedPen.DashPattern = new float[]{4.0F, 4.0f};
+                dashedPen.DashPattern = new float[] { 4.0F, 4.0f };
             }
         }
 
@@ -76,45 +75,46 @@ namespace ShowOffAdapterMediator
                 try
                 {
                     Bitmap im = new Bitmap(721, 363);
-                    using (Graphics g = Graphics.FromImage(im))
+                    Graphics g = Graphics.FromImage(im);
+
+                    g.Clear(Color.Transparent);
+                    List<BrailleIOViewRange> vrs = getAllViews();
+
+                    foreach (var vr in vrs)
                     {
-                        g.Clear(Color.Transparent);
-                        List<BrailleIOViewRange> vrs = getAllViews();
+                        int x, y, width, height;
 
-                        foreach (var vr in vrs)
+                        if (vr != null && vr.ContentRender is ITouchableRenderer)
                         {
-                            int x, y, width, height;
+                            //get visible area in view Range;
+                            Rectangle r = vr.ViewBox;
+                            Rectangle cb = vr.ContentBox;
 
-                            if (vr != null && vr.ContentRender is ITouchableRenderer)
+                            int left = -vr.GetXOffset();
+                            int top = -vr.GetYOffset();
+                            int right = left + cb.Width;
+                            int bottom = top + cb.Height;
+
+                            //get vr position on screen
+                            x = r.X + cb.X - left;
+                            y = r.Y + cb.Y - top;
+                            width = cb.Width;
+                            height = cb.Height;
+
+                            var items = getRenderingElementsFromViewRange(vr, left, right, top, bottom);
+
+                            List<RenderElement> elements = items as List<RenderElement>;
+                            if (items != null && items.Count > 0)
                             {
-                                //get visible area in view Range;
-                                Rectangle r = vr.ViewBox;
-                                Rectangle cb = vr.ContentBox;
-
-                                int left = -vr.GetXOffset();
-                                int top = -vr.GetYOffset();
-                                int right = left + cb.Width;
-                                int bottom = top + cb.Height;
-
-                                //get vr position on screen
-                                x = r.X + cb.X - left;
-                                y = r.Y + cb.Y - top;
-                                width = cb.Width;
-                                height = cb.Height;
-                                
-                                var items = getRenderingElementsFromViewRange(vr, left, right, top, bottom);
-
-                                List<RenderElement> elements = items as List<RenderElement>;
-                                if (items != null && items.Count > 0)
+                                foreach (var e in elements)
                                 {
-                                    foreach (var e in elements)
-                                    {
-                                        getImageOfRenderingElement(e, g, x, y, left, right, top, bottom);
-                                    }
+                                    getImageOfRenderingElement(e, ref g, x, y, left, right, top, bottom);
                                 }
                             }
                         }
                     }
+
+                    g.Dispose();
 
                     //im = ChangeOpacity(im, 0.8f);
 
@@ -123,9 +123,10 @@ namespace ShowOffAdapterMediator
                         monitor.SetPictureOverlay(im);
                     }
                 }
-                catch (System.Exception)
+                catch (System.Exception ex)
                 {
-                    return;
+                    // return;
+                    continue;
                 }
                 finally
                 {
@@ -146,71 +147,70 @@ namespace ShowOffAdapterMediator
         List<BrailleIOViewRange> getAllViews()
         {
             List<BrailleIOViewRange> vrs = new List<BrailleIOViewRange>();
-                BrailleIOScreen screen = GetVisibleScreen();
-                if (screen != null)
+            var screens = io.GetActiveViews();
+
+            foreach (var item in screens)
+            {
+                if (item is BrailleIOScreen)
                 {
-                    foreach (var vrPair in screen.GetOrderedViewRanges())
+                    foreach (var vrPair in ((BrailleIOScreen)item).GetOrderedViewRanges())
                     {
                         if (vrPair.Value != null)
                         {
                             BrailleIOViewRange vr = vrPair.Value;
-                            if (vr.IsVisible() && vr.IsText())
+                            if (vr.IsVisible() && (vr.IsText() || vr.IsOther()))
                             {
                                 vrs.Add(vr);
                             }
                         }
                     }
-             
+                }
+                else if (item is BrailleIOViewRange)
+                {
+                    BrailleIOViewRange vr = item as BrailleIOViewRange;
+                    if (vr.IsVisible() && (vr.IsText() || vr.IsOther()))
+                    {
+                        vrs.Add(vr);
+                    }
+                }
             }
+
             return vrs;
         }
 
-        BrailleIOScreen GetVisibleScreen()
-        {
+        //BrailleIOScreen GetVisibleScreen()
+        //{
+        //    if (monitor != null && io != null)
+        //    {
+        //        var views = io.GetViews();
+        //        if (views != null && views.Count > 0)
+        //        {
+        //            try
+        //            {
+        //                //var vs = views.First(x => (x is BrailleIO.Interface.IViewable && ((BrailleIO.Interface.IViewable)x).IsVisible()));
 
-            //System.Windows.Forms.MessageBox.Show(
-            //    "Message from " + this 
-            //    + "\nBrailleIOMediator Hash: " + BrailleIOMediator.Instance.GetHashCode() 
-            //    + "\nAppDomain:" + AppDomain.CurrentDomain + "\nAppDomain Hash: " 
-            //    + AppDomain.CurrentDomain.GetHashCode()
-            //    + "\nAudioRenderer Hash" + AudioRenderer.Instance.GetHashCode(),
-            //    "Domain Check from " + this,
-            //    System.Windows.Forms.MessageBoxButtons.OK,
-            //    System.Windows.Forms.MessageBoxIcon.Information
-            //    );
+        //                object vs = null;
 
+        //                for (int i = views.Count - 1; i >= 0; i--)
+        //                {
+        //                    object x = views[i];
+        //                    if ((x is BrailleIO.Interface.IViewable && ((BrailleIO.Interface.IViewable)x).IsVisible()))
+        //                    {
+        //                        vs = x;
+        //                        break;
+        //                    }
+        //                }
 
-            if (monitor != null && io != null)
-            {
-                var views =io.GetViews();
-                if (views != null && views.Count > 0)
-                {
-                    try
-                    {
-                        //var vs = views.First(x => (x is BrailleIO.Interface.IViewable && ((BrailleIO.Interface.IViewable)x).IsVisible()));
-
-                        object vs = null;
-
-                        for (int i = views.Count - 1; i >= 0; i--)
-                        {
-                            object x = views[i];
-                            if ((x is BrailleIO.Interface.IViewable && ((BrailleIO.Interface.IViewable)x).IsVisible()))
-                            {
-                                vs = x;
-                                break;
-                            }
-                        }
-                        
-                        if (vs != null && vs is BrailleIOScreen)
-                        {
-                            return vs as BrailleIOScreen;
-                        }
-                    }
-                    catch (InvalidOperationException) { } //Happens if no view could been found in the listing
-                }
-            }
-            return null;
-        }
+        //                if (vs != null && vs is BrailleIOScreen)
+        //                {
+        //                    return vs as BrailleIOScreen;
+        //                }
+        //            }
+        //            catch (InvalidOperationException) { } //Happens if no view could been found in the listing
+        //        }
+        //    }
+        //    return null;
+        //}
 
 
         static IList getRenderingElementsFromViewRange(BrailleIOViewRange vr, int left, int right, int top, int bottom)
@@ -229,7 +229,7 @@ namespace ShowOffAdapterMediator
         static SolidBrush backgroundBrush = new SolidBrush(Color.FromArgb(180, 255, 255, 255));
         static Pen dashedPen = new Pen(Color.FromArgb(200, 139, 0, 139));
 
-        static void getImageOfRenderingElement(RenderElement e, Graphics g, int xOffset, int yOffset,
+        static void getImageOfRenderingElement(RenderElement e, ref Graphics g, int xOffset, int yOffset,
             int left, int right, int top, int bottom,
             Pen p = null, int xShrink = 0, int yShrink = 0)
         {
@@ -250,7 +250,7 @@ namespace ShowOffAdapterMediator
                     {
                         if (item.IsCompletelyInArea(left, right, top, bottom))
                         {
-                            getImageOfRenderingElement(item, g, xOffset, yOffset, left, right, top, bottom, Pens.DarkTurquoise, xShrink + 1, yShrink + 1);
+                            getImageOfRenderingElement(item, ref g, xOffset, yOffset, left, right, top, bottom, Pens.DarkTurquoise, xShrink + 1, yShrink + 1);
                         }
                     }
                 }
@@ -277,13 +277,14 @@ namespace ShowOffAdapterMediator
         public static Bitmap ChangeOpacity(Image img, float opacityvalue)
         {
             Bitmap bmp = new Bitmap(img.Width, img.Height); // Determining Width and Height of Source Image
-            Graphics graphics = Graphics.FromImage(bmp);
-            ColorMatrix colormatrix = new ColorMatrix();
-            colormatrix.Matrix33 = opacityvalue;
-            ImageAttributes imgAttribute = new ImageAttributes();
-            imgAttribute.SetColorMatrix(colormatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-            graphics.DrawImage(img, new Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, imgAttribute);
-            graphics.Dispose();   // Releasing all resource used by graphics 
+            using (Graphics graphics = Graphics.FromImage(bmp))
+            {
+                ColorMatrix colormatrix = new ColorMatrix();
+                colormatrix.Matrix33 = opacityvalue;
+                ImageAttributes imgAttribute = new ImageAttributes();
+                imgAttribute.SetColorMatrix(colormatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                graphics.DrawImage(img, new Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, imgAttribute);
+            }
             return bmp;
         }
 

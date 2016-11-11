@@ -146,7 +146,7 @@ namespace tud.mci.tangram.TangramLector
         #endregion
 
         int _runs = -1;
-        int captureCount = 0;
+        //int captureCount = 0;
         #region Timer
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
@@ -176,17 +176,17 @@ namespace tud.mci.tangram.TangramLector
                         catch { }
                         finally
                         {
-                            /* FIXME: prevent Memory Exceptions when no one is taking over 
-                             * the produced image. The GC is never called at all until the 
-                             * memory runs out!
-                             * So we have to force the GC to do his job
-                             * */
-                            captureCount++;
-                            if (captureCount > 20)
-                            {
-                                var t = new System.Threading.Tasks.Task(() => { GC.Collect(); captureCount = 0; });
-                                t.Start();
-                            }
+                            ///* FIXME: prevent Memory Exceptions when no one is taking over 
+                            // * the produced image. The GC is never called at all until the 
+                            // * memory runs out!
+                            // * So we have to force the GC to do his job
+                            // * */
+                            //captureCount++;
+                            //if (captureCount > 20)
+                            //{
+                            //    var t = new System.Threading.Tasks.Task(() => { GC.Collect(); captureCount = 0; });
+                            //    t.Start();
+                            //}
                         }
                     }
                     else
@@ -535,7 +535,7 @@ namespace tud.mci.tangram.TangramLector
         {
             if (_capCount > 10)
             {
-                var rs = GC.WaitForFullGCComplete(20);
+                var rs = GC.WaitForFullGCComplete(10);
                 if (rs.HasFlag(GCNotificationStatus.Succeeded))
                 {
                     _capCount = 0;

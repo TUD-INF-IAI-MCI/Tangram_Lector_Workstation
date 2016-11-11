@@ -43,6 +43,8 @@ namespace tud.mci.tangram.TangramLector
         /// <value><c>true</c> if active; otherwise, <c>false</c> - Setting this to <c>false</c> disposes this object.</value>
         public bool Active { get { return _run; } set { _run = value; if (!value) this.Dispose(); } }
 
+        internal List<IBrailleIOAdapterSupplier> adapterSupplierExtensions = new List<IBrailleIOAdapterSupplier>();
+
         #endregion
 
         #endregion
@@ -289,15 +291,15 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="manager">The manager.</param>
         /// <param name="iniObjects">The objects sent for initialization.</param>
         /// <returns>List of <see cref="IBrailleIOAdapter"/> from the adapter extension folder.</returns>
-        public static List<IBrailleIOAdapter> LoadAvailableAdapters(IBrailleIOAdapterManager manager, params object[] iniObjects)
+        public List<IBrailleIOAdapter> LoadAvailableAdapters(IBrailleIOAdapterManager manager, params object[] iniObjects)
         {
             List<IBrailleIOAdapter> adapters = new List<IBrailleIOAdapter>();
 
-            List<IBrailleIOAdapterSupplier> suppliers = loadAllAdpaterSuppliers(GetAdapterDirectoryPath());
+            adapterSupplierExtensions = loadAllAdpaterSuppliers(GetAdapterDirectoryPath());
 
-            if (suppliers != null && suppliers.Count > 0)
+            if (adapterSupplierExtensions != null && adapterSupplierExtensions.Count > 0)
             {
-                foreach (IBrailleIOAdapterSupplier adapterSupplier in suppliers)
+                foreach (IBrailleIOAdapterSupplier adapterSupplier in adapterSupplierExtensions)
                 {
                     if (adapterSupplier != null)
                     {
@@ -333,7 +335,7 @@ namespace tud.mci.tangram.TangramLector
                 }
             }
 
-            mapMonitors(adapters, suppliers);
+            mapMonitors(adapters, adapterSupplierExtensions);
 
             return adapters;
         }
