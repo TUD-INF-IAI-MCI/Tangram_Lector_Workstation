@@ -58,6 +58,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     renderTextFieldInMatrix(ref result, visibleText, ((BrailleIOViewRange)view).GetXOffset(), ((BrailleIOViewRange)view).GetYOffset(), ((BrailleIOViewRange)view).GetZoom());
                 }
+                visibleTexts = null;
             }
         }
 

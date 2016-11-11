@@ -51,7 +51,8 @@ namespace tud.mci.tangram.TangramLector
         public IntPtr Whnd
         {
             get { return _whnd; }
-            private set {
+            private set
+            {
                 _whnd = value;
             }
         }
@@ -128,7 +129,7 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="interval">The capturing interval in milliseconds.</param>
         /// <param name="screenPosition">The position on the screen.</param>
         public ScreenObserver(double interval, Rectangle screenPosition) : this(interval) { ScreenPos = screenPosition; }
-        
+
         #endregion
 
         #region Event
@@ -153,37 +154,39 @@ namespace tud.mci.tangram.TangramLector
 
             if (Changed != null && (_runs % (tickMod) == 0))
             {
-                if (_runs >= tickMod) {
+                if (_runs >= tickMod)
+                {
                     _runs = 0;
-                }               
+                }
                 using (Image sc = capture())
                 {
-                    if (sc != null 
+                    if (sc != null
                         //&& !sc.Equals(_lastCap)
                     )
                     {
-                       // _lastCap = sc;
+                        // _lastCap = sc;
                         try
                         {
                             //using (Bitmap img = sc.Clone() as Bitmap)
                             //{
-                                //Changed.Invoke(this, new CaptureChangedEventArgs(img));
-                                Changed.Invoke(this, new CaptureChangedEventArgs(sc));
+                            //Changed.Invoke(this, new CaptureChangedEventArgs(img));
+                            Changed.Invoke(this, new CaptureChangedEventArgs(sc));
                             //}
                         }
                         catch { }
-                        finally { 
-                           /* FIXME: prevent Memory Exceptions when no one is taking over 
-                            * the produced image. The GC is never called at all until the 
-                            * memory runs out!
-                            * So we have to force the GC to do his job
-                            * */
+                        finally
+                        {
+                            /* FIXME: prevent Memory Exceptions when no one is taking over 
+                             * the produced image. The GC is never called at all until the 
+                             * memory runs out!
+                             * So we have to force the GC to do his job
+                             * */
                             captureCount++;
                             if (captureCount > 20)
                             {
                                 var t = new System.Threading.Tasks.Task(() => { GC.Collect(); captureCount = 0; });
                                 t.Start();
-                            }                            
+                            }
                         }
                     }
                     else
@@ -191,7 +194,7 @@ namespace tud.mci.tangram.TangramLector
                         //TODO: what happens if the Image is null?
                     }
                 }
-            }           
+            }
         }
 
         /// <summary>
@@ -270,11 +273,12 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// Captures the first screen (positive parts).
         /// </summary>
-        public void ObserveScreen() { 
-            Stop(); 
-            Whnd = tud.mci.tangram.TangramLector.ScreenCapture.User32.GetDesktopWindow(); 
+        public void ObserveScreen()
+        {
+            Stop();
+            Whnd = tud.mci.tangram.TangramLector.ScreenCapture.User32.GetDesktopWindow();
             ScreenPos = null;
-            Start(); 
+            Start();
         }
 
         Image capture()
@@ -458,6 +462,10 @@ namespace tud.mci.tangram.TangramLector
             int height = windowRect.bottom - windowRect.top;
             return CaptureWindow(handle, height, width);
         }
+
+
+        static volatile int _capCount = 0;
+
         /// <summary>
         /// Creates an Image object containing a screen shot of a specific window
         /// </summary>
@@ -477,7 +485,7 @@ namespace tud.mci.tangram.TangramLector
                 return new Bitmap(1, 1);
             }
 
-            // get the hDC of the target window
+            // get the device context (DC) for the entire target window
             IntPtr hdcSrc = User32.GetWindowDC(handle);
             // create a device context we can copy to
             IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
@@ -486,13 +494,19 @@ namespace tud.mci.tangram.TangramLector
             IntPtr hBitmap = GDI32.CreateCompatibleBitmap(hdcSrc, width, height);
             // select the bitmap object
             IntPtr hOld = GDI32.SelectObject(hdcDest, hBitmap);
-            // bitblt over
+            // copy the bit blocks of the window bitmap to the save bitmap 
             GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
-            // restore selection
-            GDI32.SelectObject(hdcDest, hOld);
+            
+            //// restore selection
+            //GDI32.SelectObject(hdcDest, hOld);
+            
+            
             // clean up
+            User32.ReleaseDC(handle, hdcSrc);
             GDI32.DeleteDC(hdcDest);
             User32.ReleaseDC(handle, hdcSrc);
+            
+            
             // get a .NET image object for it
             Image img = null;
             try
@@ -506,13 +520,27 @@ namespace tud.mci.tangram.TangramLector
             catch { }
             finally
             {
+                _capCount++;
                 // free up the Bitmap object
                 GDI32.DeleteObject(hBitmap);
-                GDI32.DeleteObject(hdcDest);
+                // GDI32.DeleteObject(hdcDest);
                 GDI32.DeleteObject(hOld);
-                GDI32.DeleteObject(hdcSrc);
+                // GDI32.DeleteObject(hdcSrc);
+                forceGCFree();
             }
             return img;
+        }
+
+        private static void forceGCFree()
+        {
+            if (_capCount > 10)
+            {
+                var rs = GC.WaitForFullGCComplete(20);
+                if (rs.HasFlag(GCNotificationStatus.Succeeded))
+                {
+                    _capCount = 0;
+                }
+            }
         }
 
         /// <summary>
@@ -602,19 +630,90 @@ namespace tud.mci.tangram.TangramLector
         private static class GDI32
         {
             public const int SRCCOPY = 0x00CC0020; // BitBlt dwRop parameter
+
+            /// <summary>
+            /// The BitBlt function performs a bit-block transfer of the color data corresponding 
+            /// to a rectangle of pixels from the specified source device context into a destination 
+            /// device context.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183370(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hObject">A handle to the destination device context.</param>
+            /// <param name="nXDest">The x-coordinate, in logical units, of the upper-left corner 
+            /// of the destination rectangle.</param>
+            /// <param name="nYDest">The y-coordinate, in logical units, of the upper-left corner 
+            /// of the destination rectangle.</param>
+            /// <param name="nWidth">The width, in logical units, of the source and destination 
+            /// rectangles.</param>
+            /// <param name="nHeight">The height, in logical units, of the source and the 
+            /// destination rectangles.</param>
+            /// <param name="hObjectSource">A handle to the source device context.</param>
+            /// <param name="nXSrc">The x-coordinate, in logical units, of the upper-left corner 
+            /// of the source rectangle.</param>
+            /// <param name="nYSrc">The y-coordinate, in logical units, of the upper-left corner 
+            /// of the source rectangle.</param>
+            /// <param name="dwRop">A raster-operation code. These codes define how the color data 
+            /// for the source rectangle is to be combined with the color data for the destination 
+            /// rectangle to achieve the final color.</param>
+            /// <returns>If the function succeeds, the return value is nonzero. 
+            /// If the function fails, the return value is zero.</returns>
             [DllImport("gdi32.dll")]
             public static extern bool BitBlt(IntPtr hObject, int nXDest, int nYDest,
                 int nWidth, int nHeight, IntPtr hObjectSource,
                 int nXSrc, int nYSrc, int dwRop);
+            
+            /// <summary>
+            /// The CreateCompatibleBitmap function creates a bitmap compatible with the device that is associated with the specified device context.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183488(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hDC">A handle to a device context.</param>
+            /// <param name="nWidth">The bitmap width, in pixels.</param>
+            /// <param name="nHeight">The bitmap height, in pixels.</param>
+            /// <returns>If the function succeeds, the return value is a handle to the compatible bitmap (DDB).
+            /// If the function fails, the return value is NULL.</returns>
             [DllImport("gdi32.dll")]
             public static extern IntPtr CreateCompatibleBitmap(IntPtr hDC, int nWidth,
                 int nHeight);
+
+            /// <summary>
+            /// The CreateCompatibleDC function creates a memory device context (DC) compatible with the specified device.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183489(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hDC">A handle to an existing DC. If this handle is NULL, the function creates a memory DC compatible with the application's current screen.</param>
+            /// <returns>If the function succeeds, the return value is the handle to a memory DC.
+            /// If the function fails, the return value is NULL.</returns>
             [DllImport("gdi32.dll")]
             public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
+
+            /// <summary>
+            /// The DeleteDC function deletes the specified device context (DC).
+            /// An application must not delete a DC whose handle was obtained by calling the GetDC function. Instead, it must call the ReleaseDC function to free the DC.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183533(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hDC">A handle to the device context.</param>
+            /// <returns>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.</returns>
             [DllImport("gdi32.dll")]
             public static extern bool DeleteDC(IntPtr hDC);
+
+            /// <summary>
+            /// The DeleteObject function deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system resources associated with the object. After the object is deleted, the specified handle is no longer valid.
+            /// Do not delete a drawing object (pen or brush) while it is still selected into a DC.
+            /// When a pattern brush is deleted, the bitmap associated with the brush is not deleted. The bitmap must be deleted independently.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183539(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hObject">A handle to a logical pen, brush, font, bitmap, region, or palette.</param>
+            /// <returns>If the function succeeds, the return value is nonzero.
+            /// If the specified handle is not valid or is currently selected into a DC, the return value is zero.</returns>
             [DllImport("gdi32.dll")]
             public static extern bool DeleteObject(IntPtr hObject);
+
+            /// <summary>
+            /// The SelectObject function selects an object into the specified device context (DC). 
+            /// The new object replaces the previous object of the same type.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd162957(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hDC">A handle to the DC.</param>
+            /// <param name="hObject">A handle to the object to be selected..</param>
+            /// <returns>If an error occurs and the selected object is not a region, the return value is NULL. Otherwise, it is HGDI_ERROR.</returns>
             [DllImport("gdi32.dll")]
             public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
         }
@@ -638,8 +737,37 @@ namespace tud.mci.tangram.TangramLector
             }
             [DllImport("user32.dll")]
             public static extern IntPtr GetDesktopWindow();
+
+            /// <summary>
+            /// The GetWindowDC function retrieves the device context (DC) for the entire window, 
+            /// including title bar, menus, and scroll bars. A window device context permits 
+            /// painting anywhere in a window, because the origin of the device context is the 
+            /// upper-left corner of the window instead of the client area.
+            /// GetWindowDC assigns default attributes to the window device context each time 
+            /// it retrieves the device context. Previous attributes are lost.
+            /// After painting is complete, the ReleaseDC function must be called to release 
+            /// the device context. Not releasing the window device context has serious effects 
+            /// on painting requested by applications.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd144947(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hWnd">A handle to the window with a device context that is to be 
+            /// retrieved. If this value is NULL, GetWindowDC retrieves the device context for 
+            /// the entire screen.
+            /// If this parameter is NULL, GetWindowDC retrieves the device context for the 
+            /// primary display monitor. </param>
+            /// <returns>If the function succeeds, the return value is a handle to a device context
+            /// for the specified window. If the function fails, the return value is NULL, 
+            /// indicating an error or an invalid hWnd parameter.</returns>
             [DllImport("user32.dll")]
             public static extern IntPtr GetWindowDC(IntPtr hWnd);
+
+            /// <summary>
+            /// The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on class or private DCs.
+            /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd162920(v=vs.85).aspx"/>
+            /// </summary>
+            /// <param name="hWnd">A handle to the window whose DC is to be released.</param>
+            /// <param name="hDC">A handle to the DC to be released.</param>
+            /// <returns>The return value indicates whether the DC was released. If the DC was released, the return value is 1. If the DC was not released, the return value is zero.</returns>
             [DllImport("user32.dll")]
             public static extern IntPtr ReleaseDC(IntPtr hWnd, IntPtr hDC);
             [DllImport("user32.dll")]

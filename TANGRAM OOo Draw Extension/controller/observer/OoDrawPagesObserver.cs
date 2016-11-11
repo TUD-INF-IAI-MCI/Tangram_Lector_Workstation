@@ -16,7 +16,7 @@ using unoidl.com.sun.star.util;
 namespace tud.mci.tangram.controller.observer
 {
     /// <summary>
-    /// Observes all draw pages of this oo document instance
+    /// Observes all draw pages of this document instance
     /// </summary>
     public class OoDrawPagesObserver : PropertiesEventForwarderBase, IUpdateable, IDisposingObserver
     {
@@ -552,16 +552,13 @@ namespace tud.mci.tangram.controller.observer
             OoShapeObserver sObs = getRegisteredShapeObserver(name);
             if (sObs == null)
             {
-                //TODO: handle this
                 if (page == null)
                 {
-
                     XDrawPage pageShape = OoDrawUtils.GetPageForShape(shape);
                     if (pageShape == null)
                     {
                         Logger.Instance.Log(LogPriority.DEBUG, this, "[EROR] Can't get page to requested NEW shape");
                         page = this.DocWnd.GetActivePage();
-
                     }
                     else
                     {
@@ -576,9 +573,7 @@ namespace tud.mci.tangram.controller.observer
                 }
             }
 
-            //TODO: check if valid
-            //TODO: check if the same
-            if (sObs.Shape != shape)
+            if (sObs != null && sObs.Shape != shape)
             {
                 sObs = RegisterNewShape(shape, page);
             }
@@ -633,7 +628,7 @@ namespace tud.mci.tangram.controller.observer
 
             if (sObs != null)
             {
-                
+                // TODO: handle what?
             }
             else
             {
@@ -678,7 +673,7 @@ namespace tud.mci.tangram.controller.observer
             if (accshapes.ContainsKey(cont))
                 return accshapes[cont];
 
-            // if the name contains spaces - e.g. for text farmes etc.
+            // if the name contains spaces - e.g. for text frames etc.
             if (accName.Contains(" "))
             {
                 System.Diagnostics.Debug.WriteLine("problem in finding the correct shape - name contains space characters");
@@ -786,23 +781,22 @@ namespace tud.mci.tangram.controller.observer
                                         string UIname = OoUtils.GetStringProperty(shape, "UINameSingular");
                                         string Title = OoUtils.GetStringProperty(shape, "Title");
 
+                                        //if (accName.Equals(UIname))
+                                        //{
 
-                                        if (accName.Equals(UIname))
-                                        {
+                                        //}
+                                        //else if (accName.Equals(name))
+                                        //{
 
-                                        }
-                                        else if (accName.Equals(name))
-                                        {
+                                        //}
+                                        //else if (accName.Equals(name + " " + Title))
+                                        //{
 
-                                        }
-                                        else if (accName.Equals(name + " " + Title))
-                                        {
+                                        //}
+                                        //else
+                                        //{
 
-                                        }
-                                        else
-                                        {
-
-                                        }
+                                        //}
 
                                     }
                                 }
@@ -1053,8 +1047,6 @@ namespace tud.mci.tangram.controller.observer
 
         #region Children
 
-        //TODO check the child an build a off screen model
-
         private void handleChild(object sender, uno.Any newValue, uno.Any oldValue)
         {
 
@@ -1072,36 +1064,36 @@ namespace tud.mci.tangram.controller.observer
                 }
 
             }
-            else if (oldValue.hasValue() && oldValue.Value is XAccessible)
-            {
+            //else if (oldValue.hasValue() && oldValue.Value is XAccessible)
+            //{
 
-                // FIXME: this does not work properly because sometimes the page itself do this and there is no way to check if this is the page.
-                //          So we have to leave the corresponding shape and its observer as a dead body in the lists ...
-                //          Maybe the OoShapeObeservers can detect their disposing by their own and handle a clean up of the lists
+            //    // FIXME: this does not work properly because sometimes the page itself do this and there is no way to check if this is the page.
+            //    //          So we have to leave the corresponding shape and its observer as a dead body in the lists ...
+            //    //          Maybe the OoShapeObeservers can detect their disposing by their own and handle a clean up of the lists
 
-                //// child deleted;
-                ////System.Diagnostics.Debug.WriteLine("child deleted");
+            //    //// child deleted;
+            //    ////System.Diagnostics.Debug.WriteLine("child deleted");
 
-                //XAccessible oldValAcc = oldValue.Value as XAccessible;
+            //    //XAccessible oldValAcc = oldValue.Value as XAccessible;
 
-                //if (oldValAcc != null)
-                //{
-                //    if (accshapes.ContainsKey((oldValAcc.getAccessibleContext())))
-                //    {
-                //        //TODO: remove ....
-                //        System.Diagnostics.Debug.WriteLine("have to remove observer");
-                //    }
-                //    else
-                //    {
-                //        string Name = OoAccessibility.GetAccessibleName(oldValAcc);
-                //        if (shapes.ContainsKey(Name))
-                //        {
-                //            removeChild(shapes[Name]);
-                //        }
-                //    }
-                //}
+            //    //if (oldValAcc != null)
+            //    //{
+            //    //    if (accshapes.ContainsKey((oldValAcc.getAccessibleContext())))
+            //    //    {
+            //    //        //TODO: remove ....
+            //    //        System.Diagnostics.Debug.WriteLine("have to remove observer");
+            //    //    }
+            //    //    else
+            //    //    {
+            //    //        string Name = OoAccessibility.GetAccessibleName(oldValAcc);
+            //    //        if (shapes.ContainsKey(Name))
+            //    //        {
+            //    //            removeChild(shapes[Name]);
+            //    //        }
+            //    //    }
+            //    //}
 
-            }
+            //}
         }
 
         /// <summary>

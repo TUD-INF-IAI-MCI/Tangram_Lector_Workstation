@@ -233,14 +233,12 @@ namespace tud.mci.tangram.TangramLector.OO
                             else
                             {
                                 playError();
-                                //play("Ich kann das Element nicht richtig auf dem Bildschirm finden.");
                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find a valid accessible counterpart for the dom focused element: " + shapeManipulatorFunctionProxy.LastSelectedShape);
                             }
                         }
                         else
                         {
                             playError();
-                            //play("Ich kann das Element nicht auf dem Bildschirm finden.");
                             Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find the accessible counterpart to the dom focused element: " + shapeManipulatorFunctionProxy.LastSelectedShape);
                         }
                     }
@@ -266,6 +264,8 @@ namespace tud.mci.tangram.TangramLector.OO
                 Rectangle newBBox = shapeManipulatorFunctionProxy.LastSelectedShape.GetAbsoluteScreenBoundsByDom();
                 DesktopOverlayWindow.Instance.refreshBounds(newBBox, ref pngData);
                 BrailleDomFocusRenderer.CurrentBoundingBox = newBBox;
+
+                GC.AddMemoryPressure(pngData.Length);
             }
         }
 

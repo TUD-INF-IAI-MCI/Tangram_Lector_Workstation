@@ -8,7 +8,7 @@ namespace tud.mci.tangram.TangramLector.Window_Manager
     {
         private int quater = 4;
         private int quater2 = 3;
-        private const int interval = 100;
+        private const int interval = 100; 
         public readonly Timer timer;
         private static readonly BlinkTimer _instance = new BlinkTimer();
         public bool Set { get; private set; }
@@ -19,10 +19,7 @@ namespace tud.mci.tangram.TangramLector.Window_Manager
         {
             timer = new Timer();
             timer.Interval = interval;
-            //timer.Tick += new EventHandler(timer_Tick);
             timer.Elapsed += timer_Elapsed;
-
-
             timer.Start();
         }
 
@@ -53,7 +50,6 @@ namespace tud.mci.tangram.TangramLector.Window_Manager
             fireQuarterTick(e);
             if ((quater % 2) == 0)
             {
-
                 fireHalfTick(e);
 
                 if ((quater % 4) == 0)
@@ -68,31 +64,6 @@ namespace tud.mci.tangram.TangramLector.Window_Manager
                 fireThreeQuarterTick(e);
             }
         }
-
-        //void timer_Tick(object sender, EventArgs e)
-        //{
-        //    quater = ++quater % 4;
-        //    quater2 = ++quater2 % 3;
-        //    fireQuarterTick(e);
-        //    if ((quater % 2) == 0) { 
-            
-        //        fireHalfTick(e);
-
-        //        if ((quater % 4) == 0)
-        //        {
-        //            Set = !Set;
-        //            fireTick(e);
-        //        }
-        //    }
-
-        //    if ((quater2) == 0)
-        //    {
-        //        fireThreeQuarterTick(e);
-        //    }
-            
-        //}
-
-
 
         /// <summary>
         /// Occurs when [quarter tick].
@@ -144,8 +115,6 @@ namespace tud.mci.tangram.TangramLector.Window_Manager
             catch { }
         }
         #endregion
-
-
     }
 
     #region EventArg Classes
