@@ -82,6 +82,7 @@ namespace tud.mci.tangram.util
 
         /// <summary>
         /// Executes a dispatch.
+        /// The dispatch call is executed in a time limited way <see cref="TimeLimitExecutor"/> (200 ms).
         /// </summary>
         /// <param name="commandUrl">The command URL to dispatch. Describes the 
         /// feature which should be supported by internally used dispatch object. 
@@ -96,27 +97,35 @@ namespace tud.mci.tangram.util
         /// the real implementation of the dispatch object.</param>
         internal static bool CallDispatch(string commandUrl, XDispatchProvider docViewContrl, String _frame = "", int _sFlag = 0, PropertyValue[] args = null)
         {
+            bool successs = false;
+            
             if (!String.IsNullOrWhiteSpace(commandUrl))
             {
-                var disp = GetDispatcher(OO.GetMultiServiceFactory());
-                if (disp != null)
-                {
-                    // A possible result of the executed internal dispatch. 
-                    // The information behind this any depends on the dispatch!
-                    var result = disp.executeDispatch(docViewContrl, commandUrl, _frame, _sFlag, args);
-
-                    if (result.hasValue() && result.Value is unoidl.com.sun.star.frame.DispatchResultEvent)
-                    {
-                        var val = result.Value as unoidl.com.sun.star.frame.DispatchResultEvent;
-                        if (val != null && val.State == (short)DispatchResultState.SUCCESS)
+                bool abort = TimeLimitExecutor.WaitForExecuteWithTimeLimit(
+                    200,
+                    new Action(() => {
+                        var disp = GetDispatcher(OO.GetMultiServiceFactory());
+                        if (disp != null)
                         {
-                            return true;
-                        }
-                    }
-                }
+                            // A possible result of the executed internal dispatch. 
+                            // The information behind this any depends on the dispatch!
+                            var result = disp.executeDispatch(docViewContrl, commandUrl, _frame, _sFlag, args);
+
+                            if (result.hasValue() && result.Value is unoidl.com.sun.star.frame.DispatchResultEvent)
+                            {
+                                var val = result.Value as unoidl.com.sun.star.frame.DispatchResultEvent;
+                                if (val != null && val.State == (short)DispatchResultState.SUCCESS)
+                                {
+                                    successs = true;
+                                }
+                            }
+                        }                    
+                    }),
+                    "Dispatch Call");
+                successs &= abort;
             }
 
-            return false;
+            return successs;
         }
 
         #endregion

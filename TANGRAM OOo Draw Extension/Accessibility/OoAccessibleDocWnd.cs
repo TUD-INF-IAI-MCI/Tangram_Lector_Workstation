@@ -259,46 +259,53 @@ namespace tud.mci.tangram.Accessibility
         {
             String title = String.Empty;
 
-            if (DrawPagesObs != null)
-            {
-                title = DrawPagesObs.Title;
-            }
+            TimeLimitExecutor.WaitForExecuteWithTimeLimit(
+                200,
+                new Action(() => {
 
-            if (String.IsNullOrWhiteSpace(title))
-            {
+                    if (DrawPagesObs != null)
+                    {
+                        title = DrawPagesObs.Title;
+                    }
 
-                String docT = String.Empty;
-                if (Document != null && Document.getAccessibleContext() != null)
-                {
-                    docT = OoAccessibility.GetAccessibleName(Document);
-                }
-                if (!String.IsNullOrEmpty(docT))
-                {
-                    docT = docT.Substring(0, Math.Max(0, docT.LastIndexOf('-'))).Trim();
-                    title = docT;
-                }
+                    if (String.IsNullOrWhiteSpace(title))
+                    {
 
-                String mainWndT = String.Empty;
+                        String docT = String.Empty;
+                        if (Document != null && Document.getAccessibleContext() != null)
+                        {
+                            docT = OoAccessibility.GetAccessibleName(Document);
+                        }
+                        if (!String.IsNullOrEmpty(docT))
+                        {
+                            docT = docT.Substring(0, Math.Max(0, docT.LastIndexOf('-'))).Trim();
+                            title = docT;
+                        }
 
-                if (MainWindow != null && MainWindow.getAccessibleContext() != null)
-                {
-                    mainWndT = OoAccessibility.GetAccessibleName(MainWindow);
-                }
+                        String mainWndT = String.Empty;
 
-                if (!String.IsNullOrEmpty(mainWndT)) //TODO: check why this is empty on CO2-Labels and unbenannt
-                {
-                    mainWndT = mainWndT.Substring(0,
-                            mainWndT.LastIndexOf('.') > 0 ?
-                                mainWndT.LastIndexOf('.') : Math.Max(0, docT.LastIndexOf('-'))
-                            ).Trim();
-                    title = mainWndT;
-                }
+                        if (MainWindow != null && MainWindow.getAccessibleContext() != null)
+                        {
+                            mainWndT = OoAccessibility.GetAccessibleName(MainWindow);
+                        }
 
-                if (mainWndT.Equals(docT))
-                    title = docT;
-                else
-                    Logger.Instance.Log(LogPriority.IMPORTANT, this, "Cannot get correct title of the Oo document: Window title: '" + mainWndT + "' Document title: '" + docT + "'");
-            }
+                        if (!String.IsNullOrEmpty(mainWndT)) //TODO: check why this is empty on CO2-Labels and unbenannt
+                        {
+                            mainWndT = mainWndT.Substring(0,
+                                    mainWndT.LastIndexOf('.') > 0 ?
+                                        mainWndT.LastIndexOf('.') : Math.Max(0, docT.LastIndexOf('-'))
+                                    ).Trim();
+                            title = mainWndT;
+                        }
+
+                        if (mainWndT.Equals(docT))
+                            title = docT;
+                        else
+                            Logger.Instance.Log(LogPriority.IMPORTANT, this, "Cannot get correct title of the Oo document: Window title: '" + mainWndT + "' Document title: '" + docT + "'");
+                    }
+                
+                }));
+            
             return title;
         }
 

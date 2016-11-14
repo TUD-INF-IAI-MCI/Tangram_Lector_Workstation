@@ -298,6 +298,7 @@ namespace ShowOffAdapterMediator
                 if (renderingThread != null)
                 {
                     renderingThread.Abort();
+                    if (monitor != null) monitor.Dispose();
                 }
             }
             catch { }

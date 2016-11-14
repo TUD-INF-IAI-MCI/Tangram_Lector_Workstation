@@ -160,34 +160,13 @@ namespace tud.mci.tangram.TangramLector
                 }
                 using (Image sc = capture())
                 {
-                    if (sc != null
-                        //&& !sc.Equals(_lastCap)
-                    )
+                    if (sc != null)
                     {
-                        // _lastCap = sc;
                         try
                         {
-                            //using (Bitmap img = sc.Clone() as Bitmap)
-                            //{
-                            //Changed.Invoke(this, new CaptureChangedEventArgs(img));
                             Changed.Invoke(this, new CaptureChangedEventArgs(sc));
-                            //}
                         }
                         catch { }
-                        finally
-                        {
-                            ///* FIXME: prevent Memory Exceptions when no one is taking over 
-                            // * the produced image. The GC is never called at all until the 
-                            // * memory runs out!
-                            // * So we have to force the GC to do his job
-                            // * */
-                            //captureCount++;
-                            //if (captureCount > 20)
-                            //{
-                            //    var t = new System.Threading.Tasks.Task(() => { GC.Collect(); captureCount = 0; });
-                            //    t.Start();
-                            //}
-                        }
                     }
                     else
                     {
@@ -463,9 +442,6 @@ namespace tud.mci.tangram.TangramLector
             return CaptureWindow(handle, height, width);
         }
 
-
-        static volatile int _capCount = 0;
-
         /// <summary>
         /// Creates an Image object containing a screen shot of a specific window
         /// </summary>
@@ -520,28 +496,29 @@ namespace tud.mci.tangram.TangramLector
             catch { }
             finally
             {
-                _capCount++;
+                //_capCount++;
                 // free up the Bitmap object
                 GDI32.DeleteObject(hBitmap);
                 // GDI32.DeleteObject(hdcDest);
                 GDI32.DeleteObject(hOld);
                 // GDI32.DeleteObject(hdcSrc);
-                forceGCFree();
+                //forceGCFree();
             }
             return img;
         }
 
-        private static void forceGCFree()
-        {
-            if (_capCount > 10)
-            {
-                var rs = GC.WaitForFullGCComplete(10);
-                if (rs.HasFlag(GCNotificationStatus.Succeeded))
-                {
-                    _capCount = 0;
-                }
-            }
-        }
+        //static volatile int _capCount = 0;
+        //private static void forceGCFree()
+        //{
+        //    if (_capCount > 10)
+        //    {
+        //        var rs = GC.WaitForFullGCComplete(10);
+        //        if (rs.HasFlag(GCNotificationStatus.Succeeded))
+        //        {
+        //            _capCount = 0;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Captures a screen shot of a specific window, and saves it to a file
