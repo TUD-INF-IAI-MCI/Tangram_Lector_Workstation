@@ -851,36 +851,35 @@ namespace tud.mci.tangram.TangramLector
         /// If Braille text is at the requested position in the given view range that this function tries to get the corresponding text.
         /// </summary>
         /// <param name="vr">The viewrange to check.</param>
-        /// <param name="e">the gestrure evnet</param>
+        /// <param name="e">the gesture event</param>
         private String CheckForTouchedBrailleText(BrailleIOViewRange vr, GestureEventArgs e)
         {
-            if (vr.ContentRender is ITouchableRenderer)
+            if (vr.ContentRender is ITouchableRenderer && e != null && e.Gesture != null)
             {
                 var touchRendeer = (ITouchableRenderer)vr.ContentRender;
+                    // calculate the position in the content
+                    int x = (int)e.Gesture.NodeParameters[0].X;
+                    int y = (int)e.Gesture.NodeParameters[0].Y;
 
-                // calculate the position in the content
-                int x = (int)e.Gesture.NodeParameters[0].X;
-                int y = (int)e.Gesture.NodeParameters[0].Y;
+                    x = x - vr.ViewBox.X - vr.ContentBox.X - vr.GetXOffset();
+                    y = y - vr.ViewBox.Y - vr.ContentBox.Y - vr.GetYOffset();
 
-                x = x - vr.ViewBox.X - vr.ContentBox.X - vr.GetXOffset();
-                y = y - vr.ViewBox.Y - vr.ContentBox.Y - vr.GetYOffset();
-
-                var touchedElement = touchRendeer.GetContentAtPosition(x, y);
-                if (touchedElement != null && touchedElement is RenderElement)
-                {
-                    var touchedValue = ((RenderElement)touchedElement).GetValue();
-                    if (((RenderElement)touchedElement).HasSubParts())
+                    var touchedElement = touchRendeer.GetContentAtPosition(x, y);
+                    if (touchedElement != null && touchedElement is RenderElement)
                     {
-                        List<RenderElement> touchedSubparts = ((RenderElement)touchedElement).GetSubPartsAtPoint(x, y);
-                        if (touchedSubparts != null && touchedSubparts.Count > 0)
+                        var touchedValue = ((RenderElement)touchedElement).GetValue();
+                        if (((RenderElement)touchedElement).HasSubParts())
                         {
-                            touchedValue = touchedSubparts[0].GetValue();
+                            List<RenderElement> touchedSubparts = ((RenderElement)touchedElement).GetSubPartsAtPoint(x, y);
+                            if (touchedSubparts != null && touchedSubparts.Count > 0)
+                            {
+                                touchedValue = touchedSubparts[0].GetValue();
+                            }
                         }
+                        System.Diagnostics.Debug.WriteLine("----- [BRAILLE TEXT TOUCHED] : '" + touchedValue.ToString() + "'");
+                        return touchedValue.ToString();
                     }
-
-                    System.Diagnostics.Debug.WriteLine("----- [BRAILLE TEXT TOUCHED] : '" + touchedValue.ToString() + "'");
-                    return touchedValue.ToString();
-                }
+                
             }
             return String.Empty;
         }

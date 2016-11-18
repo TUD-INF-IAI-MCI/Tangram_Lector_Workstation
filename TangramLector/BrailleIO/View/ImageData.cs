@@ -554,14 +554,17 @@ namespace tud.mci.tangram.TangramLector
 
         void im_GesturePerformedEvent(object sender, GestureEventArgs e)
         {
-            if (e.Gesture.Name.Equals("tap") && _shape != null)
+            if (e != null && e.Gesture != null)
             {
-                var shape = getSelectedShape();
-                if (!shape.Equals(_shape))
+                if (e.Gesture.Name.Equals("tap") && _shape != null)
                 {
-                    // after saving old data, new data has to be loaded
-                    loadImageData();
-                    setContent(TITLE_DESC_VIEW_NAME, Property.Title);
+                    var shape = getSelectedShape();
+                    if (!shape.Equals(_shape))
+                    {
+                        // after saving old data, new data has to be loaded
+                        loadImageData();
+                        setContent(TITLE_DESC_VIEW_NAME, Property.Title);
+                    }
                 }
             }
         }

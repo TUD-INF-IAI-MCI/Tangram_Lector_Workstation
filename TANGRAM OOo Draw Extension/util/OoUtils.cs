@@ -393,16 +393,22 @@ namespace tud.mci.tangram.util
         /// <returns>the value of the property</returns>
         public static String GetStringProperty(Object obj, String propName)
         {
-            Object value = GetProperty(obj, propName);
-            if (value != null)
-            {
-                var stringValue = value as string;
-                if (stringValue != null)
-                {
-                    return stringValue;
-                }
-            }
-            return "";
+            String result = String.Empty;
+            bool succ = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
+                 new Action(() =>
+                 {
+                     Object value = GetProperty(obj, propName);
+                     if (value != null)
+                     {
+                         var stringValue = value as string;
+                         if (stringValue != null)
+                         {
+                             result = stringValue;
+                         }
+                     }
+                 }));
+            if (!succ) result = String.Empty;
+            return result;
         }
 
         internal static Dictionary<String, uno.Any> GetAllProperties(Object obj)
@@ -484,23 +490,8 @@ namespace tud.mci.tangram.util
 
         internal static Object CreateObjectFromService(Object _msf, String[] services)
         {
-
             try
             {
-
-
-
-                //// get MCF
-                //var mcf = OO.GetMultiComponentFactory();
-                //if (mcf != null)
-                //{
-                //    object component = mcf.createInstanceWithContext(services[0], OO.GetContext());
-
-                //    Debug.GetAllServicesOfObject(component);
-
-                //    return component;
-                //}
-
                 // get MSF
                 XMultiServiceFactory msf = _msf as XMultiServiceFactory;
 
@@ -516,8 +507,6 @@ namespace tud.mci.tangram.util
                     // object component = msf.createInstance("com.sun.star.document.ExportGraphicObjectResolver");
                     object component = msf.createInstance("com.sun.star.document.ImportEmbeddedObjectResolver");
 
-
-
                     //Debug.GetAllServicesOfObject(component);
                     Debug.GetAllInterfacesOfObject(component);
 
@@ -531,7 +520,6 @@ namespace tud.mci.tangram.util
             catch (Exception ex)
             {
             }
-
 
             return null;
         }

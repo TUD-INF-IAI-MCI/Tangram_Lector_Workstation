@@ -790,9 +790,9 @@ namespace tud.mci.tangram.TangramLector
         private const String OO_DOC_WND_CLASS_NAME = "SALFRAME";
         protected override void im_GesturePerformed(object sender, GestureEventArgs e)
         {
-            if (e != null)
+            if (e != null )
             {
-                if (e.Gesture.Name.Equals("tap"))
+                if (e.Gesture != null && e.Gesture.Name.Equals("tap"))
                 {
                     BrailleIOScreen vs = GetVisibleScreen();
                     if (vs != null)
