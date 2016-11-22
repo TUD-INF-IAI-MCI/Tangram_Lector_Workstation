@@ -73,7 +73,6 @@ namespace tud.mci.tangram.util
             return new Type[0];
         }
 
-
         /// <summary>
         /// Returns all services of the object.
         /// </summary>
@@ -89,23 +88,33 @@ namespace tud.mci.tangram.util
             {
                 try
                 {
+
+
                     TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, () =>
                     {
 
                         XServiceInfo si = obj as XServiceInfo;
                         if (si != null)
                         {
-                            services = si.getSupportedServiceNames();
-
-                            if (debug)
+                           
+                            // FIXME: Access violation on service request
+                            try
                             {
-                                output += (services.Length + "\tServices:");
+                                services = si.getSupportedServiceNames();
 
-                                foreach (var item in services)
+                                if (debug)
                                 {
-                                    output += "\n" + ("\tService: " + item);
+                                    output += (services.Length + "\tServices:");
+
+                                    foreach (var item in services)
+                                    {
+                                        output += "\n" + ("\tService: " + item);
+                                    }
+                                    System.Diagnostics.Debug.WriteLine(output);
                                 }
-                                System.Diagnostics.Debug.WriteLine(output);
+                            }
+                            catch (Exception ex) {
+                                System.Diagnostics.Debug.WriteLine("Exception happened: " + ex.ToString());
                             }
                         }
                         else

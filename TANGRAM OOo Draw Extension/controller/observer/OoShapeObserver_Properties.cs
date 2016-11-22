@@ -359,6 +359,7 @@ namespace tud.mci.tangram.controller.observer
             set { setBoolProperty("MoveProtect", value); }
         }
 
+        private String _lastName = String.Empty;
         readonly Object _porpLock = new Object();
         /// <summary>
         /// [ OPTIONAL ]
@@ -372,7 +373,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 lock (_porpLock)
                 {
-                    return getStringProperty("Name");
+                    return _lastName = getStringProperty("Name");
                 }
             }
             set
@@ -406,6 +407,7 @@ namespace tud.mci.tangram.controller.observer
                                 {
                                     setStringProperty("Name", value);
                                 }
+                                _lastName = value;
 
                             }
                             catch (Exception ex)

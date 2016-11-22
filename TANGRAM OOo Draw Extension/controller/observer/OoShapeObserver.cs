@@ -384,23 +384,29 @@ namespace tud.mci.tangram.controller.observer
         /// change of properties such as polygon points.
         /// </summary>
         internal static volatile bool LockValidation = false;
+        private static Object _synchLock = new Object();
 
-        bool valid = true;
+
+        bool _valid = true;
+        private const long _validationTreshold = 50000000; // 10.000.000 ~ 1 sec.
+        long _lastValidation = DateTime.UtcNow.Ticks;
 
         /// <summary>
         /// Determines whether this instance is valid.
         /// </summary>
+        /// <param name="force">forces a revalidation; otherwise a revalidation is only applied every ~5 sec. to save performance - in such a case the last validation value will be returned. </param>
         /// <returns>
-        /// 	<c>true</c> if this instance is valid; otherwise, <c>false</c>.
+        ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsValid()
+        public bool IsValid(bool force = true)
         {
-            if (LockValidation)
-            {
-                return valid;
-            }
+            if (!_valid) return false;
+            if (LockValidation) return _valid;
 
-            valid = true;
+            long ts = DateTime.UtcNow.Ticks;
+            if (!force && (ts - _lastValidation < _validationTreshold)) return _valid;
+
+            _valid = true;
             try
             {
                 if (!Disposed && Shape != null && Page != null)
@@ -409,11 +415,12 @@ namespace tud.mci.tangram.controller.observer
                     {
                         try
                         {
+
                             var test1 = Shape.GetHashCode();
                             string uiName = UINameSingular;
                             if (test1 == 0 || String.IsNullOrEmpty(uiName))
                             {
-                                valid = false;
+                                _valid = false;
                                 Dispose();
                                 return;
                             }
@@ -423,33 +430,41 @@ namespace tud.mci.tangram.controller.observer
                             {
                                 Update();
                             }
-                            var services = util.Debug.GetAllServicesOfObject(Shape, false);
-                            if (services.Length == 0)
+
+                            if (!OoUtils.ElementSupportsService(Shape, OO.Services.DRAW_SHAPE))
                             {
-                                valid = false;
+                                _valid = false;
                                 return;
                             }
 
-                            // test if a parent exists
-                            XShapes parent;
-                            bool parentSuccess = tryGetParentByXShape(out parent, Shape);
-                            if (parentSuccess && parent == null)
-                            {
-                                valid = false;
-                                // should bee disposed?!
-                                Dispose();
-                                return;
-                            }
+                            //var services = util.Debug.GetAllServicesOfObject(Shape, false);
+                            //if (services.Length == 0)
+                            //{
+                            //    valid = false;
+                            //    return;
+                            //}
 
-                            valid = true;
+                            //// test if a parent exists
+                            //XShapes parent;
+                            //bool parentSuccess = tryGetParentByXShape(out parent, Shape);
+                            //if (parentSuccess && parent == null)
+                            //{
+                            //    valid = false;
+                            //    // should bee disposed?!
+                            //    Dispose();
+                            //    return;
+                            //}
+
+                            _valid = true;
+
                         }
                         catch (System.Threading.ThreadAbortException) { DisableValidationTemporary(); }
                         catch (System.Threading.ThreadInterruptedException) { DisableValidationTemporary(); }
-                    }, "ShapeValidation");
+                    }, "ShapeValidation Shape " + _lastName);
                 }
                 else
                 {
-                    valid = false;
+                    _valid = false;
                 }
             }
             catch (unoidl.com.sun.star.lang.DisposedException)
@@ -457,7 +472,9 @@ namespace tud.mci.tangram.controller.observer
                 Dispose();
             }
             catch { }
-            return valid;
+
+            _lastValidation = ts;
+            return _valid;
         }
 
         /// <summary>
@@ -489,7 +506,7 @@ namespace tud.mci.tangram.controller.observer
         {
             try
             {
-                if (IsValid())
+                if (IsValid(false))
                 {
                     var s = Size;
 
@@ -711,7 +728,7 @@ namespace tud.mci.tangram.controller.observer
                             result.Y = result.Y + drawViewWindowPos.Y;
                         }
                         catch (System.Threading.ThreadAbortException) { }
-                    }, "GetAbsoluteScreenBoundsByDom");
+                    }, "GetAbsoluteScreenBoundsByDom [" + Name + "]");
                 }
                 catch (System.Threading.ThreadAbortException) { }
                 catch (Exception ex)
@@ -802,7 +819,7 @@ namespace tud.mci.tangram.controller.observer
                             success = !IsValid();
                         }
                     }
-                }                
+                }
                 return success;
             }
             finally
