@@ -144,7 +144,7 @@ namespace ShowOffAdapterMediator
 
         void _bda_touchValuesChanged(object sender, BrailleIO.Interface.BrailleIO_TouchValuesChanged_EventArgs e)
         {
-            if (monitor != null) monitor.PaintTouchMatrix(e.touches);
+            if (monitor != null) monitor.PaintTouchMatrix(e.touches, e.DetailedTouches);
         }
 
         void interactionManager_ButtonReleased(object sender, ButtonReleasedEventArgs e)
