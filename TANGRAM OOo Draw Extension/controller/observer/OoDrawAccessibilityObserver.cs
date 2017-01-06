@@ -542,7 +542,7 @@ namespace tud.mci.tangram.controller.observer
                                             shapeObserver.Dispose();
                                             XDrawPage page = OoDrawUtils.GetPageForShape(shape);
                                             OoDrawPageObserver dpObs = pagesObserver.GetRegisteredPageObserver(page);
-                                            OoShapeObserver so = new OoShapeObserver(shape, dpObs);
+                                            OoShapeObserver so = OoShapeObserverFactory.BuildShapeObserver(shape, dpObs); //new OoShapeObserver(shape, dpObs);
                                             pagesObserver.RegisterUniqueShape(so);
                                         }
 

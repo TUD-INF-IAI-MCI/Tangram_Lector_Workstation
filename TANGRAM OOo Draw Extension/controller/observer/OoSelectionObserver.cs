@@ -109,8 +109,8 @@ namespace tud.mci.tangram.controller
                     //FIXME: you cannot do this in a time limited execution this will lead to an hang on -- why??????
                     try
                     {
-                       // TimeLimitExecutor.WaitForExecuteWithTimeLimit(20000, () =>
-                        //{
+                       TimeLimitExecutor.WaitForExecuteWithTimeLimit(4000, () =>
+                        {
                             Thread.BeginCriticalRegion();
                             var anySelection = selectionSupplier.getSelection();
                             Thread.EndCriticalRegion();
@@ -119,7 +119,7 @@ namespace tud.mci.tangram.controller
                             {
                                 selection = anySelection.Value;
                             }
-                        // }, "GetSelection");
+                        }, "GetSelection");
                     }
                     catch (DisposedException)
                     {

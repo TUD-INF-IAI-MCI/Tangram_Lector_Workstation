@@ -35,12 +35,54 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         public XAccessible AcccessibleCounterpart { get; set; }
 
+        /// <summary>
+        /// Gets the orientation of the page - portrait or landscape.
+        /// </summary>
+        /// <value>
+        /// The orientation of the page.
+        /// </value>
         public unoidl.com.sun.star.view.PaperOrientation Orientation { get; private set; }
+        /// <summary>
+        /// Gets the width of the page in 100th/mm.
+        /// </summary>
+        /// <value>
+        /// The width of the page.
+        /// </value>
         public int Width { get; private set; }
+        /// <summary>
+        /// Gets the height of the page in 100th/mm.
+        /// </summary>
+        /// <value>
+        /// The height of the page.
+        /// </value>
         public int Height { get; private set; }
+        /// <summary>
+        /// Gets the padding from the drawing area to the page end at the bottom.
+        /// </summary>
+        /// <value>
+        /// The padding at the bottom.
+        /// </value>
         public int BorderBottom { get; private set; }
+        /// <summary>
+        /// Gets the padding from the drawing area to the page end at the bottom.
+        /// </summary>
+        /// <value>
+        /// The padding at the bottom.
+        /// </value>
         public int BorderLeft { get; private set; }
+        /// <summary>
+        /// Gets the padding from the drawing area to the page end at the left.
+        /// </summary>
+        /// <value>
+        /// The padding at the left.
+        /// </value>
         public int BorderRight { get; private set; }
+        /// <summary>
+        /// Gets the padding from the drawing area to the page end at the top.
+        /// </summary>
+        /// <value>
+        /// The padding at the top.
+        /// </value>
         public int BorderTop { get; private set; }
 
         /// <summary>
@@ -72,7 +114,6 @@ namespace tud.mci.tangram.controller.observer
             handleChildren();
 
             registerListeners();
-
         }
         /// <summary>
         /// registers various property listeners
@@ -275,7 +316,7 @@ namespace tud.mci.tangram.controller.observer
                                 {
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] Shape should exist but could not been found!!!");
 
-                                    so = new OoShapeObserver(anyShape.Value as XShape, this);
+                                    so = OoShapeObserverFactory.BuildShapeObserver(anyShape.Value, this);  //new OoShapeObserver(anyShape.Value as XShape, this);
                                     //shapeList.Add(so);
                                 }
                             }
@@ -287,11 +328,11 @@ namespace tud.mci.tangram.controller.observer
                                 {
                                     if (OoUtils.ElementSupportsService(anyShape.Value, OO.Services.DRAW_SHAPE_TEXT))
                                     {
-                                        so = new OoShapeObserver(anyShape.Value as XShape, this);
+                                        so = OoShapeObserverFactory.BuildShapeObserver(anyShape.Value, this);  //new OoShapeObserver(anyShape.Value as XShape, this);
                                     }
                                     else
                                     {
-                                        so = new OoShapeObserver(anyShape.Value as XShape, this);
+                                        so = OoShapeObserverFactory.BuildShapeObserver(anyShape.Value, this);  //new OoShapeObserver(anyShape.Value as XShape, this);
                                         //System.Diagnostics.Debug.WriteLine("[UPDATE] Shape: " + so.Name + " will be registered");
                                     }
                                 }
@@ -353,7 +394,7 @@ namespace tud.mci.tangram.controller.observer
                                     else
                                     {
                                         //TODO: register this shape
-                                        OoShapeObserver newShapeObserver = new OoShapeObserver(firstChild as XShape, this);
+                                        OoShapeObserver newShapeObserver = OoShapeObserverFactory.BuildShapeObserver(firstChild, this);  //new OoShapeObserver(firstChild as XShape, this);
                                         PagesObserver.RegisterUniqueShape(newShapeObserver);
                                         return newShapeObserver;
                                     }

@@ -116,7 +116,8 @@ namespace tud.mci.tangram.controller.observer
                 OoShapeObserver sObs = this.Page.PagesObserver.GetRegisteredShapeObserver(s, this.Page);
                 if (sObs == null && this.Page != null && this.Page.PagesObserver != null)
                 {
-                    sObs = new OoShapeObserver(s,
+                    sObs = OoShapeObserverFactory.BuildShapeObserver( //new OoShapeObserver(
+                        s,
                         this.Page.PagesObserver.GetRegisteredPageObserver(
                             OoDrawUtils.GetPageForShape(s)));
                     this.Page.PagesObserver.RegisterUniqueShape(sObs);
@@ -139,19 +140,17 @@ namespace tud.mci.tangram.controller.observer
 
                 if (sobs == null || sobs.Disposed)
                 {
-                    sobs = new OoShapeObserver(s, Page);
+                    sobs = OoShapeObserverFactory.BuildShapeObserver(s, Page); //  new OoShapeObserver(s, Page);
                     Page.PagesObserver.RegisterUniqueShape(sobs);
                 }
 
                 return sobs;
-
             }
             return null;
         }
 
         XShape getNextSiblingByXShape()
         {
-            //TODO: infinite loop -- so if this is the last, than return the first
             if (Shape != null && Shape is XChild)
             {
                 XShapes parent = getParentByXShape();
@@ -198,7 +197,7 @@ namespace tud.mci.tangram.controller.observer
 
                 if (sobs == null || sobs.Disposed)
                 {
-                    sobs = new OoShapeObserver(s, Page);
+                    sobs = OoShapeObserverFactory.BuildShapeObserver(s, Page); // new OoShapeObserver(s, Page);
                     Page.PagesObserver.RegisterUniqueShape(sobs);
                 }
 
@@ -212,7 +211,6 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         XShape getPreviousSiblingByXShape()
         {
-            //TODO: infinite loop -- so if this is the first, than return the last
             if (Shape != null && Shape is XChild)
             {
                 XShapes parent = getParentByXShape();
@@ -244,7 +242,6 @@ namespace tud.mci.tangram.controller.observer
 
                         // if no child was in front, return the las child at all
                         return getChildByXShape(-1, parent as XShapes);
-
                     }
                 }
             }

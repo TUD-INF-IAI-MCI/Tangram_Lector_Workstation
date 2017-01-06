@@ -1446,6 +1446,31 @@ namespace tud.mci.tangram.util
     public static class PolygonHelper
     {
         /// <summary>
+        /// Determines whether this shape is a closed free form or an open one.
+        /// </summary>
+        /// <param name="shape">The shape [XShape].</param>
+        /// <returns>
+        ///   <c>true</c> if this is a closed free form; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsClosedFreeForm(Object shape)
+        {
+            return IsClosedFreeForm(shape as XShape);
+        }
+        /// <summary>
+        /// Determines whether this shape is a closed free form or an open one.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <returns>
+        ///   <c>true</c> if this is a closed free form; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool IsClosedFreeForm(XShape shape)
+        {
+            return shape != null && (
+                   OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_BEZIER_CLOSED)
+                || OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_POLYPOLYGON));
+        }
+
+        /// <summary>
         /// Determines whether the specified shape is freeform.
         /// Freeforms are polygons, polylines and Bezier curves.
         /// </summary>
@@ -1533,7 +1558,6 @@ namespace tud.mci.tangram.util
                 #region Polygon
                 if (OoUtils.ElementSupportsService(shape, OO.Services.DRAW_POLY_POLYGON_DESCRIPTOR))
                 {
-
                     return AddPointsToPolygon(shape, coordinates, geometry, doc);
                 }
                 #endregion
@@ -1668,7 +1692,27 @@ namespace tud.mci.tangram.util
                 }
                 else
                 {
-                    return OoUtils.SetPropertyUndoable(shape, "PolyPolygon", new Point[][] { p }, doc as unoidl.com.sun.star.document.XUndoManagerSupplier);
+                    //var propp_org = OoUtils.GetProperty(shape, "PolyPolygon") as unoidl.com.sun.star.awt.Point[][];
+
+                    var val = new Point[][] { p };
+                    var succ = OoUtils.SetPropertyUndoable(shape, "PolyPolygon", val, doc as unoidl.com.sun.star.document.XUndoManagerSupplier);
+
+                    // FIXME: Only for fixing the first polypoint bug
+                    //var propp = OoUtils.GetProperty(shape, "PolyPolygon") as unoidl.com.sun.star.awt.Point[][];
+                    //for (int i = 0; i < p.Length; i++)
+                    //{
+                    //    System.Diagnostics.Debug.WriteLine(i + "\tto set: X:\t" + p[i].X + "\tY:\t" + p[i].Y + "\t| set: X:\t" + propp_org[0][i].X + "\tY:\t" + propp_org[0][i].Y);
+                    //}
+
+                    //System.Diagnostics.Debug.WriteLine("point comparition:");
+
+                    //for (int i = 0; i < p.Length; i++)
+                    //{
+                    //    System.Diagnostics.Debug.WriteLine(i + "\tto set: X:\t" + p[i].X + "\tY:\t" + p[i].Y + "\t| set: X:\t" + propp[0][i].X + "\tY:\t" + propp[0][i].Y);
+                    //}
+                    //System.Diagnostics.Debug.WriteLine(propp[0].Length - 1 + "\tto set: X:\t" + "\t" + "\tY: " + "\t\t" + "\t| set: X:\t" + propp[0][propp[0].Length - 1].X + "\tY:\t" + propp[0][propp[0].Length - 1].Y);
+
+                    return succ;
                 }
             }
             return false;
@@ -1756,37 +1800,37 @@ namespace tud.mci.tangram.util
 
             //try
             //{
-                if (shape != null && IsFreeform(shape))
+            if (shape != null && IsFreeform(shape))
+            {
+                try
                 {
-                    try
+                    // check for the right type
+                    if (getGeometry)
                     {
-                        // check for the right type
-                        if (getGeometry)
+                        // Geometry         [][].awt.Point      -Sequence-
+                        Point[][] geometry = OoUtils.GetProperty(shape, "Geometry") as Point[][];
+                    }
+                    else
+                    {
+                        // PolyPolygon      [][].awt.Point      -Sequence-
+                        Point[][] points = new Point[0][];
+                        points = OoUtils.GetProperty(shape, "PolyPolygon") as Point[][];
+
+                        // PolyPolygonBezier    .drawing.PolyPolygonBezierCoords  -STRUCT-
+                        if (points == null)
                         {
-                            // Geometry         [][].awt.Point      -Sequence-
-                            Point[][] geometry = OoUtils.GetProperty(shape, "Geometry") as Point[][];
+                            PolyPolygonBezierCoords coords = OoUtils.GetProperty(shape, "PolyPolygonBezier") as PolyPolygonBezierCoords;
+                            return GetPolyPoints(coords);
                         }
                         else
                         {
-                            // PolyPolygon      [][].awt.Point      -Sequence-
-                            Point[][] points = new Point[0][];
-                            points = OoUtils.GetProperty(shape, "PolyPolygon") as Point[][];
-
-                            // PolyPolygonBezier    .drawing.PolyPolygonBezierCoords  -STRUCT-
-                            if (points == null)
-                            {
-                                PolyPolygonBezierCoords coords = OoUtils.GetProperty(shape, "PolyPolygonBezier") as PolyPolygonBezierCoords;
-                                return GetPolyPoints(coords);
-                            }
-                            else
-                            {
-                               return GetPolyPoints(points);
-                            }
+                            return GetPolyPoints(points);
                         }
                     }
-                    catch { }
                 }
-                return null;
+                catch { }
+            }
+            return null;
             //}
             //finally
             //{
@@ -2184,7 +2228,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         public override string ToString()
         {
-            return this.GetType().ToString() + " - " + Flag.ToString() + " - x:" + X + ", y:" + Y; 
+            return this.GetType().ToString() + " - " + Flag.ToString() + " - x:" + X + ", y:" + Y;
         }
     }
 

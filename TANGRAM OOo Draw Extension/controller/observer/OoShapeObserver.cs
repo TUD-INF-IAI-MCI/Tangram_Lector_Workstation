@@ -19,7 +19,7 @@ namespace tud.mci.tangram.controller.observer
     /// <summary>
     /// Observes a XShape or an XShapes and his children
     /// </summary>
-    public partial class OoShapeObserver : PropertiesEventForwarderBase, IUpdateable, IDisposable, IDisposingObserver
+    public partial class OoShapeObserver : PropertiesEventForwarderBase, IUpdateable, IDisposable, IDisposingObserver, INameBuilder
     {
         #region Members
 
@@ -86,6 +86,7 @@ namespace tud.mci.tangram.controller.observer
         public OoShapeObserver(XShape s, OoDrawPageObserver page, OoShapeObserver parent)
             : base()
         {
+
             Shape = s;
             Page = page;
             Parent = parent;
@@ -237,7 +238,7 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        #region General Object Overrites
+        #region General Object Overwrites
 
         // override object.Equals
         public override bool Equals(object obj)
@@ -385,8 +386,7 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         internal static volatile bool LockValidation = false;
         private static Object _synchLock = new Object();
-
-
+        
         bool _valid = true;
         private const long _validationTreshold = 50000000; // 10.000.000 ~ 1 sec.
         long _lastValidation = DateTime.UtcNow.Ticks;
@@ -746,6 +746,13 @@ namespace tud.mci.tangram.controller.observer
             return result;
         }
 
+        /// <summary>
+        /// tries to calculate the absolute on screen bounding box in px of some given rectangle or if none is provided, based on the shape observer dom position, openoffice zoom etc.
+        /// the accessibility interface is used for getting the controller main window position on the screen
+        /// </summary>
+        /// <returns>
+        /// Bounding box in pixels as absolute screen position.
+        /// </returns>
         public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom()
         {
             return GetAbsoluteScreenBoundsByDom(new System.Drawing.Rectangle(0, 0, 0, 0));
@@ -783,6 +790,56 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
+        #region INameBuilder
+
+        string _uid = String.Empty;
+        string _baseUid = String.Empty;
+        /// <summary>
+        /// Builds a unique, human-readable name for the object.
+        /// </summary>
+        /// <returns>
+        /// A unique name for the object.
+        /// </returns>
+        string INameBuilder.BuildName()
+        {
+            _uid = Name;
+            if (String.IsNullOrWhiteSpace(_uid))
+            {
+                _uid = UINameSingular;
+            }
+            _baseUid = _uid;
+            return _uid;
+        }
+
+        int _tryies = 0;
+        /// <summary>
+        /// Rebuilds the name based on the previously build name - e.g. because the name already exists.
+        /// </summary>
+        /// <returns>
+        /// A new try for a unique name for the object.
+        /// </returns>
+        string INameBuilder.RebuildName()
+        {
+            if (String.IsNullOrWhiteSpace(_baseUid))
+                ((INameBuilder)this).BuildName();
+            _uid = _baseUid + "_" + ++_tryies;
+            return _uid;
+        }
+
+        /// <summary>
+        /// Rebuilds the name based on the previously build name - e.g. because the name already exists.
+        /// </summary>
+        /// <param name="startIndex">The start index for the next try - e.g. 4 objects of the same type already exists.</param>
+        /// <returns>
+        /// A new try for a unique name for the object.
+        /// </returns>
+        string INameBuilder.RebuildName(int startIndex)
+        {
+            _tryies = startIndex;
+            return ((INameBuilder)this).RebuildName();
+        }
+
+        #endregion
 
         #region DELETE
 
@@ -829,6 +886,6 @@ namespace tud.mci.tangram.controller.observer
         }
 
         #endregion
-
+        
     }
 }

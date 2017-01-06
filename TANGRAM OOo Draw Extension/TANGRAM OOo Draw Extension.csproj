@@ -111,6 +111,7 @@
     <Compile Include="Classes\DRAW\AbstarctDrawDocBase.cs" />
     <Compile Include="Classes\AbstractDocBase.cs" />
     <Compile Include="Classes\DescriptionMapper.cs" />
+    <Compile Include="controller\observer\OoCustomShapeObserver.cs" />
     <Compile Include="controller\observer\OoDrawAccessibilityObserver.cs" />
     <Compile Include="controller\observer\OoDrawPageObserver.cs" />
     <Compile Include="controller\observer\OoDrawPagesObserver.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="controller\observer\OoShapeObserver_DomTree.cs" />
     <Compile Include="controller\observer\OoShapeObserver_Properties.cs" />
     <Compile Include="controller\observer\OoTopWindowObserver.cs" />
+    <Compile Include="controller\OoShapeObserverFactory.cs" />
     <Compile Include="models\dialogs\AbstactUnoDialogBase.cs" />
     <Compile Include="models\dialogs\ModalDialog.cs" />
     <Compile Include="models\dialogs\NonModalDialog.cs" />
@@ -135,6 +137,7 @@
     <Compile Include="models\eventForwarder\XSelectionListener_Forwarder.cs" />
     <Compile Include="models\eventForwarder\XWindowListener2_Forwarder.cs" />
     <Compile Include="models\Interfaces\IAccessibleCounterpart.cs" />
+    <Compile Include="models\Interfaces\INameBuilder.cs" />
     <Compile Include="models\Interfaces\IResetable.cs" />
     <Compile Include="models\Interfaces\IUpdateable.cs" />
     <Compile Include="models\menus\AbstractContextMenuInterceptorBase.cs" />

@@ -591,10 +591,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 var point = LastSelectedShapePolygonPoints.Current(out i);
                 point.X += horizontalSteps;
                 point.Y += verticalSteps;
-                var successs = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, true);
-                //successs = LastSelectedShapePolygonPoints.WritePointsToPolygon();
 
-                if (successs) { playEdit(); }
+                bool success = false;
+                // Special treatment for closed forms:
+                // first and last point have to be the same!
+                // FIXME: check if this works for poly polygons !
+                if ((i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
+                    && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
+                    )
+                {
+                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);
+                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, LastSelectedShapePolygonPoints.Count - 1, false);
+                    success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                }
+                else
+                {
+                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, true);
+                }
+
+                if (success) { playEdit(); }
                 else { playError(); }
                 return;
             }
@@ -687,10 +702,19 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #region Delete
 
-        private void deleteSelectedShape()
+        private void deleteSelectedObject()
         {
+            bool success = false;
+            if (LastSelectedShapePolygonPoints != null)
+                success = deleteSelectedPolyPoint();
+            else success = deleteSelectedShape();
+        }
+
+        private bool deleteSelectedShape()
+        {
+            bool success = false;
+
             // FIXME: show MessageBox
-            // TODO: handle PolygonPoint
             var _shape = LastSelectedShape;
             if (_shape != null)
             {
@@ -702,7 +726,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     n = _shape.Name;
                     t = _shape.Title;
 
-                    var success = _shape.Delete();
+                    success = _shape.Delete();
 
                     if (success)
                     {
@@ -726,6 +750,116 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     }
                 }
             }
+
+            return success;
+        }
+
+        private bool deleteSelectedPolyPoint()
+        {
+            bool success = false;
+
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                success = LastSelectedShapePolygonPoints.IsBezier() ? deleteBezierPoint() : deletePolygonPoint();
+
+                if (success) playEdit();
+                else playError();
+            }
+            return success;
+        }
+
+        private bool deletePolygonPoint()
+        {
+            bool success = false;
+            int i = -1;
+            var _p = LastSelectedShapePolygonPoints.Current(out i);
+            if (i >= 0)
+            {
+                // Special treatment for closed forms:
+                // first and last point have to be the same!
+                // FIXME: check if this works for poly polygons !
+                if ((i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
+                    && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
+                    )
+                {
+                    if (i == 0) // first point
+                    {
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(0, false);
+                        // prepare the new end point!
+                        var point = LastSelectedShapePolygonPoints.First();
+                        success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, LastSelectedShapePolygonPoints.Count - 1, false);
+                        success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                    }
+                    else
+                    { // Last
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i, false);
+                        // prepare the new start point!
+                        var point = LastSelectedShapePolygonPoints.Last();
+                        success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);
+                        success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                    }
+                }
+                else
+                {
+                    success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i, true);
+                }
+            }
+            return success;
+        }
+
+        private bool deleteBezierPoint()
+        {
+            bool success = false;
+            int i = -1;
+            var _p = LastSelectedShapePolygonPoints.Current(out i);
+            if (i >= 0)
+            {
+                // Special treatment for closed forms:
+                // first and last point have to be the same!
+                // FIXME: check if this works for poly polygons !
+                if ((i == 0 || i == 1 || i == LastSelectedShapePolygonPoints.Count - 1 || i == LastSelectedShapePolygonPoints.Count - 2)
+                    && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
+                    )
+                {
+                    if (i == 0 || i == 1) // first point or its control
+                    {
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(0, false); // point
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(0, false); // control
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(0, false); // control
+                        // prepare the new end point!
+                        var point = LastSelectedShapePolygonPoints.First();
+                        success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, LastSelectedShapePolygonPoints.Count - 1, false);
+                        // TODO: adapt control ?
+                        success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                    }
+                    else
+                    {   // Last
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // control
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // control
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // point
+                        
+                        // prepare the new start point!
+                        var point = LastSelectedShapePolygonPoints.Last();
+                        success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);
+                        // TODO: adapt control ?
+                        success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                    }
+                }
+                else
+                {
+                    // check point type - delete only works for edge points!
+                    if (_p.Flag.HasFlag(util.PolygonFlags.NORMAL))
+                    {
+                        // TODO: what to do if structure is not ... c | p | c ...
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 1, false); // control
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 1, false); // point
+                        success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 1, false); // control
+                        success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+                    }
+                    // TODO: delete control points?
+                }
+            }
+            return success;
         }
 
         #endregion

@@ -83,7 +83,7 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        #region Modification
+        #region Tests
 
         /// <summary>
         /// Returns true if the parent Shape is valid.
@@ -102,6 +102,42 @@ namespace tud.mci.tangram.controller.observer
                 return false;
             }
         }
+
+        bool _isClosed = false;
+        /// <summary>
+        /// Determines whether this Freeform is a closed one or an open one.
+        /// </summary>
+        /// <param name="cached">if set to <c>true</c> the previously cached result will be returned.</param>
+        /// <returns>
+        ///   <c>true</c> if the Freeform is a closed one; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsClosed(bool cached = true)
+        {
+            if (IsValid() && !cached) _isClosed = PolygonHelper.IsClosedFreeForm(Shape.Shape);
+            return _isClosed;
+        }
+
+        bool _isBezier = false;
+        /// <summary>
+        /// Determines whether this Freeform is a Bezier defined form or not.
+        /// </summary>
+        /// <param name="cached">if set to <c>true</c> the previously cached result will be returned.</param>
+        /// <returns>
+        ///   <c>true</c> if the Freeform is a Bezier defined one; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsBezier(bool cached = true)
+        {
+            if (IsValid() && !cached)
+            {
+                if (OoUtils.ElementSupportsService(Shape.Shape, OO.Services.DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR))
+                    _isBezier = true;
+            }
+            return _isBezier;
+        }
+
+        #endregion
+
+        #region Modification
 
         /// <summary>
         /// Writes the points to polygons properties.
@@ -558,9 +594,12 @@ namespace tud.mci.tangram.controller.observer
                     try
                     {
                         _updating = true;
-                        if (polygonIndex < CachedPolyPointList.Count)
+                        int pointIndx, plyIndx;
+                        Transform1DindexTo2DpolyPolygonIndex(polygonIndex, out pointIndx, out plyIndx);
+
+                        if (plyIndx < CachedPolyPointList.Count && pointIndx < CachedPolyPointList[plyIndx].Count)
                         {
-                            CachedPolyPointList.RemoveAt(polygonIndex);
+                            CachedPolyPointList[plyIndx].RemoveAt(pointIndx);
 
                             if (updateDirectly) { return WritePointsToPolygon(geometry); }
                             else { return true; }
@@ -570,9 +609,8 @@ namespace tud.mci.tangram.controller.observer
                 }
             }
 
-            return true;
+            return false;
         }
-
 
         #endregion
 
@@ -593,6 +631,8 @@ namespace tud.mci.tangram.controller.observer
                     try
                     {
                         CachedPolyPointList = PolygonHelper.GetPolyPoints(Shape.Shape);
+                        IsClosed(false);
+                        IsBezier(false);
                     }
                     finally
                     {
@@ -643,11 +683,25 @@ namespace tud.mci.tangram.controller.observer
             }
         }
 
-
+        /// <summary>
+        /// Transforms a point, which is in document coordinates, into pixel coordinates on screen,
+        /// taking into account the current zoom level of the drawing application.
+        /// </summary>
+        /// <param name="polyPointDescriptor">The polygon point to transform.</param>
+        /// <returns>
+        /// The estimated pixel position of the point on the screen.
+        /// </returns>
         public Point TransformPointCoordinatesIntoScreenCoordinates(PolyPointDescriptor polyPointDescriptor)
         {
             return TransformPointCoordinatesIntoScreenCoordinates(polyPointDescriptor.X, polyPointDescriptor.Y);
         }
+        /// <summary>
+        /// Transforms a point, which is in document coordinates, into pixel coordinates on screen, 
+        /// taking into account the current zoom level of the drawing application.
+        /// </summary>
+        /// <param name="x">The x coordinate to transform.</param>
+        /// <param name="y">The y coordinate to transform.</param>
+        /// <returns>The estimated pixel position of the point on the screen.</returns>
         public Point TransformPointCoordinatesIntoScreenCoordinates(int x, int y)
         {
             Point p = new Point(x, y);
@@ -655,8 +709,8 @@ namespace tud.mci.tangram.controller.observer
             try
             {
                 if (IsValid()
-                        && Shape.Page != null
-                        && Shape.Page.PagesObserver != null)
+                    && Shape.Page != null
+                    && Shape.Page.PagesObserver != null)
                 {
                     Point offset = Shape.Page.PagesObserver.ViewOffset;
                     int currentZoom = Shape.Page.PagesObserver.ZoomValue;
@@ -671,7 +725,6 @@ namespace tud.mci.tangram.controller.observer
 
             return p;
         }
-
 
         #endregion
 
@@ -864,7 +917,6 @@ namespace tud.mci.tangram.controller.observer
         #endregion
 
         #endregion
-
 
     }
 }

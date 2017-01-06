@@ -527,6 +527,32 @@ namespace tud.mci.tangram.util
 
         #endregion
 
+
+        #region ProprtyValue Struct handling
+
+        /// <summary>
+        /// Gets a dictionary of the properties with the Name as key and the PropertyValue as key.
+        /// </summary>
+        /// <param name="props">The props.</param>
+        /// <returns>Dictionary of indexed Names.</returns>
+        internal static Dictionary<String, PropertyValue> GetPropertyvalueDictionary(PropertyValue[] props)
+        {
+            Dictionary<String, PropertyValue> propDict = new Dictionary<string, PropertyValue>();
+
+            if (props != null && props.Length > 0)
+            {
+                foreach (PropertyValue prop in props)
+                {
+                    propDict.Add(prop.Name, prop);
+                }
+            }
+
+            return propDict;
+        }
+
+        #endregion
+
+
         #endregion
 
         #region Implementation ID

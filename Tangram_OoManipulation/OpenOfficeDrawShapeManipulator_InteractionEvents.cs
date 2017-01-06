@@ -172,7 +172,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k4", "k5" }).ToList().Count == 3)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] delete selected shape");
-                            deleteSelectedShape();
+                            deleteSelectedObject();
                             e.Cancel = true;
                         }
                         break;

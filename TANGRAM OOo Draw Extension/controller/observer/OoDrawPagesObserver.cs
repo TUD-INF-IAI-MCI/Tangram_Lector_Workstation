@@ -403,15 +403,27 @@ namespace tud.mci.tangram.controller.observer
                 }
                 if (String.IsNullOrWhiteSpace(uid))
                 {
-                    uid = shape.UINameSingular + "_" + (++uidCount);
+
+                    if (shape is INameBuilder)
+                    {
+                        uid = ((INameBuilder)shape).BuildName();
+                    }else
+                        uid = shape.UINameSingular + "_" + (++uidCount);
                 }
 
                 while (shapeIds.Contains(uid))
                 {
-                    int i_ = uid.LastIndexOf('_');
-                    if (i_ >= 0) { uid = uid.Substring(0, i_ + 1); }
-                    else { uid += "_"; }
-                    uid += ++uidCount;
+                    if (shape is INameBuilder)
+                    {
+                        uid = ((INameBuilder)shape).RebuildName();
+                    }
+                    else
+                    {
+                        int i_ = uid.LastIndexOf('_');
+                        if (i_ >= 0) { uid = uid.Substring(0, i_ + 1); }
+                        else { uid += "_"; }
+                        uid += ++uidCount;
+                    }
                 }
                 shapeIds.Add(uid);
             }
@@ -431,6 +443,10 @@ namespace tud.mci.tangram.controller.observer
             //TODO: check if name already exists
             if (shape != null && shape.IsValid())
             {
+
+                // TODO: use the tud.mci.tangram.models.Interfaces.INameBuilder interface
+
+
                 // register for disposing element
                 shape.ObserverDisposing += new EventHandler(shape_ObserverDisposing);
 
@@ -536,7 +552,7 @@ namespace tud.mci.tangram.controller.observer
         /// Get a registered shape observer.
         /// </summary>
         /// <param name="shape">The shape.</param>
-        /// <returns>the already registerd shape observer to the shape or <c>null</c></returns>
+        /// <returns>the already registered shape observer to the shape or <c>null</c></returns>
         internal OoShapeObserver GetRegisteredShapeObserver(XShape shape, OoDrawPageObserver page)
         {
             if (domshapes.ContainsKey(shape))
@@ -568,7 +584,7 @@ namespace tud.mci.tangram.controller.observer
 
                 if (page != null)
                 {
-                    sObs = new OoShapeObserver(shape, page);
+                    sObs = OoShapeObserverFactory.BuildShapeObserver(shape, page); //new OoShapeObserver(shape, page);
                     RegisterUniqueShape(sObs);
                 }
             }
@@ -601,7 +617,7 @@ namespace tud.mci.tangram.controller.observer
 
                     if (pObs != null)
                     {
-                        sobs = new OoShapeObserver(shape, pObs);
+                        sobs = OoShapeObserverFactory.BuildShapeObserver(shape, pObs); // new OoShapeObserver(shape, pObs);
                         RegisterUniqueShape(sobs);
                     }
                 }
