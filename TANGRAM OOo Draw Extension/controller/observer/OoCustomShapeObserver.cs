@@ -26,7 +26,7 @@ namespace tud.mci.tangram.controller.observer
         public OoCustomShapeObserver(XShape s, OoDrawPageObserver page, OoShapeObserver parent)
             : base(s, page, parent)
         {
-
+            getCustomShapeHandles();
         }
 
 
@@ -127,6 +127,27 @@ namespace tud.mci.tangram.controller.observer
             return _csType;
         }
 
+
+        List<CustomShapeHandle> getCustomShapeHandles()
+        {
+            List<CustomShapeHandle> hndls = new List<CustomShapeHandle>();
+            var props = getCustomProperties(false);
+            if (props.ContainsKey("Handles"))
+            {
+                var handles = props["Handles"].Value.Value as PropertyValue[][];
+                if (handles != null && handles.Length > 0)
+                {
+                    foreach (PropertyValue[] handle in handles)
+                    {
+                        CustomShapeHandle csh = new CustomShapeHandle(handle);
+                        hndls.Add(csh);
+                    }
+                }
+            }
+            return hndls;
+        }
+
+
         #endregion
 
         #region IUpdateable
@@ -147,4 +168,127 @@ namespace tud.mci.tangram.controller.observer
         #endregion
 
     }
+
+    public struct CustomShapeHandle
+    {
+        int x;
+        /// <summary>
+        /// Gets or sets the x position of the handle.
+        /// </summary>
+        /// <value>
+        /// The x position.
+        /// </value>
+        public int X
+        {
+            get { return x; }
+            set {
+                x = Math.Min(RangeXMaximum, Math.Max(RangeXMinimum, value)); 
+            }
+        }
+
+        int y;
+        /// <summary>
+        /// Gets or sets the y position of the handle.
+        /// </summary>
+        /// <value>
+        /// The y position.
+        /// </value>
+        public int Y
+        {
+            get { return y; }
+            set {
+                y = Math.Min(RangeYMaximum, Math.Max(RangeYMinimum, value)); 
+            }
+        }
+
+        /// <summary>
+        /// The minimum y value
+        /// </summary>
+        public readonly int RangeYMinimum;
+        /// <summary>
+        /// The maximum y value
+        /// </summary>
+        public readonly int RangeYMaximum;
+
+        /// <summary>
+        /// The minimum x value
+        /// </summary>
+        public readonly int RangeXMinimum;
+        /// <summary>
+        /// The maximum y value
+        /// </summary>
+        public readonly int RangeXMaximum;
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CustomShapeHandle"/> struct.
+        /// </summary>
+        /// <param name="vals">The vals.</param>
+        internal CustomShapeHandle(PropertyValue[] vals)
+        {
+            var props = OoUtils.GetPropertyvalueDictionary(vals);
+
+            // position
+            x = 0;
+            y = 0;
+            if (props.ContainsKey("Position"))
+            {
+                var pos = props["Position"].Value.Value;
+                if (pos != null && pos is EnhancedCustomShapeParameterPair)
+                {
+                    var xVal = ((EnhancedCustomShapeParameterPair)pos).First.Value.Value;
+                   x = (int) xVal;
+                   var yVal = ((EnhancedCustomShapeParameterPair)pos).Second.Value.Value;
+                   y = (int) yVal;
+                }
+            }
+
+            // x Range
+            RangeXMinimum = x;
+            RangeXMaximum = x;
+            if (props.ContainsKey("RangeXMinimum") && props.ContainsKey("RangeXMaximum"))
+            {
+                var xMin = props["RangeXMinimum"].Value.Value;
+                if (xMin != null && xMin is EnhancedCustomShapeParameter)
+                {
+                    RangeXMinimum = (int)(((EnhancedCustomShapeParameter)xMin).Value.Value);
+                }
+                var xMax = props["RangeXMaximum"].Value.Value;
+                if (xMax != null && xMax is EnhancedCustomShapeParameter)
+                {
+                    RangeXMaximum = (int)(((EnhancedCustomShapeParameter)xMax).Value.Value);
+                }
+            }
+
+            // y Range
+            RangeYMinimum = y;
+            RangeYMaximum = y;
+            if (props.ContainsKey("RangeYMinimum") && props.ContainsKey("RangeYMaximum"))
+            {
+                var yMin = props["RangeYMinimum"].Value.Value;
+                if (yMin != null && yMin is EnhancedCustomShapeParameter)
+                {
+                    RangeXMinimum = (int)(((EnhancedCustomShapeParameter)yMin).Value.Value);
+                }
+                var yMax = props["RangeYMaximum"].Value.Value;
+                if (yMax != null && yMax is EnhancedCustomShapeParameter)
+                {
+                    RangeXMaximum = (int)(((EnhancedCustomShapeParameter)yMax).Value.Value);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Requests
+
+
+
+
+        #endregion
+
+
+    }
+
 }
