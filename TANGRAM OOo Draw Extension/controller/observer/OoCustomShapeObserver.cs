@@ -357,7 +357,15 @@ namespace tud.mci.tangram.controller.observer
             _value = 0;
             if (val != null && val.Value.hasValue())
             {
-                Value = (double)val.Value.Value;
+                try
+                {
+                    Value = (double)val.Value.Value;
+                }
+                catch (InvalidCastException)
+                {
+                    Value = Double.Parse(val.Value.Value.ToString());
+                }
+                catch { }
             }
         }
 
