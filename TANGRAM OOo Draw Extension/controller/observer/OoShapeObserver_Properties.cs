@@ -25,7 +25,7 @@ namespace tud.mci.tangram.controller.observer
         /// This property specifies the name of the font style.
         /// </summary>
         /// <value>The name of the char font.</value>
-        public String CharFontName
+        virtual public String CharFontName
         {
             get { return getStringProperty("CharFontName"); }
             set { setStringProperty("CharFontName", value); }
@@ -35,7 +35,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets or sets the description for this object.
         /// </summary>
         /// <value>The description.</value>
-        public String Description
+        virtual public String Description
         {
             get { return getStringProperty("Description"); }
             set { setStringProperty("Description", value); }
@@ -53,7 +53,7 @@ namespace tud.mci.tangram.controller.observer
         /// and FillBitmapTile are set to false.
         /// </summary>
         /// <value>The fill bitmap mode.</value>
-        public util.BitmapMode FillBitmapMode
+        virtual public util.BitmapMode FillBitmapMode
         {
             get
             {
@@ -82,7 +82,7 @@ namespace tud.mci.tangram.controller.observer
         ///         blue
         /// </summary>
         /// <value>The color of the fill.</value>
-        public int FillColor
+        virtual public int FillColor
         {
             get { return getIntProperty("FillColor"); }
             set { setIntProperty("FillColor", value); }
@@ -93,7 +93,7 @@ namespace tud.mci.tangram.controller.observer
         /// This enumeration selects the style the area will be filled with.  
         /// </summary>
         /// <value>The fill style.</value>
-        public tud.mci.tangram.util.FillStyle FillStyle
+        virtual public tud.mci.tangram.util.FillStyle FillStyle
         {
             get
             {
@@ -130,7 +130,7 @@ namespace tud.mci.tangram.controller.observer
         ///  This property is only valid if the property FillStyle is set to FillStyle::SOLID. 
         /// </summary>
         /// <value>The fill transparency.</value>
-        public short FillTransparence
+        virtual public short FillTransparence
         {
             get { return (short)getIntProperty("FillTransparence"); }
             set { setIntProperty("FillTransparence", value); }
@@ -141,7 +141,7 @@ namespace tud.mci.tangram.controller.observer
         /// This is the ID of the Layer to which this Shape is attached. 
         /// </summary>
         /// <value>The layer ID.</value>
-        public int LayerID
+        virtual public int LayerID
         {
             get { return getIntProperty("LayerID"); }
             set { setIntProperty("LayerID", value); }
@@ -152,7 +152,7 @@ namespace tud.mci.tangram.controller.observer
         /// This is the name of the Layer to which this Shape is attached.  
         /// </summary>
         /// <value>The name of the layer.</value>
-        public String LayerName
+        virtual public String LayerName
         {
             get { return getStringProperty("LayerName"); }
         }
@@ -172,7 +172,7 @@ namespace tud.mci.tangram.controller.observer
         ///         blue
         /// </summary>
         /// <value>The color of the line.</value>
-        public int LineColor
+        virtual public int LineColor
         {
             get { return getIntProperty("LineColor"); }
             set { setIntProperty("LineColor", value); }
@@ -187,7 +187,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="dashes">This is the number of dashes</param>
         /// <param name="dashLen">This is the length of a single dash</param>
         /// <param name="distance">This is the distance between the dots</param>
-        public void SetLineDash(tud.mci.tangram.util.DashStyle dashstyle, short dots, int dotLen, short dashes, int dashLen, int distance)
+        virtual public void SetLineDash(tud.mci.tangram.util.DashStyle dashstyle, short dots, int dotLen, short dashes, int dashLen, int distance)
         {
             try
             {
@@ -225,7 +225,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="dashLen">This is the length of a single dash</param>
         /// <param name="distance">This is the distance between the dots</param>
         /// <returns>true and false</returns>
-        public bool GetLineDash(out tud.mci.tangram.util.DashStyle dashstyle, out  short dots, out  int dotLen, out  short dashes, out int dashLen, out int distance)
+        virtual public bool GetLineDash(out tud.mci.tangram.util.DashStyle dashstyle, out  short dots, out  int dotLen, out  short dashes, out int dashLen, out int distance)
         {
             dashstyle = tud.mci.tangram.util.DashStyle.RECT;
             dots = dashes = 0;
@@ -249,7 +249,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the internal name of the LineStyle property of the shape.
         /// </summary>
         /// <returns></returns>
-        public string GetLineStyleName()
+        virtual public string GetLineStyleName()
         {
             if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.SOLID)) return "solid";
             else if (LineStyle.Equals(tud.mci.tangram.util.LineStyle.DASH))
@@ -267,7 +267,7 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// specifies the appearance of the lines of a shape
         /// </summary>
-        public tud.mci.tangram.util.LineStyle LineStyle
+        virtual public tud.mci.tangram.util.LineStyle LineStyle
         {
             get
             {
@@ -307,7 +307,7 @@ namespace tud.mci.tangram.controller.observer
         /// This property contains the extent of transparency.
         /// </summary>
         /// <value>The line transparency.</value>
-        public int LineTransparence
+        virtual public int LineTransparence
         {
             get { return getIntProperty("LineTransparence"); }
             set { setIntProperty("LineTransparence", value); }
@@ -317,7 +317,7 @@ namespace tud.mci.tangram.controller.observer
         /// This property contains the width of the line in 1/100th mm. 
         /// </summary>
         /// <value>The width of the line.</value>
-        public int LineWidth
+        virtual public int LineWidth
         {
             get
             {
@@ -353,7 +353,7 @@ namespace tud.mci.tangram.controller.observer
         /// With this set to true, this Shape cannot be moved interactively in the user interface.  
         /// </summary>
         /// <value><c>true</c> if [move protect]; otherwise, <c>false</c>.</value>
-        public bool MoveProtect
+        virtual public bool MoveProtect
         {
             get { return getBoolProperty("MoveProtect"); }
             set { setBoolProperty("MoveProtect", value); }
@@ -367,7 +367,7 @@ namespace tud.mci.tangram.controller.observer
         /// Will be the id - should be unique
         /// </summary>
         /// <value>The name.</value>
-        public String Name
+        virtual public String Name
         {
             get
             {
@@ -430,7 +430,7 @@ namespace tud.mci.tangram.controller.observer
         /// this property stores the navigation order of this shape. If this value is negative, the navigation order for this shapes page is equal to the z-order.  
         /// </summary>
         /// <value>The navigation order.</value>
-        public int NavigationOrder
+        virtual public int NavigationOrder
         {
             get { return getIntProperty("NavigationOrder"); }
             set { setIntProperty("NavigationOrder", value); }
@@ -441,7 +441,7 @@ namespace tud.mci.tangram.controller.observer
         /// If this is false, the Shape is not visible on printer outputs. 
         /// </summary>
         /// <value><c>true</c> if printable; otherwise, <c>false</c>.</value>
-        public bool Printable
+        virtual public bool Printable
         {
             get { return getBoolProperty("Printable"); }
             set { setBoolProperty("Printable", value); }
@@ -452,7 +452,7 @@ namespace tud.mci.tangram.controller.observer
         /// With this set to true, this Shape may not be sized interactively in the user interface. 
         /// </summary>
         /// <value><c>true</c> if [size protect]; otherwise, <c>false</c>.</value>
-        public bool SizeProtect
+        virtual public bool SizeProtect
         {
             get { return getBoolProperty("SizeProtect"); }
             set { setBoolProperty("SizeProtect", value); }
@@ -466,7 +466,7 @@ namespace tud.mci.tangram.controller.observer
         /// the whole string of characters of this piece of text is replaced. 
         /// All styles are removed when applying this method.
         /// </value>
-        public String Text
+        virtual public String Text
         {
             get
             {
@@ -485,7 +485,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets a value indicating whether this instance is a text element.
         /// </summary>
         /// <value><c>true</c> if this instance is text; otherwise, <c>false</c>.</value>
-        public bool IsText
+        virtual public bool IsText
         {
             get
             {
@@ -508,7 +508,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets a value indicating whether this instance has text.
         /// </summary>
         /// <value><c>true</c> if this instance has text; otherwise, <c>false</c>.</value>
-        public bool HasText
+        virtual public bool HasText
         {
             get
             {
@@ -520,7 +520,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets or sets the title of the object.
         /// </summary>
         /// <value>The title.</value>
-        public String Title
+        virtual public String Title
         {
             get { return getStringProperty("Title"); }
             set { setStringProperty("Title", value); }
@@ -530,7 +530,7 @@ namespace tud.mci.tangram.controller.observer
         /// provides a human-readable name (which can be presented at the UI) for a category.  
         /// </summary>
         /// <value>The UI name singular.</value>
-        public String UINameSingular
+        virtual public String UINameSingular
         {
             get { return getStringProperty("UINameSingular"); }
         }
@@ -539,7 +539,7 @@ namespace tud.mci.tangram.controller.observer
         /// provides a human-readable name (which can be presented at the UI) for a category.  
         /// </summary>
         /// <value>The UI name plural.</value>
-        public String UINamePlural
+        virtual public String UINamePlural
         {
             get { return getStringProperty("UINamePlural"); }
         }
@@ -549,7 +549,7 @@ namespace tud.mci.tangram.controller.observer
         /// If this is false, the Shape is not visible on screen outputs. Please note that the Shape may still be visible when printed, see Printable.  
         /// </summary>
         /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
-        public bool Visible
+        virtual public bool Visible
         {
             get { return getBoolProperty("Visible"); }
             set { setBoolProperty("Visible", value); }
@@ -560,7 +560,7 @@ namespace tud.mci.tangram.controller.observer
         /// is used to query or change the ZOrder of this Shape.  
         /// </summary>
         /// <value>The Z order.</value>
-        public int ZOrder
+        virtual public int ZOrder
         {
             get { return getIntProperty("ZOrder"); }
             set { setIntProperty("ZOrder", value); }
@@ -570,7 +570,7 @@ namespace tud.mci.tangram.controller.observer
         /// the current position of this object.
         /// </summary>
         /// <value>the position of the top left edge in 100/th mm.</value>
-        public System.Drawing.Point Position
+        virtual public System.Drawing.Point Position
         {
             get
             {
@@ -610,7 +610,7 @@ namespace tud.mci.tangram.controller.observer
         /// the size of this object.
         /// </summary>
         /// <value>the size in 100/th mm.</value>
-        public System.Drawing.Size Size
+        virtual public System.Drawing.Size Size
         {
             get
             {
@@ -650,7 +650,7 @@ namespace tud.mci.tangram.controller.observer
         /// The shape is rotated counter-clockwise around the center of the bounding box.
         /// </summary>
         /// <value>The rotation in 1/100th of a degree.</value>
-        public int Rotation
+        virtual public int Rotation
         {
             get
             {
@@ -678,7 +678,7 @@ namespace tud.mci.tangram.controller.observer
         /// The shape is sheared clockwise around the center of the bounding box.
         /// </summary>
         /// <value>The shear angle in 1/100th of a degree.</value>
-        public int Shear
+        virtual public int Shear
         {
             get
             {
@@ -707,7 +707,7 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// 	<c>true</c> if this instance is transformed; otherwise, <c>false</c>.
         /// </value>
-        public bool IsTransformed
+        virtual public bool IsTransformed
         {
             //FIXME: check if this is always true
             get { return OoUtils.GetProperty(Shape, "Transformation") != null; }
@@ -717,7 +717,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the transformation matrix.
         /// </summary>
         /// <value>The transformation matrix.</value>
-        public double[,] TransformationMatrix
+        virtual public double[,] TransformationMatrix
         {
             get
             {
@@ -742,7 +742,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// 	<c>true</c> if the background image could been set, otherwise <c>false</c>
         /// </returns>
-        public bool SetBackgroundBitmap(String imagePath, String Name = "") { return SetBackgroundBitmap(imagePath, tud.mci.tangram.util.BitmapMode.REPEAT, Name); }
+        virtual public bool SetBackgroundBitmap(String imagePath, String Name = "") { return SetBackgroundBitmap(imagePath, tud.mci.tangram.util.BitmapMode.REPEAT, Name); }
         /// <summary>
         /// Sets the background image bitmap.
         /// </summary>
@@ -752,7 +752,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// 	<c>true</c> if the background image could been set, otherwise <c>false</c>
         /// </returns>
-        public bool SetBackgroundBitmap(String imagePath, tud.mci.tangram.util.BitmapMode mode, String Name = "")
+        virtual public bool SetBackgroundBitmap(String imagePath, tud.mci.tangram.util.BitmapMode mode, String Name = "")
         {
             XBitmap bitmap = null;
             bitmap = OoUtils.GetGraphicFromUrl(imagePath) as XBitmap;
@@ -763,7 +763,7 @@ namespace tud.mci.tangram.controller.observer
         /// Get the name of the used fill bitmap style
         /// </summary>
         /// <returns>Returns name of the used fill bitmap style</returns>
-        public string GetBackgroundBitmapName()
+        virtual public string GetBackgroundBitmapName()
         {
             return getStringProperty("FillBitmapName");
         }
@@ -777,7 +777,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// 	<c>true</c> if the background image could been set, otherwise <c>false</c>
         /// </returns>
-        internal bool SetBackgroundBitmap(XBitmap bitmap, String Name = "") { return SetBackgroundBitmap(bitmap, tud.mci.tangram.util.BitmapMode.REPEAT, Name); }
+        virtual internal bool SetBackgroundBitmap(XBitmap bitmap, String Name = "") { return SetBackgroundBitmap(bitmap, tud.mci.tangram.util.BitmapMode.REPEAT, Name); }
         /// <summary>
         /// Sets the background image bitmap.
         /// </summary>
@@ -785,7 +785,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="mode">The fill mode <see cref="FillBitmapMode"/>.</param>
         /// <param name="Name">The name of the Fill Bitmap.</param>
         /// <returns><c>true</c> if the background image could been set, otherwise <c>false</c></returns>
-        internal bool SetBackgroundBitmap(XBitmap bitmap, tud.mci.tangram.util.BitmapMode mode, String Name = "")
+        virtual internal bool SetBackgroundBitmap(XBitmap bitmap, tud.mci.tangram.util.BitmapMode mode, String Name = "")
         {
             try
             {
@@ -824,7 +824,7 @@ namespace tud.mci.tangram.controller.observer
         /// If the property FillStyle is set to FillStyle::BITMAP, this is the bitmap used.
         /// </summary>
         /// <value>The fill bitmap.</value>
-        internal XBitmap FillBitmap
+        virtual internal XBitmap FillBitmap
         {
             set { SetProperty("FillBitmap", value); }
             get
@@ -847,7 +847,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the polygon points.
         /// </summary>
         /// <returns>a warper for helping handling polygon points or <c>null</c> if this is not a shape that have polygon points.</returns>
-        public OoPolygonPointsObserver GetPolygonPointsObserver()
+        virtual public OoPolygonPointsObserver GetPolygonPointsObserver()
         {
             if (_ppObs == null && PolygonHelper.IsFreeform(Shape))
             {
@@ -860,7 +860,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the direct access to the poly polygon points.
         /// </summary>
         /// <returns>list of polygon point lists</returns>
-        public List<List<PolyPointDescriptor>> GetPolyPolygonPoints()
+        virtual public List<List<PolyPointDescriptor>> GetPolyPolygonPoints()
         {
             var points = PolygonHelper.GetPolyPoints(Shape);
 
@@ -871,7 +871,7 @@ namespace tud.mci.tangram.controller.observer
         /// Sets the poly polygon points to the shape.
         /// </summary>
         /// <param name="points">The points.</param>
-        public void SetPolyPolygonPoints(List<List<PolyPointDescriptor>> points)
+        virtual public void SetPolyPolygonPoints(List<List<PolyPointDescriptor>> points)
         {
             //System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             //watch.Restart();
@@ -994,7 +994,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets a value indicating whether this instance is a group of shapes.
         /// </summary>
         /// <value><c>true</c> if this instance is a group; otherwise, <c>false</c>.</value>
-        public bool IsGroup { get { return Shape is XShapes; } }
+        virtual public bool IsGroup { get { return Shape is XShapes; } }
 
         /// <summary>
         /// Gets a value indicating whether this instance has children.
@@ -1002,19 +1002,19 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// 	<c>true</c> if this instance has children; otherwise, <c>false</c>.
         /// </value>
-        public bool HasChildren { get { return IsGroup && ((XShapes)Shape).hasElements(); } }
+        virtual public bool HasChildren { get { return IsGroup && ((XShapes)Shape).hasElements(); } }
 
         /// <summary>
         /// Gets the amount of child if in this group if this is a group.
         /// </summary>
         /// <value>The number of children.</value>
-        public int ChildCount { get { return HasChildren ? (((XShapes)Shape).getCount()) : 0; } }
+        virtual public int ChildCount { get { return HasChildren ? (((XShapes)Shape).getCount()) : 0; } }
 
         /// <summary>
         /// Gets a value indicating whether this instance is a child. This is nearly always true. Check if the parent is a group.
         /// </summary>
         /// <value><c>true</c> if this instance is child; otherwise, <c>false</c>. This is nearly always true. Check if the parent is a group.</value>
-        public bool IsChild { get { return (Shape is XChild) && (((XChild)Shape).getParent() != null); } }
+        virtual public bool IsChild { get { return (Shape is XChild) && (((XChild)Shape).getParent() != null); } }
 
         /// <summary>
         /// Gets a value indicating whether this instance is a member of a group. [CURRENTLY DOES NOT WORK PROPPERLY]
@@ -1022,7 +1022,7 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// 	<c>true</c> if this instance is a group member; otherwise, <c>false</c>.
         /// </value>
-        public bool IsGroupMember
+        virtual public bool IsGroupMember
         {
             get
             {

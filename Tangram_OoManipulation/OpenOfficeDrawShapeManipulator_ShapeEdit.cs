@@ -585,35 +585,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void moveShape(int horizontalSteps, int verticalSteps)
         {
+            bool success = false; 
             if (LastSelectedShapePolygonPoints != null)
             {
-                int i;
-                var point = LastSelectedShapePolygonPoints.Current(out i);
-                point.X += horizontalSteps;
-                point.Y += verticalSteps;
-
-                bool success = false;
-                // Special treatment for closed forms:
-                // first and last point have to be the same!
-                // FIXME: check if this works for poly polygons !
-                if ((i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
-                    && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
-                    )
-                {
-                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);
-                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, LastSelectedShapePolygonPoints.Count - 1, false);
-                    success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
-                }
-                else
-                {
-                    success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, true);
-                }
-
-                if (success) { playEdit(); }
-                else { playError(); }
-                return;
+                success = movePolygonPoint(horizontalSteps, verticalSteps);
             }
-            if (LastSelectedShape != null)
+            else if (LastSelectedShape != null)
             {
                 var pos = LastSelectedShape.Position;
                 if (!pos.IsEmpty)
@@ -621,9 +598,47 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     pos.X += horizontalSteps;
                     pos.Y += verticalSteps;
                     LastSelectedShape.Position = pos;
-                    playEdit();
+                    success = true;
                 }
             }
+
+            if (success) { playEdit(); }
+            else { playError(); }
+        }
+
+        private bool movePolygonPoint(int horizontalSteps, int verticalSteps)
+        {
+            bool success = false;
+            int i;
+            var point = LastSelectedShapePolygonPoints.Current(out i);
+
+            // if an e.g. adjustment value for custom shapes is set.
+            if (point.Flag == util.PolygonFlags.CUSTOM && point.Value != null && point.Value is double)
+            {
+                double val = (double)point.Value;
+                double newVal = val + (horizontalSteps == 0 ? verticalSteps : horizontalSteps);
+                point.Value = newVal;
+            }
+
+            point.X += horizontalSteps;
+            point.Y += verticalSteps;
+
+            // Special treatment for closed forms:
+            // first and last point have to be the same!
+            // FIXME: check if this works for poly polygons !
+            if ((i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
+                && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
+                )
+            {
+                success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);
+                success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, LastSelectedShapePolygonPoints.Count - 1, false);
+                success = LastSelectedShapePolygonPoints.WritePointsToPolygon();
+            }
+            else
+            {
+                success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, i, true);
+            }
+            return success;
         }
 
         #endregion

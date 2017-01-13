@@ -22,7 +22,7 @@ namespace tud.mci.tangram.controller.observer
         /// Cache the result of this function for child handling etc.
         /// </summary>
         /// <returns>list of child observers</returns>
-        public List<OoShapeObserver> GetChilderen()
+        virtual public List<OoShapeObserver> GetChilderen()
         {
             List<OoShapeObserver> children = new List<OoShapeObserver>();
 
@@ -131,7 +131,7 @@ namespace tud.mci.tangram.controller.observer
         /// Goes to the next DOM sibling if possible 
         /// </summary>
         /// <returns>The observer for the next sibling (infinite child loop) or the same if there is only on child or <c>null</c> if no sibling could be found.</returns>
-        public OoShapeObserver GetNextSibling()
+        virtual public OoShapeObserver GetNextSibling()
         {
             if (this.Page != null && this.Page.PagesObserver != null)
             {
@@ -188,7 +188,7 @@ namespace tud.mci.tangram.controller.observer
         /// Goes to the previous DOM sibling if possible
         /// </summary>
         /// <returns>The observer for the previous sibling (infinite child loop) or the same if there is only on child or <c>null</c> if no sibling could be found.</returns>
-        public OoShapeObserver GetPreviousSibling()
+        virtual public OoShapeObserver GetPreviousSibling()
         {
             if (this.Page != null && this.Page.PagesObserver != null)
             {
@@ -252,7 +252,7 @@ namespace tud.mci.tangram.controller.observer
         /// Goes to the parent in DOM if possible.
         /// </summary>
         /// <returns>The observer for the direct parent or <c>null</c> if no parent could be found.</returns>
-        public OoShapeObserver GetParent()
+        virtual public OoShapeObserver GetParent()
         {
             if (this.Page != null && this.Page.PagesObserver != null)
             {
@@ -310,7 +310,7 @@ namespace tud.mci.tangram.controller.observer
         /// So this should not get invalid. It is also possible to receive the 
         /// last child by asking for '-1'</param>
         /// <returns>The observer for the child at given index (infinite child loop by modulu of child count) or <c>null</c> if no child could be found.</returns>
-        public OoShapeObserver GetChild(int number)
+        virtual public OoShapeObserver GetChild(int number)
         {
             if (this.Page != null && this.Page.PagesObserver != null)
             {

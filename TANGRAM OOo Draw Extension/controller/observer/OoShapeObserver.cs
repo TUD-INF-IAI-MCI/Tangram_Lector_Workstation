@@ -288,7 +288,7 @@ namespace tud.mci.tangram.controller.observer
 
         bool isUpdating = false;
         DateTime lastUpdateTime = new DateTime(1970, 1, 1);
-        public void Update()
+        virtual public void Update()
         {
             if (isUpdating || (DateTime.Now - lastUpdateTime).TotalMilliseconds < 100) return;
             isUpdating = true;
@@ -398,7 +398,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsValid(bool force = true)
+        virtual public bool IsValid(bool force = true)
         {
             if (!_valid) return false;
             if (LockValidation) return _valid;
@@ -502,7 +502,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// 	<c>true</c> if this instance is visible; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsVisible()
+        virtual public bool IsVisible()
         {
             try
             {
@@ -528,7 +528,7 @@ namespace tud.mci.tangram.controller.observer
 
         #region IDispose
 
-        public void Dispose()
+        virtual public void Dispose()
         {
             if (this.Shape != null)
             {
@@ -603,7 +603,7 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         /// <param name="pngFileData">The png file data as byte array.</value>
         /// <returns>the png file size (only > 0 if successful)</returns>
-        public int GetShapeAsPng(out byte[] pngFileData)
+        virtual public int GetShapeAsPng(out byte[] pngFileData)
         {
 
             pngFileData = new byte[0];
@@ -660,7 +660,7 @@ namespace tud.mci.tangram.controller.observer
         /// the accessibility interface is not used by this method
         /// </summary>
         /// <returns>Bounding box in pixels as screen position relative to the openoffice draw view area.</returns>
-        public System.Drawing.Rectangle GetRelativeScreenBoundsByDom()
+        virtual public System.Drawing.Rectangle GetRelativeScreenBoundsByDom()
         {
             System.Drawing.Rectangle result = new System.Drawing.Rectangle(-1, -1, 0, 0);
             if (Shape != null && Page != null && Page.PagesObserver != null)
@@ -701,7 +701,7 @@ namespace tud.mci.tangram.controller.observer
         /// if the given value is null, getRelativeScreenBoundsByDom() of this shape observer will be called
         /// </param>
         /// <returns>Bounding box in pixels as absolute screen position.</returns>
-        public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom(System.Drawing.Rectangle relativeBounds)
+        virtual public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom(System.Drawing.Rectangle relativeBounds)
         {
             if (_updatingBounds) return _lastBounds;
 
@@ -753,7 +753,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// Bounding box in pixels as absolute screen position.
         /// </returns>
-        public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom()
+        virtual public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom()
         {
             return GetAbsoluteScreenBoundsByDom(new System.Drawing.Rectangle(0, 0, 0, 0));
         }
@@ -766,7 +766,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets a value indicating whether this <see cref="AbstractDisposingBase"/> is disposed.
         /// </summary>
         /// <value><c>true</c> if disposed; otherwise, <c>false</c>.</value>
-        public bool Disposed { get; private set; }
+        virtual public bool Disposed { get; private set; }
 
         /// <summary>
         /// Occurs when this object is disposing.
@@ -847,7 +847,7 @@ namespace tud.mci.tangram.controller.observer
         /// Deletes the Shape from the DrawPage and disposes this instance.
         /// </summary>
         /// <returns><c>true</c> if the delete call was handled successfully.</returns>
-        public bool Delete()
+        virtual public bool Delete()
         {
             bool success = false;
             try

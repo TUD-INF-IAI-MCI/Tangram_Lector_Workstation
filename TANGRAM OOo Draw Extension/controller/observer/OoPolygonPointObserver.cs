@@ -27,10 +27,10 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// The last checked out poly point list.
         /// </value>
-        public List<List<PolyPointDescriptor>> CachedPolyPointList
+        virtual public List<List<PolyPointDescriptor>> CachedPolyPointList
         {
             get { lock (_lock) return _cachedPolyPointList; }
-            private set { lock (_lock)_cachedPolyPointList = value; }
+            protected set { lock (_lock)_cachedPolyPointList = value; }
         }
 
         /// <summary>
@@ -39,17 +39,24 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// The geometry poly point list.
         /// </value>
-        public List<List<PolyPointDescriptor>> GeometryPolyPointList { get { return IsValid() ? PolygonHelper.GetPolyPoints(Shape.Shape, true) : null; } }
+        virtual public List<List<PolyPointDescriptor>> GeometryPolyPointList { get { return IsValid() ? PolygonHelper.GetPolyPoints(Shape.Shape, true) : null; } }
 
         /// <summary>
         /// Corresponding shape.
         /// </summary>
         /// <value>The shape.</value>
-        public OoShapeObserver Shape { get; private set; }
+        virtual public OoShapeObserver Shape { get; protected set; }
 
         #endregion
 
         #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OoPolygonPointsObserver"/> class.
+        /// ATTENTION: is only for derivation and internal use. 
+        /// This constructor leaves the class as a non-functional object.
+        /// </summary>
+        protected OoPolygonPointsObserver() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OoPolygonPointsObserver" /> class.
@@ -91,7 +98,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsValid()
+        virtual public bool IsValid()
         {
             try
             {
@@ -111,7 +118,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the Freeform is a closed one; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsClosed(bool cached = true)
+        virtual public bool IsClosed(bool cached = true)
         {
             if (IsValid() && !cached) _isClosed = PolygonHelper.IsClosedFreeForm(Shape.Shape);
             return _isClosed;
@@ -125,7 +132,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the Freeform is a Bezier defined one; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsBezier(bool cached = true)
+        virtual public bool IsBezier(bool cached = true)
         {
             if (IsValid() && !cached)
             {
@@ -144,7 +151,7 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). 
         /// <returns><c>true</c> if the points could be written to the properties</returns>
-        public bool WritePointsToPolygon(bool geometry = false)
+        virtual public bool WritePointsToPolygon(bool geometry = false)
         {
             if (IsValid())
             {
@@ -169,7 +176,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="newPoints">The new points.</param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). 
         /// <returns><c>true</c> if the points could be written to the properties</returns>
-        public bool SetPolyPointList(List<List<PolyPointDescriptor>> newPoints, bool geometry = false)
+        virtual public bool SetPolyPointList(List<List<PolyPointDescriptor>> newPoints, bool geometry = false)
         {
             if (IsValid())
             {
@@ -194,7 +201,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this is polygon descriptor is a group of more than one polygon; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsPolyPolygon()
+        virtual public bool IsPolyPolygon()
         {
             return CachedPolyPointList != null && CachedPolyPointList.Count > 1;
         }
@@ -208,7 +215,7 @@ namespace tud.mci.tangram.controller.observer
         /// </summary>
         /// <param name="index">The index of the polygon in the poly polygon descriptor.</param>
         /// <returns>the list of polygon point descriptors or an empty list if there is no polygon at the requested index.</returns>
-        public List<PolyPointDescriptor> GetPolygonPoints(int index)
+        virtual public List<PolyPointDescriptor> GetPolygonPoints(int index)
         {
             try
             {
@@ -226,7 +233,7 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="index">The index of the point inside the polygon description.</param>
         /// <param name="polygonIndex">Index of the polygon in a poly polygon group.</param>
         /// <returns>Point descriptor for the requested position or empty Point descriptor</returns>
-        public PolyPointDescriptor GetPolyPointDescriptor(int index, int polygonIndex)
+        virtual public PolyPointDescriptor GetPolyPointDescriptor(int index, int polygonIndex)
         {
             try
             {
@@ -243,7 +250,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// Point descriptor for the requested position or empty Point descriptor
         /// </returns>
-        public PolyPointDescriptor GetPolyPointDescriptor(int index)
+        virtual public PolyPointDescriptor GetPolyPointDescriptor(int index)
         {
             int i, pi;
             Transform1DindexTo2DpolyPolygonIndex(index, out i, out pi);
@@ -263,7 +270,7 @@ namespace tud.mci.tangram.controller.observer
         /// Default is <c>true</c></param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). Default is <c>false</c></param>
         /// <returns><c>true</c> if the point could be updated</returns>
-        public bool UpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
+        virtual public bool UpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -299,7 +306,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the point could be updated
         /// </returns>
-        public bool UpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, bool updateDirectly = true, bool geometry = false)
+        virtual public bool UpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, bool updateDirectly = true, bool geometry = false)
         {
             int i, pi;
             Transform1DindexTo2DpolyPolygonIndex(index, out i, out pi);
@@ -321,7 +328,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the point could be added
         /// </returns>
-        public bool AddPolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
+        virtual public bool AddPolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -368,7 +375,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the point could be added
         /// </returns>
-        public bool AddPolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
+        virtual public bool AddPolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
         {
             int i, pi;
             Transform1DindexTo2DpolyPolygonIndex(index, out i, out pi);
@@ -390,7 +397,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the point could be added
         /// </returns>
-        public bool AddOrUpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
+        virtual public bool AddOrUpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -428,7 +435,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the point could be added
         /// </returns>
-        public bool AddOrUpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
+        virtual public bool AddOrUpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
         {
             int i, pi;
             Transform1DindexTo2DpolyPolygonIndex(index, out i, out pi);
@@ -446,8 +453,8 @@ namespace tud.mci.tangram.controller.observer
         /// ATTENTION: your changes could bee overwritten by calling the <see cref="Update"/>function.
         /// Default is <c>true</c></param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). Default is <c>false</c> </param>
-        /// <returns><c>true</c> if the point could be added</returns>
-        public bool RemovePolyPointDescriptor(int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
+        /// <returns><c>true</c> if the point could be removed</returns>
+        virtual public bool RemovePolyPointDescriptor(int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -480,8 +487,8 @@ namespace tud.mci.tangram.controller.observer
         /// ATTENTION: your changes could bee overwritten by calling the <see cref="Update"/>function.
         /// Default is <c>true</c></param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). Default is <c>false</c> </param>
-        /// <returns><c>true</c> if the point could be added</returns>
-        public bool RemovePolyPointDescriptor(int index, bool updateDirectly = true, bool geometry = false)
+        /// <returns><c>true</c> if the point could be removed</returns>
+        virtual public bool RemovePolyPointDescriptor(int index, bool updateDirectly = true, bool geometry = false)
         {
             int i, pi;
             Transform1DindexTo2DpolyPolygonIndex(index, out i, out pi);
@@ -500,7 +507,7 @@ namespace tud.mci.tangram.controller.observer
         /// Default is <c>true</c></param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). Default is <c>false</c> </param>
         /// <returns><c>true</c> if the polygon points could be added</returns>
-        public bool AddPolygonPoints(List<PolyPointDescriptor> points, int polygonIndex = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
+        virtual public bool AddPolygonPoints(List<PolyPointDescriptor> points, int polygonIndex = Int32.MaxValue, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -542,7 +549,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if the polygon points could be added
         /// </returns>
-        public bool UpdatePolygonPoints(List<PolyPointDescriptor> points, int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
+        virtual public bool UpdatePolygonPoints(List<PolyPointDescriptor> points, int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -583,9 +590,9 @@ namespace tud.mci.tangram.controller.observer
         /// Default is <c>true</c></param>
         /// <param name="geometry">if set to <c>true</c> the 'Geometry' property is used (these are the untransformed coordinates of the polygon). Default is <c>false</c></param>
         /// <returns>
-        ///   <c>true</c> if the polygon points could be added
+        ///   <c>true</c> if the polygon points could be removed
         /// </returns>
-        public bool RemovePolygonPoints(int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
+        virtual public bool RemovePolygonPoints(int polygonIndex = 0, bool updateDirectly = true, bool geometry = false)
         {
             if (IsValid())
             {
@@ -619,7 +626,7 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Updates this instance and his related Objects. Especially the cached poly polygon points
         /// </summary>
-        public void Update()
+        virtual public void Update()
         {
             if (_updating) return;
             try
@@ -769,7 +776,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         /// the <see cref="PolyPointDescriptor" /> at the specified one-dimensional index
         /// </returns>
-        public PolyPointDescriptor this[int index]
+        virtual public PolyPointDescriptor this[int index]
         {
             get
             {
@@ -787,7 +794,7 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// The count of poly polygon points.
         /// </value>
-        public int Count
+        virtual public int Count
         {
             get
             {
@@ -810,7 +817,7 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// The polygon count.
         /// </value>
-        public int PolygonCount
+        virtual public int PolygonCount
         {
             get
             {
@@ -832,7 +839,7 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Resets the iterator.
         /// </summary>
-        public void ResetIterator()
+        virtual public void ResetIterator()
         {
             _iteratorIndex = -1;
         }
@@ -840,7 +847,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the current index of the iterator.
         /// </summary>
         /// <returns>current index of the iterator</returns>
-        public int GetIteratorIndex()
+        virtual public int GetIteratorIndex()
         {
             return _iteratorIndex;
         }
@@ -850,19 +857,19 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this instance has points; otherwise, <c>false</c>.
         /// </returns>
-        public bool HasPoints() { return Count > 0; }
+        virtual public bool HasPoints() { return Count > 0; }
         /// <summary>
         /// Determines whether this instance has a next polygon point.
         /// </summary>
         /// <returns>
         ///   <c>true</c> if this instance has a next point; otherwise, <c>false</c>.
         /// </returns>
-        public bool HasNext() { return (_iteratorIndex + 1) < Count; }
+        virtual public bool HasNext() { return (_iteratorIndex + 1) < Count; }
         /// <summary>
         /// Gets the next polygon point of this instance based on the internal iterator.
         /// </summary>
         /// <returns>the next polygon point</returns>
-        public PolyPointDescriptor Next()
+        virtual public PolyPointDescriptor Next()
         {
             _iteratorIndex = (_iteratorIndex + 1);
             return GetPolyPointDescriptor(_iteratorIndex);
@@ -871,7 +878,7 @@ namespace tud.mci.tangram.controller.observer
         /// Get the first Point of this instance and resets the iterator.
         /// </summary>
         /// <returns>the first Point of this instance</returns>
-        public PolyPointDescriptor First()
+        virtual public PolyPointDescriptor First()
         {
             ResetIterator();
             return Next();
@@ -883,12 +890,12 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this instance has previous point; otherwise, <c>false</c>.
         /// </returns>
-        public bool HasPrevious() { return _iteratorIndex > 0; }
+        virtual public bool HasPrevious() { return _iteratorIndex > 0; }
         /// <summary>
         /// Gets the previous polygon point of this instance.
         /// </summary>
         /// <returns>the previous point</returns>
-        public PolyPointDescriptor Previous()
+        virtual public PolyPointDescriptor Previous()
         {
             _iteratorIndex = (_iteratorIndex - 1);
             return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
@@ -898,7 +905,7 @@ namespace tud.mci.tangram.controller.observer
         /// Get the last Point of this instance and sets the iterator to this element.
         /// </summary>
         /// <returns>the last point</returns>
-        public PolyPointDescriptor Last()
+        virtual public PolyPointDescriptor Last()
         {
             _iteratorIndex = (Count - 1);
             return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
@@ -908,7 +915,7 @@ namespace tud.mci.tangram.controller.observer
         /// Gets the current selected polygon point of this instance without moving the internal iterator.
         /// </summary>
         /// <returns>the current iterated polygon point</returns>
-        public PolyPointDescriptor Current(out int currentIterator)
+        virtual public PolyPointDescriptor Current(out int currentIterator)
         {
             currentIterator = _iteratorIndex;
             return GetPolyPointDescriptor(currentIterator);

@@ -2142,6 +2142,10 @@ namespace tud.mci.tangram.util
         SYMMETRIC = unoidl.com.sun.star.drawing.PolygonFlags.SYMMETRIC,
 
         //unoidl.com.sun.star.drawing.
+        /// <summary>
+        /// for customs
+        /// </summary>
+        CUSTOM = int.MaxValue
     }
 
     /// <summary>
@@ -2209,12 +2213,17 @@ namespace tud.mci.tangram.util
         /// defines how a bezier curve goes through a point.
         /// </summary>
         public PolygonFlags Flag;
+        /// <summary>
+        /// Optional Value for special treatments or special kinds of points.
+        /// </summary>
+        public object Value;
 
         public PolyPointDescriptor(int x, int y, PolygonFlags flag = PolygonFlags.NORMAL)
         {
             X = x;
             Y = y;
             Flag = flag;
+            Value = null;
         }
 
         internal PolyPointDescriptor(Point p, PolygonFlags flag = PolygonFlags.NORMAL)
