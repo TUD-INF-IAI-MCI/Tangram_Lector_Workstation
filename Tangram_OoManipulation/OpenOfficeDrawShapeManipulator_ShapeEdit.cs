@@ -613,11 +613,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             var point = LastSelectedShapePolygonPoints.Current(out i);
 
             // if an e.g. adjustment value for custom shapes is set.
-            if (point.Flag == util.PolygonFlags.CUSTOM && point.Value != null && point.Value is double)
+            if (point.Flag == util.PolygonFlags.CUSTOM && point.Value != null)
             {
-                double val = (double)point.Value;
-                double newVal = val + (horizontalSteps == 0 ? verticalSteps : horizontalSteps);
-                point.Value = newVal;
+                if (point.Value is double) // point is position
+                {
+                    double val = (double)point.Value;
+                    double newVal = val + (horizontalSteps == 0 ? verticalSteps : horizontalSteps);
+                    point.Value = newVal;
+                }
+                else if (point.Value is int) // point is radius
+                {
+                    int rad = (int)point.Value;
+                    int change = (horizontalSteps == 0 ? getLargeDegree() : getSmallDegree() ) / 100;
+
+                    bool invert = horizontalSteps < 0 || verticalSteps > 0;
+
+                    int newRad = rad + (invert ? -change: change);
+                    point.Value = newRad;
+                }
+                
             }
 
             point.X += horizontalSteps;
@@ -626,7 +640,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             // Special treatment for closed forms:
             // first and last point have to be the same!
             // FIXME: check if this works for poly polygons !
-            if ((i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
+            if (!point.Flag.HasFlag(tud.mci.tangram.util.PolygonFlags.CUSTOM) && (i == 0 || i == LastSelectedShapePolygonPoints.Count - 1)
                 && LastSelectedShapePolygonPoints.IsClosed() // is closed polygon
                 )
             {

@@ -347,6 +347,8 @@ namespace tud.mci.tangram.controller.observer
         /// The value.
         /// </value>
         public Double Value { get { return _value; } set { _value = value; } }
+        public readonly bool IsPolar;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomShapeAdjustment"/> struct.
@@ -355,11 +357,20 @@ namespace tud.mci.tangram.controller.observer
         internal CustomShapeAdjustment(EnhancedCustomShapeAdjustmentValue val)
         {
             _value = 0;
+            IsPolar = false;
             if (val != null && val.Value.hasValue())
             {
                 try
                 {
-                    Value = (double)val.Value.Value;
+                    if (val.Value.Type == typeof(int) || val.Value.Value is int)
+                    {
+                        Value = (int)val.Value.Value;
+                        IsPolar = true;
+                    }
+                    else
+                    {
+                        Value = (double)val.Value.Value;
+                    }
                 }
                 catch (InvalidCastException)
                 {
@@ -370,12 +381,14 @@ namespace tud.mci.tangram.controller.observer
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CustomShapeAdjustment"/> struct.
+        /// Initializes a new instance of the <see cref="CustomShapeAdjustment" /> struct.
         /// </summary>
         /// <param name="val">The value.</param>
-        public CustomShapeAdjustment(double val)
+        /// <param name="_isPolar">if set to <c>true</c> the adjustment is a degree value.</param>
+        public CustomShapeAdjustment(double val, bool _isPolar = false)
         {
             _value = val;
+            IsPolar = _isPolar;
         }
 
         /// <summary>
@@ -1002,7 +1015,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>Point descriptor for the requested position or empty Point descriptor</returns>
         override public PolyPointDescriptor GetPolyPointDescriptor(int index, int polygonIndex)
         {
-            if (polygonIndex == 0)
+            if (polygonIndex == 0 && index > -1)
             {
                 try
                 {
@@ -1042,7 +1055,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns><c>true</c> if the point could be updated</returns>
         override public bool UpdatePolyPointDescriptor(PolyPointDescriptor ppd, int index, int polygonIndex, bool updateDirectly = true, bool geometry = false)
         {
-            if (ppd.Value != null && ppd.Value is double && IsValid())
+            if (ppd.Value != null && (ppd.Value is double || ppd.Value is int)  && IsValid())
             {
                 try
                 {
@@ -1415,7 +1428,8 @@ namespace tud.mci.tangram.controller.observer
         {
             int p = (int)Math.Round(adj.Value, 0);
             var point = new PolyPointDescriptor(p, p, util.PolygonFlags.CUSTOM);
-            point.Value = adj.Value;
+            if (adj.IsPolar) point.Value = (int)adj.Value;
+            else point.Value = adj.Value;
             return point;
         }
 
@@ -1426,7 +1440,8 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>An adjustment for the poly point descriptor.</returns>
         public static CustomShapeAdjustment GetAdjustmentFromPointDescriptor(PolyPointDescriptor p)
         {
-            var adj = new CustomShapeAdjustment(((double)p.Value));
+            Double val = Convert.ToDouble(p.Value);
+            var adj = new CustomShapeAdjustment(val, p.Value is int);
             return adj;
         }
 
