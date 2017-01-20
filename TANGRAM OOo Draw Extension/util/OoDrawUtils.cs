@@ -1681,40 +1681,30 @@ namespace tud.mci.tangram.util
         /// <returns><c>true</c> if the property could be set successfully</returns>
         internal static bool AddPointsToPolyPolygonDescriptor(XShape shape, List<List<PolyPointDescriptor>> coordinates, bool geometry = false, object doc = null)
         {
-            Point[] p;
-            unodrawing.PolygonFlags[] f;
-            bool success = TransformToCoordinateAndFlagSequence(coordinates[0], out p, out f, true);
-            if (success)
+            if (coordinates.Count > 0)
             {
-                if (geometry)
+                List<Point[]> polygonList = new List<Point[]>();
+                unodrawing.PolygonFlags[] f;
+                foreach (var pointList in coordinates)
                 {
-                    return OoUtils.SetPropertyUndoable(shape, "Geometry", new Point[][] { p }, doc as unoidl.com.sun.star.document.XUndoManagerSupplier);
+                    if (pointList != null && pointList.Count > 0)
+                    {
+                        Point[] p;
+                        bool success = TransformToCoordinateAndFlagSequence(pointList, out p, out f, true);
+                        if (success)
+                        {
+                            polygonList.Add(p);
+                        }
+                    }
                 }
-                else
-                {
-                    //var propp_org = OoUtils.GetProperty(shape, "PolyPolygon") as unoidl.com.sun.star.awt.Point[][];
 
-                    var val = new Point[][] { p };
-                    var succ = OoUtils.SetPropertyUndoable(shape, "PolyPolygon", val, doc as unoidl.com.sun.star.document.XUndoManagerSupplier);
+                Point[][] val = polygonList.ToArray<Point[]>();
 
-                    // FIXME: Only for fixing the first polypoint bug
-                    //var propp = OoUtils.GetProperty(shape, "PolyPolygon") as unoidl.com.sun.star.awt.Point[][];
-                    //for (int i = 0; i < p.Length; i++)
-                    //{
-                    //    System.Diagnostics.Debug.WriteLine(i + "\tto set: X:\t" + p[i].X + "\tY:\t" + p[i].Y + "\t| set: X:\t" + propp_org[0][i].X + "\tY:\t" + propp_org[0][i].Y);
-                    //}
-
-                    //System.Diagnostics.Debug.WriteLine("point comparition:");
-
-                    //for (int i = 0; i < p.Length; i++)
-                    //{
-                    //    System.Diagnostics.Debug.WriteLine(i + "\tto set: X:\t" + p[i].X + "\tY:\t" + p[i].Y + "\t| set: X:\t" + propp[0][i].X + "\tY:\t" + propp[0][i].Y);
-                    //}
-                    //System.Diagnostics.Debug.WriteLine(propp[0].Length - 1 + "\tto set: X:\t" + "\t" + "\tY: " + "\t\t" + "\t| set: X:\t" + propp[0][propp[0].Length - 1].X + "\tY:\t" + propp[0][propp[0].Length - 1].Y);
-
-                    return succ;
-                }
+                return OoUtils.SetPropertyUndoable(shape,
+                    geometry ? "Geometry" : "PolyPolygon", 
+                    val, doc as unoidl.com.sun.star.document.XUndoManagerSupplier); 
             }
+
             return false;
         }
         /// <summary>
@@ -1927,8 +1917,8 @@ namespace tud.mci.tangram.util
                             pointLists.Add(new List<PolyPointDescriptor>(points));
                         }
                     }
+                    pointLists.TrimExcess();
                 }
-                pointLists.TrimExcess();
             }
 
             return pointLists != null ? pointLists : new List<List<PolyPointDescriptor>>();
@@ -2020,6 +2010,148 @@ namespace tud.mci.tangram.util
             }
             return success;
         }
+
+        /// <summary>
+        /// Builds a list of poly point descriptors from a comma ',' separated list of short describing string.
+        /// Each of the point description-string must be of the structure 'FLAG X Y [V[.vv]]' the different parts have to be separated by a free space.
+        /// The FLAG can be the first letter of the type (C will turn into CORTOL and S into SMOOTH) or the whole word. The value parameter 'V' is optional
+        /// </summary>
+        /// <param name="ppDescr">The poly point description.</param>
+        /// <returns>A List of PolyPointDescriptor objects filled with the specified values.</returns>
+        public static List<PolyPointDescriptor> ParsePolyPointDescriptorsFromString(string ppDescrs)
+        {
+            List<PolyPointDescriptor> points = new List<PolyPointDescriptor>();
+            if (!String.IsNullOrWhiteSpace(ppDescrs))
+            {
+                string[] components = ppDescrs.Split(new char[]{','}, StringSplitOptions.RemoveEmptyEntries);
+                if (components.Length > 0)
+                {
+                    foreach (var item in components)
+                    {
+                        try
+                        {
+                            points.Add(ParsePolyPointDescriptorFromString(item));
+                        }
+                        catch (System.ArgumentNullException) { }
+                        catch (System.Exception ex)
+                        {
+                            throw ex;
+                        }
+                    }
+                }
+            }
+            return points;
+        }
+
+
+        /// <summary>
+        /// Builds the poly point descriptor from a short describing string.
+        /// The string must be of the structure 'FLAG X Y [V[.vv]]' the different parts have to be separated by a free space.
+        /// The FLAG can be the first letter of the type (C will turn into CORTOL and S into SMOOTH) or the whole word. The value parameter 'V' is optional
+        /// </summary>
+        /// <param name="ppDescr">The poly point description.</param>
+        /// <returns>A PolyPointDescriptor object filled with the specified values.</returns>
+        /// <exception cref="System.ArgumentException">string to parse does not contain enough number of parameter. - ppDescr</exception>
+        /// <exception cref="System.ArgumentNullException">ppDescr - String to parse can't be empty</exception>
+        public static PolyPointDescriptor ParsePolyPointDescriptorFromString(string ppDescr)
+        {
+            if (!String.IsNullOrWhiteSpace(ppDescr))
+            {
+                PolyPointDescriptor ppD = new PolyPointDescriptor();
+
+                // split the string
+                string[] components = ppDescr.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+
+                if (components.Length < 3)
+                {
+                    throw new ArgumentException("string to parse does not contain enough number of parameter.", "ppDescr");
+                }
+
+                int x = 0;
+                int y = 0;
+
+                if (!int.TryParse(components[1], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out x)) x = 0;
+                if (!int.TryParse(components[2], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out y)) y = 0;
+
+
+                ppD.X = x;
+                ppD.Y = y;
+                ppD.Flag = ParseFlagFromString(components[0]);
+
+                // parse value
+                if (components.Length > 3)
+                {
+                    object value = null;
+
+                    int intVal = 0;
+                    Double doubleVal = 0.0;
+                    if (!int.TryParse(components[3], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out intVal))
+                    {
+                        if (!Double.TryParse(components[3], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out doubleVal))
+                        {
+                            value = components[3];
+                        }
+                        else { value = doubleVal; }
+                    }
+                    else { value = intVal; }
+
+                    ppD.Value = value;
+                }
+
+                return ppD;
+            }
+            else
+            {
+                throw new ArgumentNullException("ppDescr", "String to parse can't be empty");
+            }
+        }
+
+
+        /// <summary>
+        /// Parses a string into a PolygonFlags if possible.
+        /// </summary>
+        /// <param name="_flag">The flag string, e.g. the whole Flag as name or even the first letter (case doesn't matter).</param>
+        /// <returns>The corresponding PolygonFlags or PolygonFlags.CUSTOM as default or in case of error.</returns>
+        internal static PolygonFlags ParseFlagFromString(string _flag)
+        {
+
+            if (!String.IsNullOrWhiteSpace(_flag))
+            {
+                _flag = _flag.ToUpper();
+
+                try
+                {
+                    if (Enum.IsDefined(typeof(PolygonFlags), _flag))
+                    {
+                        return (PolygonFlags)Enum.Parse(typeof(PolygonFlags), _flag, true);
+                    }
+                }
+                catch (System.Exception) { }
+
+
+                switch (_flag)
+                {
+                    case "C":
+                    case "CONTROL":
+                        return PolygonFlags.CONTROL;
+                    case "CUSTOM":
+                        return PolygonFlags.CUSTOM;
+                    case "N":
+                    case "NORMAL":
+                        return PolygonFlags.NORMAL;
+                    case "S":
+                    case "SMOOTH":
+                        return PolygonFlags.SMOOTH;
+                    case "SYMMETRIC":
+                        return PolygonFlags.SYMMETRIC;
+                    default:
+                        break;
+                }
+            }
+
+            return PolygonFlags.CUSTOM;
+        }
+
 
         #endregion
 
@@ -2237,7 +2369,7 @@ namespace tud.mci.tangram.util
         /// </returns>
         public override string ToString()
         {
-            return this.GetType().ToString() + " - " + Flag.ToString() + " - x:" + X + ", y:" + Y;
+            return this.GetType().ToString() + " - " + Flag.ToString() + " " + X + " " + Y + (Value != null ? " " + Value.ToString() : "");
         }
     }
 
