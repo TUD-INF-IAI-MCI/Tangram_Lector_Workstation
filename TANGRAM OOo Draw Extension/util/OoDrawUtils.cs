@@ -895,6 +895,41 @@ namespace tud.mci.tangram.util
         { SetShapePositionAndSize(shape as XShape, x, y, width, height); }
 
         /// <summary>
+        /// Gets the position of the shape on the DRAW page in 100th mm.
+        /// </summary>
+        /// <param name="shape">The shape.  [XShape]</param>
+        /// <param name="x">The x position on the DRAW page in 100th mm. (int.MinValue if invalid)</param>
+        /// <param name="y">The y position on the DRAW page in 100th mm. (int.MinValue if invalid)</param>
+        /// <returns><c>true</c> if the position could be get.</returns>
+        public static bool GetShapePosition(Object shape, out int x, out int y)
+        {
+            return GetShapePosition(shape as XShape, out x, out y);
+        }
+
+        /// <summary>
+        /// Gets the position of the shape on the DRAW page in 100th mm.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <param name="x">The x position on the DRAW page in 100th mm. (int.MinValue if invalid)</param>
+        /// <param name="y">The y position on the DRAW page in 100th mm. (int.MinValue if invalid)</param>
+        /// <returns><c>true</c> if the position could be get.</returns>
+        internal static bool GetShapePosition(XShape shape, out int x, out int y)
+        {
+            if (shape != null)
+            {
+                Point p = shape.getPosition();
+                if (p != null)
+                {
+                    x = p.X;
+                    y = p.Y;
+                    return true;
+                }
+            }
+            x = y = int.MinValue;
+            return false;
+        }
+
+        /// <summary>
         /// Sets the position of the shape.
         /// </summary>
         /// <param name="shape">The shape.</param>
@@ -918,6 +953,44 @@ namespace tud.mci.tangram.util
         public static void SetShapePosition(Object shape, int x, int y)
         { SetShapePosition(shape as XShape, x, y); }
 
+
+        /// <summary>
+        /// Gets the size of the shape.
+        /// </summary>
+        /// <param name="shape">The shape. [XShape]</param>
+        /// <param name="width">The width in 100th mm or 0 if invalid.</param>
+        /// <param name="height">The height in 100th mm or 0 if invalid.</param>
+        /// <returns><c>true</c> if the size could be get.</returns>
+        public static bool GetShapeSize(Object shape, out int width, out int height)
+        {
+            return GetShapeSize(shape as XShape, out width, out height);
+        }
+        /// <summary>
+        /// Gets the size of the shape.
+        /// </summary>
+        /// <param name="shape">The shape. [XShape]</param>
+        /// <param name="width">The width in 100th mm or 0 if invalid.</param>
+        /// <param name="height">The height in 100th mm or 0 if invalid.</param>
+        /// <returns>
+        ///   <c>true</c> if the size could be get.
+        /// </returns>
+        internal static bool GetShapeSize(XShape shape, out int width, out int height)
+        {
+            if (shape != null)
+            {
+                Size s = shape.getSize();
+                if (s != null)
+                {
+                    width = s.Width;
+                    height = s.Height;
+                    return true;
+                }
+            }
+
+            width = height = 0;
+            return false;
+        }
+
         /// <summary>
         /// Sets the size of the shape.
         /// </summary>
@@ -928,7 +1001,7 @@ namespace tud.mci.tangram.util
         {
             if (shape != null)
             {
-                var size = new Size(width, height);
+                 var size = new Size(width, height);
                 shape.setSize(size);
             }
         }
@@ -949,7 +1022,7 @@ namespace tud.mci.tangram.util
         /// <summary>
         /// Sets the height property.
         /// </summary>
-        /// <param name="obj">The obj whos hight should be set.</param>
+        /// <param name="obj">The obj whose hight should be set.</param>
         /// <param name="height">The height.</param>
         /// <returns><c>true</c> if successfully changed.</returns>
         public static bool SetHeight(Object obj, int height)
