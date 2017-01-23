@@ -951,9 +951,33 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="obj">The obj whos hight should be set.</param>
         /// <param name="height">The height.</param>
-        public static void SetHeight(Object obj, int height)
+        /// <returns><c>true</c> if successfully changed.</returns>
+        public static bool SetHeight(Object obj, int height)
         {
-            OoUtils.SetIntProperty(obj, "Height", height);
+            bool success = OoUtils.SetIntProperty(obj, "Height", height);
+            if (!success)
+            {
+                if (obj is XShape)
+                {
+                    var size = ((XShape)obj).getSize();
+                    if (size != null)
+                    {
+                        size.Height = height;
+                        ((XShape)obj).setSize(size);
+                        success = true; // FIXME: find an robust way to determine
+                    }
+                }
+                if (!success)
+                {
+                    var bb = OoUtils.GetProperty(obj, "BoundRect");
+                    if (bb != null && bb is Rectangle)
+                    {
+                        ((Rectangle)bb).Height = height;
+                        return OoUtils.SetProperty(obj, "BoundRect", bb);
+                    }
+                }
+            }
+            return success;
         }
         /// <summary>
         /// Gets the height property.
@@ -962,7 +986,24 @@ namespace tud.mci.tangram.util
         /// <returns>the height of an element</returns>
         public static int GetHeight(Object obj)
         {
-            return OoUtils.GetIntProperty(obj, "Height");
+            int h = OoUtils.GetIntProperty(obj, "Height");
+            if (h == 0 && obj is XShape)
+            {
+                var size = ((XShape)obj).getSize();
+                if (size != null)
+                {
+                    h = size.Height;
+                }
+            }
+            if (h == 0)
+            {
+                var bb = OoUtils.GetProperty(obj, "BoundRect");
+                if (bb != null && bb is Rectangle)
+                {
+                    h = ((Rectangle)bb).Height;
+                }
+            }
+            return h;
         }
 
         /// <summary>
@@ -970,9 +1011,33 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="obj">The obj who's width should be set.</param>
         /// <param name="width">The width.</param>
-        public static void SetWidth(Object obj, int width)
+        /// <returns><c>true</c> if successfully changed.</returns>
+        public static bool SetWidth(Object obj, int width)
         {
-            OoUtils.SetIntProperty(obj, "Width", width);
+            bool success = OoUtils.SetIntProperty(obj, "Width", width);
+            if (!success)
+            {
+                if (obj is XShape)
+                {
+                    var size = ((XShape)obj).getSize();
+                    if (size != null)
+                    {
+                        size.Width = width;
+                        ((XShape)obj).setSize(size);
+                        success = true; // FIXME: find an robust way to determine
+                    }
+                }
+                if (!success)
+                {
+                    var bb = OoUtils.GetProperty(obj, "BoundRect");
+                    if (bb != null && bb is Rectangle)
+                    {
+                        ((Rectangle)bb).Width = width;
+                        return OoUtils.SetProperty(obj, "BoundRect", bb);
+                    }
+                }
+            }
+            return success;
         }
         /// <summary>
         /// Gets the width property.
@@ -981,7 +1046,24 @@ namespace tud.mci.tangram.util
         /// <returns>the width of an element</returns>
         public static int GetWidth(Object obj)
         {
-            return OoUtils.GetIntProperty(obj, "Width");
+            int w = OoUtils.GetIntProperty(obj, "Width");
+            if (w == 0 && obj is XShape)
+            {
+                var size = ((XShape)obj).getSize();
+                if (size != null)
+                {
+                    w = size.Width;
+                }
+            }
+            if (w == 0)
+            {
+                var bb = OoUtils.GetProperty(obj, "BoundRect");
+                if (bb != null && bb is Rectangle)
+                {
+                    w = ((Rectangle)bb).Width;
+                }
+            }
+            return w;
         }
 
         /// <summary>
@@ -989,10 +1071,10 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <param name="rgbFillColor">RGB Color to fill.</param>
-        public static void SetFillColor(Object obj, int rgbFillColor)
+        public static bool SetFillColor(Object obj, int rgbFillColor)
         {
-            OoUtils.SetIntProperty(obj, "FillColor", rgbFillColor);
-            OoUtils.SetProperty(obj, "FillStyle", unoidl.com.sun.star.drawing.FillStyle.SOLID);
+            bool succsess = OoUtils.SetIntProperty(obj, "FillColor", rgbFillColor);
+            return succsess && OoUtils.SetProperty(obj, "FillStyle", unoidl.com.sun.star.drawing.FillStyle.SOLID);
         }
 
         /// <summary>
@@ -1701,8 +1783,8 @@ namespace tud.mci.tangram.util
                 Point[][] val = polygonList.ToArray<Point[]>();
 
                 return OoUtils.SetPropertyUndoable(shape,
-                    geometry ? "Geometry" : "PolyPolygon", 
-                    val, doc as unoidl.com.sun.star.document.XUndoManagerSupplier); 
+                    geometry ? "Geometry" : "PolyPolygon",
+                    val, doc as unoidl.com.sun.star.document.XUndoManagerSupplier);
             }
 
             return false;
@@ -2023,7 +2105,7 @@ namespace tud.mci.tangram.util
             List<PolyPointDescriptor> points = new List<PolyPointDescriptor>();
             if (!String.IsNullOrWhiteSpace(ppDescrs))
             {
-                string[] components = ppDescrs.Split(new char[]{','}, StringSplitOptions.RemoveEmptyEntries);
+                string[] components = ppDescrs.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 if (components.Length > 0)
                 {
                     foreach (var item in components)
@@ -2350,6 +2432,12 @@ namespace tud.mci.tangram.util
         /// </summary>
         public object Value;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PolyPointDescriptor"/> struct.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="flag">The flag.</param>
         public PolyPointDescriptor(int x, int y, PolygonFlags flag = PolygonFlags.NORMAL)
         {
             X = x;
@@ -2358,6 +2446,11 @@ namespace tud.mci.tangram.util
             Value = null;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PolyPointDescriptor"/> struct.
+        /// </summary>
+        /// <param name="p">The p.</param>
+        /// <param name="flag">The flag.</param>
         internal PolyPointDescriptor(Point p, PolygonFlags flag = PolygonFlags.NORMAL)
             : this(p != null ? p.X : 0, p != null ? p.Y : 0, flag) { }
 

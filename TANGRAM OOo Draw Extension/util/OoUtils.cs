@@ -188,9 +188,9 @@ namespace tud.mci.tangram.util
         /// <param name="obj">The obj.</param>
         /// <param name="propName">Name of the property.</param>
         /// <param name="value">The value.</param>
-        public static void SetIntProperty(Object obj, String propName, int value)
+        public static bool SetIntProperty(Object obj, String propName, int value)
         {
-            SetProperty(obj, propName, value);
+            return SetProperty(obj, propName, value);
         }
 
         /// <summary>
