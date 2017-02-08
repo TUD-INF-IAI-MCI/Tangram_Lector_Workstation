@@ -82,8 +82,10 @@ namespace ShowOffAdapterMediator
 
         bool IBrailleIOAdapterSupplier.IsMonitor(out List<String> monitoringAdapter)
         {
-            monitoringAdapter = new List<String>() { "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet", "BrailleIOHbsAdapter.BrailleIOAdapter_HyperBrailleS" };
-            //monitoringAdapter = new List<Type>();
+            monitoringAdapter = new List<String>() { 
+                "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet"
+                ,"BrailleIOHbsAdapter.BrailleIOAdapter_HyperBrailleS"
+                ,"PegasusAirPenAdapter.BrailleIOAdapter_AirPen"};
             return true;
         }
 
