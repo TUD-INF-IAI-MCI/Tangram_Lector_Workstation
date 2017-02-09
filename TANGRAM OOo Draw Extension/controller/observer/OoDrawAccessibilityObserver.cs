@@ -508,6 +508,10 @@ namespace tud.mci.tangram.controller.observer
 
         private void handleSelectionChanged(OoAccessibleDocWnd doc, AccessibleEventObject aEvent)
         {
+
+            //FIXME: Do this only if the selection is requested. 
+            // Kill the selection changed handler and let the event handler request for the selected elements
+
             // check the global selection supplier
             if (doc != null)
             {

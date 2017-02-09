@@ -198,7 +198,7 @@ namespace tud.mci.tangram.TangramLector
                 if (io != null && this.io.AdapterManager != null && this.io.AdapterManager.GetAdapters() != null)
                     foreach (var adapter in this.io.AdapterManager.GetAdapters())
                     {
-                        adapter.Disconnect();
+                        if(adapter != null) adapter.Disconnect();
                     }
             }
             catch { }

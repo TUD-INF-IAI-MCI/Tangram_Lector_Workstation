@@ -277,7 +277,7 @@ namespace tud.mci.tangram.controller.observer
 
                         for (int i = 0; i < childs; i++)
                         {
-                            // Attention -> in assynchronouse handling the index pointer i can be increased before the 
+                            // Attention -> in asynchronous handling the index pointer i can be increased before the 
                             // thread was handled. So clone them to make sure that it is not changing while handling!
                             int j = i;
                             handleChild(j, ia);
