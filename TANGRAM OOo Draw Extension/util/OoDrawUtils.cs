@@ -1001,7 +1001,7 @@ namespace tud.mci.tangram.util
         {
             if (shape != null)
             {
-                 var size = new Size(width, height);
+                var size = new Size(width, height);
                 shape.setSize(size);
             }
         }
@@ -1368,48 +1368,6 @@ namespace tud.mci.tangram.util
             return (int)Math.Round(v, 0, MidpointRounding.AwayFromZero);
         }
 
-        /// <summary>
-        /// Applies an affine transformation, given by the transformation matrix to a given coordinate
-        /// </summary>
-        /// <param name="pos">The original coordinate.</param>
-        /// <param name="homogenMatrix">The transformation matrix.</param>
-        /// <returns>The transformed matrix.</returns>
-        internal static Point Transform(Point pos, HomogenMatrix3 homogenMatrix)
-        {
-            // x' = a11 * x + a12 * y + a13
-            // y' = a21 * x + a22 * y + a23
-            //      a31       a32       a33   // 3rd line is only to allow matrix inversion, has no additional information, should always be [0, 0, 1]
-            return new Point(
-                (int)(homogenMatrix.Line1.Column1 * pos.X + homogenMatrix.Line1.Column2 * pos.Y + homogenMatrix.Line1.Column3),
-                (int)(homogenMatrix.Line2.Column1 * pos.X + homogenMatrix.Line2.Column2 * pos.Y + homogenMatrix.Line2.Column3)
-            );
-        }
-
-        /// <summary>
-        /// Applies an affine transformation, given by the transformation matrix to a given rectangle.
-        /// The resulting bounding box might be larger than the original rectangle if the object is rotated.
-        /// </summary>
-        /// <param name="rect">The original bounding rectangle.</param>
-        /// <param name="homogenMatrix">The transformation matrix.</param>
-        /// <returns>The bounding box of the transformed rectangle.</returns>
-        internal static Rectangle TransformBoundingBox(Rectangle rect, HomogenMatrix3 homogenMatrix)
-        {
-            // transform all corners
-            // p1       p2
-            // ┌────────┐
-            // │        │
-            // └────────┘
-            // p3       p4
-            Point p1 = Transform(new Point(rect.X, rect.Y), homogenMatrix);
-            Point p2 = Transform(new Point(rect.X + rect.Width, rect.Y), homogenMatrix);
-            Point p3 = Transform(new Point(rect.X + rect.Width, rect.Y + rect.Height), homogenMatrix);
-            Point p4 = Transform(new Point(rect.X, rect.Y + rect.Height), homogenMatrix);
-            int minX = Math.Min(Math.Min(Math.Min(p1.X, p2.X), p3.X), p4.X);
-            int maxX = Math.Max(Math.Max(Math.Max(p1.X, p2.X), p3.X), p4.X);
-            int minY = Math.Min(Math.Min(Math.Min(p1.Y, p2.Y), p3.Y), p4.Y);
-            int maxY = Math.Max(Math.Max(Math.Max(p1.Y, p2.Y), p3.Y), p4.Y);
-            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
-        }
         #endregion
 
         #region Screen Position To Document Position
@@ -1590,6 +1548,180 @@ namespace tud.mci.tangram.util
             }
             return m;
         }
+
+        /// <summary>
+        /// Applies an affine transformation, given by the transformation matrix to a given coordinate
+        /// </summary>
+        /// <param name="pos">The original coordinate.</param>
+        /// <param name="homogenMatrix">The transformation matrix.</param>
+        /// <returns>The transformed matrix.</returns>
+        internal static Point Transform(Point pos, HomogenMatrix3 homogenMatrix)
+        {
+            // x' = a11 * x + a12 * y + a13
+            // y' = a21 * x + a22 * y + a23
+            //      a31       a32       a33   // 3rd line is only to allow matrix inversion, has no additional information, should always be [0, 0, 1]
+            return new Point(
+                (int)(homogenMatrix.Line1.Column1 * pos.X + homogenMatrix.Line1.Column2 * pos.Y + homogenMatrix.Line1.Column3),
+                (int)(homogenMatrix.Line2.Column1 * pos.X + homogenMatrix.Line2.Column2 * pos.Y + homogenMatrix.Line2.Column3)
+            );
+        }
+
+        /// <summary>
+        /// Applies an affine transformation, given by the transformation matrix to a given rectangle.
+        /// The resulting bounding box might be larger than the original rectangle if the object is rotated.
+        /// </summary>
+        /// <param name="rect">The original bounding rectangle.</param>
+        /// <param name="homogenMatrix">The transformation matrix.</param>
+        /// <returns>The bounding box of the transformed rectangle.</returns>
+        internal static Rectangle TransformBoundingBox(Rectangle rect, HomogenMatrix3 homogenMatrix)
+        {
+            // transform all corners
+            // p1       p2
+            // ┌────────┐
+            // │        │
+            // └────────┘
+            // p3       p4
+            Point p1 = Transform(new Point(rect.X, rect.Y), homogenMatrix);
+            Point p2 = Transform(new Point(rect.X + rect.Width, rect.Y), homogenMatrix);
+            Point p3 = Transform(new Point(rect.X + rect.Width, rect.Y + rect.Height), homogenMatrix);
+            Point p4 = Transform(new Point(rect.X, rect.Y + rect.Height), homogenMatrix);
+            int minX = Math.Min(Math.Min(Math.Min(p1.X, p2.X), p3.X), p4.X);
+            int maxX = Math.Max(Math.Max(Math.Max(p1.X, p2.X), p3.X), p4.X);
+            int minY = Math.Min(Math.Min(Math.Min(p1.Y, p2.Y), p3.Y), p4.Y);
+            int maxY = Math.Max(Math.Max(Math.Max(p1.Y, p2.Y), p3.Y), p4.Y);
+            return new Rectangle(minX, minY, maxX - minX, maxY - minY);
+        }
+
+
+        #region Matrix Translation
+
+        /// <summary>
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix [HomogenMatrix3].</param>
+        /// <param name="tX">The translation in horizontal direction.</param>
+        /// <param name="tY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation [HomogenMatrix3].</returns>
+        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
+        public static object Translate2DHomogenMatrix3_anonymous(object matrix, double tX, double tY)
+        {
+            if (matrix is HomogenMatrix3)
+            {
+                double[,] m = ConvertHomogenMatrix3ToMatrix(matrix as HomogenMatrix3);
+                double[,] result = Translate2DMatrix(m, tX, tY);
+                return ConvertMatrixToHomogenMatrix3(result);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="tX">The translation in horizontal direction.</param>
+        /// <param name="tY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation.</returns>
+        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
+        internal static HomogenMatrix3 Translate2DHomogenMatrix3(HomogenMatrix3 matrix, double tX, double tY)
+        {
+            double[,] m = ConvertHomogenMatrix3ToMatrix(matrix);
+            double[,] result = Translate2DMatrix(m, tX, tY);
+            return ConvertMatrixToHomogenMatrix3(result);
+        }
+
+        /// <summary>
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="tX">The translation in horizontal direction.</param>
+        /// <param name="tY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation.</returns>
+        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
+        internal static HomogenMatrix3 Translate2DHomogenMatrix3(double[,] matrix, double tX, double tY)
+        {
+            double[,] result = Translate2DMatrix(matrix, tX, tY);
+            return ConvertMatrixToHomogenMatrix3(result);
+        }
+
+        static readonly double[,] translationMatrix2D = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+        /// <summary>
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="tX">The translation in horizontal direction.</param>
+        /// <param name="tY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation.</returns>
+        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
+        public static double[,] Translate2DMatrix(double[,] matrix, double tX, double tY)
+        {
+            /** Translation Matrix
+             * 
+             * Three dimensional
+             * 
+             *  1   0   0   tX
+             *  0   1   0   tY
+             *  0   0   0   tZ
+             *  0   0   0   1
+             *  
+             * -------------------------
+             * 
+             * Two dimensional
+             * 
+             *  1   0   tx
+             *  0   1   tx
+             *  0   0   1
+             * */
+
+            var trans = translationMatrix2D;
+            trans[0, 2] = tX;
+            trans[1, 2] = tY;
+
+            //matrix[0, 2] += tX;
+            //matrix[1,2] += tY;
+            //return matrix;
+
+            var result = MultiplyMatrix(trans, matrix);
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Multiplies the matrixes.
+        /// </summary>
+        /// <param name="a">The first Matrix.</param>
+        /// <param name="b">The second Matrix.</param>
+        /// <returns>the multiplication result</returns>
+        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
+        public static double[,] MultiplyMatrix(double[,] a, double[,] b)
+        {
+            double[,] c = null;
+            if (a.GetLength(1) == b.GetLength(0))
+            {
+                c = new double[a.GetLength(0), b.GetLength(1)];
+                for (int i = 0; i < c.GetLength(0); i++)
+                {
+                    for (int j = 0; j < c.GetLength(1); j++)
+                    {
+                        c[i, j] = 0;
+                        for (int k = 0; k < a.GetLength(1); k++) // OR k<b.GetLength(0)
+                            c[i, j] = c[i, j] + a[i, k] * b[k, j];
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Number of columns in First Matrix should be equal to Number of rows in Second Matrix.");
+            }
+
+            return c;
+        }
+
+
+        #endregion
+
+
+
 
         #endregion
 
