@@ -8,6 +8,7 @@ using tud.mci.tangram.TangramLector.OO;
 using tud.mci.tangram.audio;
 using tud.mci.tangram.TangramLector.Extension;
 using System.Configuration;
+using System.Threading.Tasks;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -128,16 +129,20 @@ namespace tud.mci.tangram.TangramLector
         private void initializeBrailleIO()
         {
             io = BrailleIOMediator.Instance;
-            if (io != null)
-            {
-                List<IBrailleIOAdapter> adapters = LoadAvailableAdapters(io.AdapterManager,
-                    this.windowManager,
-                    this.interactionManager,
-                    this.audioRenderer,
-                    this.OpenOffice,
-                    this.io
-                    );
-            }
+            //Task t = new Task(new Action(() =>
+            //{
+                if (io != null)
+                {
+                    List<IBrailleIOAdapter> adapters = LoadAvailableAdapters(io.AdapterManager,
+                        this.windowManager,
+                        this.interactionManager,
+                        this.audioRenderer,
+                        this.OpenOffice,
+                        this.io
+                        );
+                }
+            //}));
+            //t.Start();
         }
 
         /// <summary>
@@ -198,7 +203,7 @@ namespace tud.mci.tangram.TangramLector
                 if (io != null && this.io.AdapterManager != null && this.io.AdapterManager.GetAdapters() != null)
                     foreach (var adapter in this.io.AdapterManager.GetAdapters())
                     {
-                        if(adapter != null) adapter.Disconnect();
+                        if (adapter != null) adapter.Disconnect();
                     }
             }
             catch { }
@@ -307,7 +312,7 @@ namespace tud.mci.tangram.TangramLector
 
                         IBrailleIOAdapter adapter = adapterSupplier.GetAdapter(manager);
 
-                        if (adapter != null)
+                        if (adapter != null && !adapters.Contains(adapter))
                         {
                             // add to the list of all available adapters
                             adapters.Add(adapter);
@@ -485,6 +490,8 @@ namespace tud.mci.tangram.TangramLector
 
         private void initializeSSFPExtensions()
         {
+            //Task t = new Task(new Action(() =>
+            //{
             var ssfp = loadAllSpecializedScriptFunctionProxyExtension(GetSSFPDirectoryPath());
 
             if (functionProxy != null && ssfp != null && ssfp.Count > 0)
@@ -505,6 +512,8 @@ namespace tud.mci.tangram.TangramLector
                     }
                 }
             }
+            //}));
+            //t.Start();
         }
 
         /// <summary>
@@ -540,25 +549,21 @@ namespace tud.mci.tangram.TangramLector
                 // get list of extensions that should not been loaded
                 var blocked = GetBlockedExtensionList();
 
-                // build the specialized function poxies
+                // build the specialized function proxies
                 if (proxies != null && proxies.Count > 0)
                 {
                     foreach (var suppl in proxies)
                     {
+                        if (blocked.Contains(suppl.Key)) continue;
                         try
                         {
-                            if (blocked.Contains(suppl.Key)) continue;
-
                             var types = suppl.Value;
                             if (types != null && types.Count > 0)
                             {
                                 foreach (Type type in types)
                                 {
                                     IInteractionContextProxy o = extensibility.ExtensionLoader.CreateObjectFromType(type) as IInteractionContextProxy;
-                                    if (o != null)
-                                    {
-                                        ssfp.Add(o);
-                                    }
+                                    if (o != null) { ssfp.Add(o); }
                                 }
                             }
                         }
@@ -569,7 +574,6 @@ namespace tud.mci.tangram.TangramLector
                     }
                 }
             }
-
             return ssfp;
         }
 
