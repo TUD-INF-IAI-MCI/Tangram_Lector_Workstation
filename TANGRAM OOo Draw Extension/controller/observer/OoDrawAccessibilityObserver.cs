@@ -584,17 +584,6 @@ namespace tud.mci.tangram.controller.observer
 
         #region Fire Event
 
-        ///// <summary>
-        ///// Gets the last known selection collection.
-        ///// </summary>
-        ///// <value>
-        ///// The last selection.
-        ///// </value>
-        //public OoAccessibilitySelectionEventArgs LastSelection { get; private set; }
-
-        //private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
-        //private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
-
         private void fireDrawWindowOpendEvent(OoAccessibleDocWnd window)
         {
             if (DrawWindowOpend != null)
@@ -639,10 +628,6 @@ namespace tud.mci.tangram.controller.observer
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window closed event", ex); }
             }
-            //if (window.DrawPagesObs != null)
-            //{
-            //    window.DrawPagesObs.ViewOrZoomChangeEventHandlers -= OnViewOrZoomChange;
-            //}
         }
         private void fireDrawWindowMinimizedEvent(OoAccessibleDocWnd window)
         {
@@ -665,7 +650,7 @@ namespace tud.mci.tangram.controller.observer
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window activated event", ex); }
             }
-            System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD BECAUSE WINDOW ACTIVATED.");
+            //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD BECAUSE WINDOW ACTIVATED.");
             // also, get selection on document switch
             handleSelectionChanged(window, null);
         }
@@ -1043,11 +1028,8 @@ namespace tud.mci.tangram.controller.observer
                 {
                     foreach (OoShapeObserver item in SelectedItems)
                     {
-                        //System.Drawing.Rectangle pageBounds = Source.DocumentComponent.ScreenBounds;
                         System.Drawing.Rectangle tempSbRel = item.GetRelativeScreenBoundsByDom();
-                        //System.Drawing.Rectangle tempSbRel = new System.Drawing.Rectangle(shapeScreenBoundsRelative.X, shapeScreenBoundsRelative.Y, shapeScreenBoundsRelative.Width, shapeScreenBoundsRelative.Height);
                         System.Drawing.Rectangle tempSbAbs = item.GetAbsoluteScreenBoundsByDom(tempSbRel);
-                        //System.Drawing.Rectangle tempSbAbs = new System.Drawing.Rectangle(shapeScreenBoundsAbsolute.X, shapeScreenBoundsAbsolute.Y, shapeScreenBoundsAbsolute.Width, shapeScreenBoundsAbsolute.Height);
 
                         if (tempSbRel.Height > 0 || tempSbRel.Width > 0)
                         {
