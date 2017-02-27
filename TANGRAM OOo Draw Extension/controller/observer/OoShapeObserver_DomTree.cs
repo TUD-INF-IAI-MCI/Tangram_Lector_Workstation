@@ -280,6 +280,7 @@ namespace tud.mci.tangram.controller.observer
         /// shape was deleted but not disposed for keeping it in undo/history</param>
         /// <param name="shape">The shape.</param>
         /// <returns><c>true</c> if the parent could been get, otherwise <c>false</c></returns>
+        /// <remarks>This function is time limited to 200 ms.</remarks>
         bool tryGetParentByXShape(out XShapes parent, XShape shape = null)
         {
             bool success = false;

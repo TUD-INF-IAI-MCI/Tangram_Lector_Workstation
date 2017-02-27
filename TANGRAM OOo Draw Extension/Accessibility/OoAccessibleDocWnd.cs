@@ -24,17 +24,34 @@ namespace tud.mci.tangram.Accessibility
         #region Member
 
         /// <summary>
+        /// The lock object for a synchronized object access of this window.
+        /// </summary>
+        public readonly Object SynchLock = new Object();
+
+        /// <summary>
+        /// The main window of the document [XAccessible]. 
+        /// </summary>
+        public Object MainWindow_anonymouse { get { return MainWindow; } }
+        /// <summary>
         /// The main window of the document. 
         /// </summary>
-        public readonly XAccessible MainWindow;
+        internal readonly XAccessible MainWindow;
+        /// <summary>
+        /// The document component containing the document objects [XAccessible].
+        /// </summary>
+        public Object Document_anonymouse { get { return Document; } }
         /// <summary>
         /// The document component containing the document objects.
         /// </summary>
-        public XAccessible Document { get; private set; }
+        internal XAccessible Document { get; private set; }
         /// <summary>
-        /// the parent window/frame containing the document and is child of the main window 
+        /// the parent window/frame containing the document and is child of the main window [XAccessible].
         /// </summary>
-        public XAccessible DocumentWindow { get; private set; }
+        public Object DocumentWindow_anonymouse { get { return DocumentWindow; } }
+        /// <summary>
+        /// the parent window/frame containing the document and is child of the main window.
+        /// </summary>
+        internal XAccessible DocumentWindow { get; private set; }
         /// <summary>
         /// The window handle of the main window
         /// </summary>
@@ -88,7 +105,16 @@ namespace tud.mci.tangram.Accessibility
             }
         }
 
-        private string _lastTitle = String.Empty;
+        /// <summary>
+        /// Gets the cached title. This is not the current title. 
+        /// it is updated by the Title.get function.
+        /// Do not use this for getting the current title but for not stressing the API 
+        /// - e.g. in case of logging or debugging.
+        /// </summary>
+        /// <value>
+        /// The cached title.
+        /// </value>
+        public string CachedTitle { get; private set; }
         /// <summary>
         /// The title of the document
         /// </summary>
@@ -99,11 +125,11 @@ namespace tud.mci.tangram.Accessibility
                 string t = getTitle();
                 if (String.IsNullOrEmpty(t))
                 {
-                    t = _lastTitle;
+                    t = CachedTitle;
                 }
                 else
                 {
-                    _lastTitle = t;
+                    CachedTitle = t;
                 }
                 return t;
             }
@@ -143,6 +169,8 @@ namespace tud.mci.tangram.Accessibility
 
         #endregion
 
+        #region Constructor
+
         /// <summary>
         /// Initializes a new instance of the <see cref="OoAccessibleDocWnd"/> struct.
         /// </summary>
@@ -150,6 +178,8 @@ namespace tud.mci.tangram.Accessibility
         /// <param name="doc">The DOCUMENT (role) object.</param>
         public OoAccessibleDocWnd(XAccessible mainWnd, XAccessible doc)
         {
+
+            CachedTitle = "Unknown Document " + (this.GetHashCode() % 100);
             registerToEventForwarder();
             DrawPageSupplier = null;
             Whnd = IntPtr.Zero;
@@ -178,14 +208,18 @@ namespace tud.mci.tangram.Accessibility
                 }
                 );
             t.Start();
-
-
         }
+
+        #endregion
+
+        #region IUpdateable
 
         /// <summary>
         /// NOT IMPLEMENTED YET
         /// </summary>
         public void Update() { }
+
+        #endregion
 
         #region private initialization functions
 
@@ -260,8 +294,9 @@ namespace tud.mci.tangram.Accessibility
             String title = String.Empty;
 
             TimeLimitExecutor.WaitForExecuteWithTimeLimit(
-                200,
-                new Action(() => {
+                100,
+                new Action(() =>
+                {
 
                     if (DrawPagesObs != null)
                     {
@@ -303,9 +338,9 @@ namespace tud.mci.tangram.Accessibility
                         else
                             Logger.Instance.Log(LogPriority.IMPORTANT, this, "Cannot get correct title of the Oo document: Window title: '" + mainWndT + "' Document title: '" + docT + "'");
                     }
-                
-                }));
-            
+
+                }), "GetDocumentTitle");
+
             return title;
         }
 
@@ -322,7 +357,7 @@ namespace tud.mci.tangram.Accessibility
                     {
                         try
                         {
-                            System.Threading.Thread.Sleep(5);
+                            System.Threading.Thread.Sleep(50);
                             ((XWindow2)p).removeWindowListener(xWindowListener);
                         }
                         catch (Exception e) { Logger.Instance.Log(LogPriority.ALWAYS, this, "can't remove window listener", e); }
@@ -330,7 +365,7 @@ namespace tud.mci.tangram.Accessibility
                     try { ((XWindow2)p).addWindowListener(xWindowListener); }
                     catch (Exception e)
                     {
-                        Logger.Instance.Log(LogPriority.ALWAYS, this, "finaly can't add window listener", e);
+                        Logger.Instance.Log(LogPriority.ALWAYS, this, "finally can't add window listener", e);
                     }
                 }
             }
@@ -423,10 +458,18 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         private bool getXDrawPageSupplier()
         {
-            if (_dpsSerach)
+            try
             {
-                while (_dpsSerach) { Thread.Sleep(10); }
-                return true;
+                if (_dpsSerach)
+                {
+                    int tries = 0;
+                    while (_dpsSerach && tries++ < 100 ) { Thread.Sleep(10); }
+                    return tries < 100;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
             }
 
             _dpsSerach = true;
@@ -485,6 +528,7 @@ namespace tud.mci.tangram.Accessibility
         /// Hack to activate the accessibility events for selection.
         /// </summary>
         /// <param name="item">The item.</param>
+        /// <remarks>this function is time limited.</remarks>
         private void prepareForSelection(XDrawPagesSupplier item)
         {
             // adding and deleting one shape to the document so the selections 
@@ -555,6 +599,14 @@ namespace tud.mci.tangram.Accessibility
         {
             Logger.Instance.Log(LogPriority.DEBUG, this, "[ACCESSIBLE] accessible event in document " + (aEvent != null ? OoAccessibility.GetAccessibleEventIdFromShort(aEvent.EventId).ToString() : ""));
 
+            //var eventType = OoAccessibility.GetAccessibleEventIdFromShort(aEvent.EventId);
+
+            if (aEvent != null && aEvent.EventId == (short)AccessibleEventId.INVALIDATE_ALL_CHILDREN)
+            {
+                resetActivePagesObsCache();
+            }
+
+
             /* you can not rely on the selection events. 
              * They will only be thrown after editing the document. So selections in 
              * all loaded document will not been reported ever! 
@@ -602,7 +654,9 @@ namespace tud.mci.tangram.Accessibility
         /// Forwarder for accessibility events of the observed Document. 
         /// </summary>
         public event EventHandler<OoAccessibleDocAccessibleEventArgs> AccessibleEvent;
-
+        /// <summary>
+        /// Occurs when the selection changed.
+        /// </summary>
         public event EventHandler<OoSelectionChandedEventArgs> SelectionEvent;
 
         void fireWindowEvent(WindowEventType type, EventObject e)
@@ -643,6 +697,8 @@ namespace tud.mci.tangram.Accessibility
 
         #endregion
 
+        #region Override
+
         /// <summary>
         /// Returns a <see cref="System.String"/> that represents this instance.
         /// </summary>
@@ -652,12 +708,27 @@ namespace tud.mci.tangram.Accessibility
         public override string ToString()
         {
             return "OoAccessibleDocWnd [" + GetHashCode() + "] "
-                + "Title:'" + Title
+                + "Title:'" + CachedTitle
                 + "' wHndl:" + Whnd
                 + " MainWnd hash:" + (MainWindow != null ? MainWindow.GetHashCode().ToString() : "null")
                 + " DocWnd hash:" + (DocumentWindow != null ? DocumentWindow.GetHashCode().ToString() : "null")
                 + " Doc hash:" + (Document != null ? Document.GetHashCode().ToString() : "null");
         }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
+        {
+            return Whnd != IntPtr.Zero ? (int)Whnd : base.GetHashCode();
+        }
+
+        #endregion
+
+        #region Shape Observer Get
 
         /// <summary>
         /// Gets the registered shape observer to the accessible component if it is already registered.
@@ -679,6 +750,10 @@ namespace tud.mci.tangram.Accessibility
         {
             return GetRegisteredShapeObserver(accessibleComponent.AccComp);
         }
+
+        #endregion
+
+        #region Page Get
 
         /// <summary>
         /// Return the current active page.
@@ -704,21 +779,30 @@ namespace tud.mci.tangram.Accessibility
             return null;
         }
 
+        int _cachedPageCount = 0;
         /// <summary>
         /// Gets the page count.
         /// </summary>
         /// <returns>The number of available pages or 0</returns>
         public int GetPageCount()
         {
-            if (DrawPageSupplier != null && DrawPageSupplier is XDrawPagesSupplier)
+            int pageCount = _cachedPageCount;
+            var success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
             {
-                var pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
-                if (pages != null) return pages.getCount();
-            }
+                if (DrawPageSupplier != null && DrawPageSupplier is XDrawPagesSupplier)
+                {
+                    var pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
+                    if (pages != null) pageCount = pages.getCount();
+                }
+            }, "GetPageCount");
 
-            return 0;
+            _cachedPageCount = pageCount;
+            return pageCount;
         }
 
+        void resetActivePagesObsCache() { _lastPageObs = null; }
+        DateTime _lastPageObsObserving;
+        TimeSpan _maxCachePageTime = new TimeSpan(0, 1, 0);
         volatile bool _runing = false;
         OoDrawPageObserver _lastPageObs = null;
         /// <summary>
@@ -727,6 +811,8 @@ namespace tud.mci.tangram.Accessibility
         /// <returns></returns>
         private OoDrawPageObserver getActivePageObserver()
         {
+            if (_lastPageObs != null && DateTime.Now - _lastPageObsObserving < _maxCachePageTime) return _lastPageObs;
+
             // if this is hanging or called multiple times
             int tries = 0;
             while (_runing && tries++ < 10) { Thread.Sleep(10); }
@@ -746,7 +832,7 @@ namespace tud.mci.tangram.Accessibility
                         // get the controller of the Draw application
                         XController contr = Controller as XController;
 
-                        int pid = getCurrentActivePageId(contr);
+                        int pid = GetCurrentActivePageId(contr);
 
                         // find the OoDrawPageObserver for the correct page number
                         if (pid > 0)
@@ -772,6 +858,7 @@ namespace tud.mci.tangram.Accessibility
                 }
 
                 _lastPageObs = pageObs;
+                _lastPageObsObserving = DateTime.Now;
                 return pageObs;
             }
             finally
@@ -780,13 +867,78 @@ namespace tud.mci.tangram.Accessibility
             }
         }
 
+        #region get Page ID
+
+        /// <summary>
+        /// The cached current active page id. This property will be updated by 
+        /// the <see cref="GetCurrentActivePageId"/> function. 
+        /// Use this for getting access to the property without stressing the API.
+        /// </summary>
+        internal int CachedCurrentPid = -1;
+        private bool _gettingPageID = false;
+        /// <summary>
+        /// Try to get the page number of the current active page
+        /// </summary>
+        /// <param name="contr"></param>
+        /// <param name="pid"></param>
+        /// <returns>The ID (page number) of the current active page.</returns>
+        /// <remarks>Parts of this function are time limited to 100 ms.</remarks>
+        internal int GetCurrentActivePageId(XController contr)
+        {
+            if (_gettingPageID)
+                return CachedCurrentPid;
+            int pid = -1;
+            try
+            {
+                //lock (SynchLock)
+                //{
+                bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
+                         () =>
+                         {
+                             try
+                             {
+                                 if (contr != null && contr is XDrawView)
+                                 {
+                                     // get the current page
+                                     var page = ((XDrawView)contr).getCurrentPage();
+                                     // get the number
+                                     pid = util.OoUtils.GetIntProperty(page, "Number");
+                                 }
+                             }
+                             catch (DisposedException)
+                             {
+                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Controller seems to be already disposed");
+                                 this.Dispose();
+                             }
+                             catch (System.Exception ex)
+                             {
+                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant use the controller of document window: "/*, ex*/);
+                             }
+                         }
+                         , "useControllerOfModel"
+                         );
+                if (!success) return CachedCurrentPid;
+                //}
+                CachedCurrentPid = pid;
+                return pid;
+            }
+            finally { _gettingPageID = false; }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Controller
+
         XController _lastController = null;
         volatile bool _gettingController = false;
         /// <summary>
-        /// Tries the get the controller of the document model.
+        /// Tries the get the controller of the document model [XController].
         /// </summary>
         /// <param name="model">The model.</param>
-        /// <returns></returns>
+        /// <returns>The controller for this whole DRAW document.</returns>
+        /// <remarks>Parts of this function are time limited to 200 ms.</remarks>
         public Object Controller
         {
             get
@@ -859,46 +1011,11 @@ namespace tud.mci.tangram.Accessibility
             }
         }
 
-        private readonly object _controlerLock = new Object();
-        /// <summary>
-        /// Try to get the page number of the current active page
-        /// </summary>
-        /// <param name="contr"></param>
-        /// <param name="pid"></param>
-        /// <returns></returns>
-        private int getCurrentActivePageId(XController contr)
-        {
-            int pid = -1;
-            lock (_controlerLock)
-            {
-                TimeLimitExecutor.WaitForExecuteWithTimeLimit(500,
-                         () =>
-                         {
-                             try
-                             {
-                                 if (contr != null && contr is XDrawView)
-                                 {
-                                     // get the current page
-                                     var page = ((XDrawView)contr).getCurrentPage();
-                                     // get the number
-                                     pid = util.OoUtils.GetIntProperty(page, "Number");
-                                 }
-                             }
-                             catch (DisposedException)
-                             {
-                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Controller seems to be already disposed");
-                                 this.Dispose();
-                             }
-                             catch (System.Exception ex)
-                             {
-                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant use the controller of document window: " + ex);
-                             }
-                         }
-                         , "useControllerOfModel"
-                         );
-            }
-            return pid;
-        }
+        #endregion
+
+        #region Window State Checks
+
+        #region user32.dll Invoke
 
         [DllImport("user32.dll")]
         static extern int IsIconic(int hwnd);
@@ -908,6 +1025,8 @@ namespace tud.mci.tangram.Accessibility
 
         [DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, ExactSpelling = true)]
         static extern bool IsWindow(IntPtr hWnd);
+
+        #endregion
 
         /// <summary>
         /// Determines whether this window is visible.
@@ -940,6 +1059,7 @@ namespace tud.mci.tangram.Accessibility
             return false;
         }
 
+        #endregion
 
         #region IDisposable
 
@@ -982,11 +1102,12 @@ namespace tud.mci.tangram.Accessibility
 
         #endregion
 
-
     }
 
+    #region Structs
+
     [StructLayout(LayoutKind.Sequential)]
-    struct WINDOWINFO
+    internal struct WINDOWINFO
     {
         public uint cbSize;
         public RECT rcWindow;
@@ -1008,7 +1129,7 @@ namespace tud.mci.tangram.Accessibility
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct RECT
+    internal struct RECT
     {
         public int Left, Top, Right, Bottom;
 
@@ -1102,6 +1223,8 @@ namespace tud.mci.tangram.Accessibility
             return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{{Left={0},Top={1},Right={2},Bottom={3}}}", Left, Top, Right, Bottom);
         }
     }
+
+    #endregion
 
     #region Event Arg Definition
 

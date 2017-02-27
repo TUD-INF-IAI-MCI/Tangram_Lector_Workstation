@@ -2,6 +2,7 @@
 using unoidl.com.sun.star.view;
 using System.Threading;
 using tud.mci.tangram.util;
+using System.Threading.Tasks;
 
 namespace tud.mci.tangram.models.Interfaces
 {
@@ -25,7 +26,8 @@ namespace tud.mci.tangram.models.Interfaces
             {
                 try
                 {
-                    SelectionChanged.Invoke(this, new EventObjectForwarder(aEvents));
+                    Task t = new Task( new Action( ()=> SelectionChanged.Invoke(this, new EventObjectForwarder(aEvents))));
+                    t.Start();
                 }
                 catch { }
             }

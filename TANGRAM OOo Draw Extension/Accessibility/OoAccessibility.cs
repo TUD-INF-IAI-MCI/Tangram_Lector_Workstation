@@ -16,13 +16,14 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <returns>AccessibleRole or AccessibleRole.UNKNOWN</returns>
+        /// <remarks>This function is time limited to 200 ms.</remarks>
         public static AccessibleRole GetAccessibleRole(XAccessible obj)
         {
             AccessibleRole r = AccessibleRole.UNKNOWN;
 
             if (obj != null)
             {
-                TimeLimitExecutor.WaitForExecuteWithTimeLimit(400, () =>
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, () =>
                 {
                     try
                     {
@@ -47,6 +48,7 @@ namespace tud.mci.tangram.Accessibility
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <returns>AccessibleRole or AccessibleRole.UNKNOWN</returns>
+        /// <remarks>Parts of this function are time limited to 100 ms.</remarks>
         public static AccessibleRole GetAccessibleRole(XAccessibleContext obj)
         {
             if (obj != null)

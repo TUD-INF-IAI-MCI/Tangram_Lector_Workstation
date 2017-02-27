@@ -26,7 +26,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
         internal readonly DrawDocumentRendererHook DocumentBorderHook = new DrawDocumentRendererHook();
         internal readonly FocusRendererHook BrailleDomFocusRenderer = new FocusRendererHook();
-        internal readonly FocusRendererHook DrawSelectFocusRenderer = new FocusRendererHook(true);
+        internal readonly SelectionRendererHook DrawSelectFocusRenderer = new SelectionRendererHook(true);
         /// <summary>
         /// A renderer hook that overlays elements with text with a Braille label.
         /// </summary>
@@ -38,17 +38,17 @@ namespace tud.mci.tangram.TangramLector.OO
 
         readonly OpenOfficeDrawShapeManipulator shapeManipulatorFunctionProxy = null;
 
-        /// <summary>
-        /// Bounding box of all selected items.
-        /// </summary>
-        /// <returns></returns>
-        public Rectangle SelectedBoundingBox { get; private set; }
+        ///// <summary>
+        ///// Bounding box of all selected items.
+        ///// </summary>
+        ///// <returns></returns>
+        //public Rectangle SelectedBoundingBox { get; private set; }
 
-        /// <summary>
-        /// Get first item of list which is selected on GUI (Mouse focus).
-        /// </summary>
-        /// <returns></returns>
-        public OoShapeObserver SelectedItem { get; private set; }
+        ///// <summary>
+        ///// Get first item of list which is selected on GUI (Mouse focus).
+        ///// </summary>
+        ///// <returns></returns>
+        //public OoShapeObserver SelectedItem { get; private set; }
 
         #endregion
 
@@ -68,14 +68,14 @@ namespace tud.mci.tangram.TangramLector.OO
 
             initFunctionProxy();
             registerAsSpecializedFunctionProxy();
-            OoSelectionObserver.Instance.SelectionChanged += new EventHandler<OoSelectionChandedEventArgs>(OoDrawAccessibilityObserver_SelectionChanged);
+            //OoSelectionObserver.Instance.SelectionChanged += new EventHandler<OoSelectionChandedEventArgs>(OoDrawAccessibilityObserver_SelectionChanged);
 
             OoDrawAccessibilityObserver.Instance.DrawWindowOpend += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowOpend);
             OoDrawAccessibilityObserver.Instance.DrawWindowPropertyChange += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowPropertyChange);
             OoDrawAccessibilityObserver.Instance.DrawWindowMinimized += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowMinimized);
             OoDrawAccessibilityObserver.Instance.DrawWindowClosed += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowClosed);
             OoDrawAccessibilityObserver.Instance.DrawWindowActivated += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowActivated);
-            OoDrawAccessibilityObserver.Instance.DrawSelectionChanged += new EventHandler<OoAccessibilitySelectionEventArgs>(Instance_DrawSelectionChanged);
+            OoDrawAccessibilityObserver.Instance.DrawSelectionChanged += new EventHandler<OoAccessibilitySelectionChangedEventArgs>(Instance_DrawSelectionChanged);
 
             shapeManipulatorFunctionProxy.SelectedShapeChanged += new EventHandler<EventArgs>(shapeManipulatorFunctionProxy_SelectedShapeChanged);
             shapeManipulatorFunctionProxy.PolygonPointSelected += shapeManipulatorFunctionProxy_PolygonPointSelected;
@@ -211,7 +211,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
                 }
                 else
-                {    
+                {
                     BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
                 }
@@ -310,77 +310,89 @@ namespace tud.mci.tangram.TangramLector.OO
         /// The current (GUI ?) selections will be observed and highlighted 
         /// with a blinking frame on the non-visual output devices.
         /// </summary>
-        public void StartDrawSelectFocusHighlightingMode()
+        public void StartDrawSelectFocusHighlightingMode(OoAccessibilitySelection selection = null)
         {
-            // look for current selection
-            // first, if there is none try getting from last selected args
-            if (SelectedBoundingBox.IsEmpty && OoDrawAccessibilityObserver.Instance.LastSelection != null) SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
-            Rectangle bb = SelectedBoundingBox;
-            Rectangle pageBounds = WindowManager.Instance.ScreenObserver.ScreenPos != null ? (Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos : new Rectangle();
+            //// look for current selection
+            //// first, if there is none try getting from last selected args
+            // if (SelectedBoundingBox.IsEmpty && OoDrawAccessibilityObserver.Instance.LastSelection != null) 
+            //     SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
+            //Rectangle bb = SelectedBoundingBox;
+
+            //Rectangle bb = new Rectangle();
+            if (OoDrawAccessibilityObserver.Instance != null)
+            {
+                if (selection == null)
+                {
+                    bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(GetActiveDocument(), out selection);
+                }
+                //if (selection != null)
+                //{
+                //    bb = selection.SelectionBounds;
+                //}
+            }
+
+            //Rectangle pageBounds = WindowManager.Instance.ScreenObserver.ScreenPos != null ? (Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos : new Rectangle();
             this.DrawSelectFocusRenderer.DoRenderBoundingBox = true;
             this.DrawSelectFocusHighlightMode = true;
-            if (!bb.IsEmpty && pageBounds.Width > 0 && pageBounds.Height > 0)
-            {
-                System.Drawing.Rectangle absBBox = new System.Drawing.Rectangle(bb.X + pageBounds.X, bb.Y + pageBounds.Y, bb.Width, bb.Height);
-                this.DrawSelectFocusRenderer.CurrentBoundingBox = absBBox;
-            }
-            else
-            {
-                this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
-            }
+            this.DrawSelectFocusRenderer.SetSelection(selection);
+
+            //if (!bb.IsEmpty && pageBounds.Width > 0 && pageBounds.Height > 0)
+            //{
+            //    System.Drawing.Rectangle absBBox = new System.Drawing.Rectangle(bb.X + pageBounds.X, bb.Y + pageBounds.Y, bb.Width, bb.Height);
+            //    this.DrawSelectFocusRenderer.CurrentBoundingBox = absBBox;
+            //}
+            //else
+            //{
+            //    this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
+            //}
         }
 
-        private List<OoShapeObserver> currentSelection = new List<OoShapeObserver>();
-        void Instance_DrawSelectionChanged(object sender, OoAccessibilitySelectionEventArgs e)
-        {
-            if (e != null && e.SelectedItems != null)
-            {
-                if (e.SelectedItems.Count > 0 && !e.SelectionBounds.IsEmpty)
-                {
-                    if (!e.Silent) Logger.Instance.Log(LogPriority.MIDDLE, this, "[GUI INTERACTION] selection changed, count: " + e.SelectedItems.Count.ToString());
-                    SelectedBoundingBox = e.SelectionBounds;
-                }
-                else
-                {
-                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[GUI INTERACTION] deselection");
-                    SelectedItem = null;
-                    SelectedBoundingBox = new Rectangle(-1, -1, 0, 0);
-                    this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
-                }
 
+        OoAccessibilitySelection _lastRegisterdSelection = null;
+
+        //private List<OoShapeObserver> currentSelection = new List<OoShapeObserver>();
+        void Instance_DrawSelectionChanged(object sender, OoAccessibilitySelectionChangedEventArgs e)
+        {
+            if (e != null /*&& e.SelectedItems != null*/)
+            {
                 if (windowManager.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
                 {
-                    if (e.SelectedItems.Count > 0)
+                    if (e != null && sender != null && e.Source != null)
                     {
-                        SelectedBoundingBox = e.SelectionBounds;
-                        if (e.Source != null && e.Source.DrawPagesObs != null)
-                        {
-                            SelectedItem = e.SelectedItems[0];
-                        }
-                        if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.Active && this.DrawSelectFocusRenderer != null)
-                        {
-                            StartDrawSelectFocusHighlightingMode();
-                        }
-                    }
+                        OoAccessibilitySelection selection;
 
-                    if (e != null && !e.Silent)
-                    {
-                        if (e.SelectedItems.Count > 0)
+                        bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(e.Source, out selection);
+                        if (success)
                         {
-                            windowManager.MoveToObject(e.SelectionBounds); // sync view box on pin device
-                        }
-                        if ((e.SelectedItems.Count > 0) &&
-                            (e.SelectedItems.Count > 1 || currentSelection.Count > 1 ||
-                            currentSelection.Count == 0 ||
-                            (currentSelection.Count > 0 && !e.SelectedItems[0].Equals(currentSelection[0])))
-                            )
-                        {
-                            CommunicateSelection(e.SelectedItems);
+                            if (selection != null && selection.Count > 0)
+                            {
+                                if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.Active
+                                   && this.DrawSelectFocusRenderer != null)
+                                {
+                                    StartDrawSelectFocusHighlightingMode(selection);
+                                }
+
+                                if (
+                                    (!e.Silent && (selection.Count > 0))
+                                    || _lastRegisterdSelection == null
+                                    || selection != _lastRegisterdSelection
+                                    )
+                                {
+                                    CommunicateSelection(selection.SelectedItems);
+                                }
+
+                                _lastRegisterdSelection = selection;
+                            }
+                            else
+                            {
+                                _lastRegisterdSelection = null;
+                                if (this.DrawSelectFocusRenderer != null)
+                                    this.DrawSelectFocusRenderer.SetSelection(null);
+                            }
                         }
                     }
                 }
             }
-            currentSelection = e != null && e.SelectedItems != null ? e.SelectedItems : new List<OoShapeObserver>();
         }
 
         /// <summary>
@@ -392,7 +404,7 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (e.Count > 1)
             {
-                String audioText = LL.GetTrans("tangram.lector.oo_observer.selected_element", e.Count);
+                String audioText = LL.GetTrans("tangram.lector.oo_observer.selected_elements", e.Count);
                 if (immediately) audioRenderer.PlaySoundImmediately(audioText);
                 else audioRenderer.PlaySound(audioText);
                 windowManager.SetDetailRegionContent(audioText);
@@ -415,11 +427,18 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (OoDrawAccessibilityObserver.Instance != null)
             {
-                var args = OoDrawAccessibilityObserver.Instance.LastSelection;
-                if (args != null && args.SelectedItems != null)
+                OoAccessibilitySelection selection = null;
+                bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(GetActiveDocument(), out selection);
+                if (success && selection != null)
                 {
-                    CommunicateSelection(args.SelectedItems, immediately);
+                    CommunicateSelection(selection.SelectedItems, immediately);
                 }
+
+                //var args = OoDrawAccessibilityObserver.Instance.LastSelection;
+                //if (args != null && args.SelectedItems != null)
+                //{
+                //    CommunicateSelection(args.SelectedItems, immediately);
+                //}
             }
         }
 
@@ -567,7 +586,7 @@ namespace tud.mci.tangram.TangramLector.OO
                         {
                             Logger.Instance.Log(LogPriority.DEBUG, this, "ooDraw wnd property changed " + e.Window.ToString());
 
-                            if (windowManager != null)
+                            if (windowManager != null && e.Type.HasFlag(WindowEventType.ACTIVATED))
                             {
                                 setTitelregionToDocTitle(e.Window);
                             }
@@ -630,10 +649,10 @@ namespace tud.mci.tangram.TangramLector.OO
             }
         }
 
-        void OoDrawAccessibilityObserver_SelectionChanged(object sender, OoSelectionChandedEventArgs e)
-        {
-            //System.Diagnostics.Debug.WriteLine("Instance_SelectionChanged");
-        }
+        //void OoDrawAccessibilityObserver_SelectionChanged(object sender, OoSelectionChandedEventArgs e)
+        //{
+        //    //System.Diagnostics.Debug.WriteLine("Instance_SelectionChanged");
+        //}
 
         #endregion
 
@@ -727,11 +746,24 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <returns></returns>
         public OoShapeObserver GetCurrentSelection()
         {
-            if (OoDrawAccessibilityObserver.Instance != null && OoDrawAccessibilityObserver.Instance.LastSelection != null && OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems != null && OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems.Count > 0)
+            if (OoDrawAccessibilityObserver.Instance != null
+                //&& OoDrawAccessibilityObserver.Instance.LastSelection != null 
+                //&& OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems != null 
+                //&& OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems.Count > 0
+                )
             {
-                this.SelectedItem = OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems[0];
-                this.SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
-                return this.SelectedItem;
+                OoAccessibilitySelection selection = null;
+                bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(GetActiveDocument(), out selection);
+
+                if (success && selection != null && selection.Count > 0)
+                {
+                    return selection.SelectedItems[0];
+                }
+
+                //TODO: store this staff?!
+                //this.SelectedItem = OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems[0];
+                //this.SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
+                //return this.SelectedItem;
             }
             return null;
         }
@@ -843,7 +875,7 @@ namespace tud.mci.tangram.TangramLector.OO
         Object IOoDrawConnection.GetCurrentDrawSelection()
         {
 
-            OoShapeObserver shape = SelectedItem;
+            OoShapeObserver shape = null; // FIXME: check that // SelectedItem;
             if (shape == null)
             {
                 shape = GetCurrentSelection();

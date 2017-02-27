@@ -99,7 +99,8 @@ namespace tud.mci.tangram.util
         /// Gets the Multi Component Factory (ServiceManager).
         /// </summary>
         /// <param name="xContext">The context.</param>
-        /// <returns></returns>
+        /// <returns>A related multi component factory for instantiating new objects by their service name.</returns>
+        /// <remarks>This function is time limited to 300 ms.</remarks>
         public static XMultiComponentFactory GetMultiComponentFactory(XComponentContext xContext = null, bool renew = false)
         {
             if (_xMcf != null && !renew)
@@ -252,6 +253,7 @@ namespace tud.mci.tangram.util
         /// resets the connection if necessary.
         /// </summary>
         /// <returns>always <c>false</c></returns>
+        /// <remarks>This function is time limited to 50 ms.</remarks>
         public static bool CheckConnection()
         {
             lock (conCheckLock)
@@ -1128,6 +1130,21 @@ namespace tud.mci.tangram.util
             /// indicates that a property is optional. This attribute is not of interest for concrete property implementations. It's needed for property specifications inside service specifications in UNOIDL.
             /// </summary>
             OPTIONAL = 256
+        }
+
+        /// <summary>
+        /// Gets the orientation of a page
+        /// </summary>
+        public enum PaperOrientation
+        {
+            /// <summary>
+            /// Portrait mode
+            /// </summary>
+            PORTRAIT = 0,
+            /// <summary>
+            /// landscape mode
+            /// </summary>
+            LANDSCAPE = 1,
         }
 
 

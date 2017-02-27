@@ -398,6 +398,7 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>
         ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </returns>
+        /// <remarks>Parts of this function are time limited to 100 ms.</remarks>
         virtual public bool IsValid(bool force = true)
         {
             if (!_valid) return false;
@@ -656,10 +657,10 @@ namespace tud.mci.tangram.controller.observer
         }
 
         /// <summary>
-        /// tries to calculate the onscreen bounding box in px relative to the openoffice draw view area, based on dom position, openoffice zoom etc.
+        /// tries to calculate the onscreen bounding box in px relative to the DRAW view area, based on dom position, openoffice zoom etc.
         /// the accessibility interface is not used by this method
         /// </summary>
-        /// <returns>Bounding box in pixels as screen position relative to the openoffice draw view area.</returns>
+        /// <returns>Bounding box in pixels as screen position relative to the DRAW view area.</returns>
         virtual public System.Drawing.Rectangle GetRelativeScreenBoundsByDom()
         {
             System.Drawing.Rectangle result = new System.Drawing.Rectangle(-1, -1, 0, 0);
@@ -701,48 +702,57 @@ namespace tud.mci.tangram.controller.observer
         /// if the given value is null, getRelativeScreenBoundsByDom() of this shape observer will be called
         /// </param>
         /// <returns>Bounding box in pixels as absolute screen position.</returns>
+        /// <remarks>Parts of this function are time limited to 100 ms.</remarks>
         virtual public System.Drawing.Rectangle GetAbsoluteScreenBoundsByDom(System.Drawing.Rectangle relativeBounds)
         {
             if (_updatingBounds) return _lastBounds;
 
             _updatingBounds = true;
-
-            System.Drawing.Rectangle result = (relativeBounds.Height * relativeBounds.Width <= 0) ? GetRelativeScreenBoundsByDom() : new System.Drawing.Rectangle(relativeBounds.X, relativeBounds.Y, relativeBounds.Width, relativeBounds.Height);
-            //XModel docModel = (XModel)GetDocument();
-            if (result.Width * result.Height > 0
-                //&& docModel != null
-                )
+            System.Drawing.Rectangle result = new System.Drawing.Rectangle();
+            try
             {
-                // get page properties like zoom and offset
-                //docModel.lockControllers();
-                try
+                result = (relativeBounds.Height * relativeBounds.Width <= 0) ? GetRelativeScreenBoundsByDom() : relativeBounds;
+                //XModel docModel = (XModel)GetDocument();
+                if (result.Width * result.Height > 0
+                    //&& docModel != null
+                    )
                 {
-                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
+                    // get page properties like zoom and offset
+                    //docModel.lockControllers();
+                    try
                     {
-                        try
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
                         {
-                            // add offset for draw view
-                            XAccessibleComponent xaCmp = (XAccessibleComponent)Page.PagesObserver.DocWnd.Document.getAccessibleContext();
-                            Point drawViewWindowPos = (xaCmp != null) ? xaCmp.getLocationOnScreen() : new Point(0, 0);
-                            result.X = result.X + drawViewWindowPos.X;
-                            result.Y = result.Y + drawViewWindowPos.Y;
-                        }
-                        catch (System.Threading.ThreadAbortException) { }
-                    }, "GetAbsoluteScreenBoundsByDom [" + Name + "]");
+                            try
+                            {
+                                // add offset for draw view
+                                XAccessibleComponent xaCmp = (XAccessibleComponent)Page.PagesObserver.DocWnd.Document.getAccessibleContext();
+                                Point drawViewWindowPos = (xaCmp != null) ? xaCmp.getLocationOnScreen() : new Point(0, 0);
+                                result.X = result.X + drawViewWindowPos.X;
+                                result.Y = result.Y + drawViewWindowPos.Y;
+                            }
+                            catch (System.Threading.ThreadAbortException) { }
+                        }, "GetAbsoluteScreenBoundsByDom [" + Name + "]");
+                    }
+                    catch (System.Threading.ThreadAbortException) { }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Log(LogPriority.DEBUG, this, ex);
+                    }
+                    finally
+                    {
+                        // docModel.unlockControllers();
+                    }
+                }else{
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE] can't get relative screen bounds from shape ");
                 }
-                catch (System.Threading.ThreadAbortException) { }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Log(LogPriority.DEBUG, this, ex);
-                }
-                finally
-                {
-                    // docModel.unlockControllers();
-                }
-            }
 
-            _lastBounds = result;
-            _updatingBounds = false;
+                _lastBounds = result;
+            }
+            finally
+            {
+                _updatingBounds = false;
+            }
             return result;
         }
 
@@ -886,6 +896,6 @@ namespace tud.mci.tangram.controller.observer
         }
 
         #endregion
-        
+
     }
 }

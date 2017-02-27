@@ -95,6 +95,7 @@ namespace tud.mci.tangram.util
         /// if no special TargetFrameName was used.</param>
         /// <param name="args">Optional arguments for this request They depend on 
         /// the real implementation of the dispatch object.</param>
+        /// <remarks>This function is time limited to 20 ms.</remarks>
         internal static bool CallDispatch(string commandUrl, XDispatchProvider docViewContrl, String _frame = "", int _sFlag = 0, PropertyValue[] args = null)
         {
             bool successs = false;

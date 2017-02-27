@@ -18,26 +18,26 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             _dashed = drawDashedBox;
         }
+
+
+        private OoShapeObserver _lastSelection = null;
         /// <summary>
         /// The current bounding box to display
         /// </summary>
         private Rectangle _currentBoundingBox = new Rectangle(-1, -1, 0, 0);
-
         /// <summary>
         /// The current bounding box to display
         /// </summary>
-        public Rectangle CurrentBoundingBox
+        virtual public Rectangle CurrentBoundingBox
         {
             get { return _currentBoundingBox; }
             set { _currentBoundingBox = value; }
         }
 
-
         /// <summary>
         /// The current point
         /// </summary>
         public Point CurrentPoint = new Point(-1, -1);
-
 
         /// <summary>
         /// Sets the current bounding box by shape.
@@ -89,7 +89,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <param name="content"></param>
         /// <param name="result"></param>
         /// <param name="additionalParams"></param>
-        private void doBlinkingBoundingBox(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
+        virtual protected void doBlinkingBoundingBox(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
             //draw frame as bool pins
             if (DoRenderBoundingBox &&
@@ -104,7 +104,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        private bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] result)
+        virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] result)
         {
             if (view is IZoomable && view is IPannable)
             {
@@ -234,7 +234,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             return result;
         }
 
-        private bool[,] paintPolygonPointMarker(IViewBoxModel view, bool[,] result)
+        virtual protected bool[,] paintPolygonPointMarker(IViewBoxModel view, bool[,] result)
         {
             // point;
             if (result != null
@@ -319,7 +319,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <param name="max_x">The maximum horizontal dimension.</param>
         /// <param name="max_y">The maximum vertical dimension.</param>
         /// <returns><c>true</c> if the dot could be set.</returns>
-        static bool setSaveDot(int x, int y, ref bool[,] m, bool value, int max_x = 0, int max_y = 0)
+        protected static bool setSaveDot(int x, int y, ref bool[,] m, bool value, int max_x = 0, int max_y = 0)
         {
             if (m != null && x > -1 && y > -1)
             {
@@ -343,7 +343,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             return false;
         }
 
-        Rectangle getPageBounds()
+        virtual protected Rectangle getPageBounds()
         {
             Rectangle pageBounds = new Rectangle();
             if (WindowManager.Instance != null)

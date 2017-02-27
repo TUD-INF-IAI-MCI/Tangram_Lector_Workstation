@@ -86,6 +86,7 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="xDesktop">The XDesktop.</param>
         /// <returns>A list of all available XDrawPagesSupplier</returns>
+        /// <remarks>this function is time limited to 1,200 ms.</remarks>
         public static List<XDrawPagesSupplier> GetDrawPageSuppliers(XDesktop xDesktop)
         {
             //lock (_dpsLock)
@@ -187,6 +188,12 @@ namespace tud.mci.tangram.util
             return page;
         }
 
+        /// <summary>
+        /// Gets the parent shape.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <returns>the parent shape or <c>null</c>.</returns>
+        /// <remarks>this function is time limited to 500 ms.</remarks>
         internal static XShapes GetParentShape(XShape shape)
         {
             XShapes parent = null;

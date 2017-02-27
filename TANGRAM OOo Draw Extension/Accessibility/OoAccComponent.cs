@@ -76,6 +76,7 @@ namespace tud.mci.tangram.Accessibility
         /// The bounding box of this element and its position on the screen.
         /// </summary>
         /// <value>The screen bounds.</value>
+        /// <remarks>Parts of this function are time limited to 200 ms.</remarks>
         public System.Drawing.Rectangle ScreenBounds
         {
             get
@@ -89,7 +90,7 @@ namespace tud.mci.tangram.Accessibility
                         System.Drawing.Rectangle sB = _lastScreenBounds;
                         try
                         {
-                            var screenbounder = TimeLimitExecutor.WaitForExecuteWithTimeLimit(500,
+                            var screenbounder = TimeLimitExecutor.WaitForExecuteWithTimeLimit(200,
                                 () =>
                                 {
                                     try
@@ -301,6 +302,7 @@ namespace tud.mci.tangram.Accessibility
         /// <returns>
         /// 	<c>true</c> if this instance is valid; otherwise, <c>false</c>.
         /// </returns>
+        /// <remarks>This function is time limited to 100 ms.</remarks>
         public bool IsValid()
         {
             if (AccComp != null && AccCont != null)
@@ -308,13 +310,7 @@ namespace tud.mci.tangram.Accessibility
                 try
                 {
                     int c = -1;
-                    var executor = TimeLimitExecutor.ExecuteWithTimeLimit(500, () => { c = AccCont.getAccessibleChildCount(); });
-
-                    while (executor != null && executor.IsAlive && executor.ThreadState == ThreadState.Running)
-                    {
-                        Thread.Sleep(1);
-                    }
-
+                    bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () => { c = AccCont.getAccessibleChildCount(); });
                     if (c >= 0)
                         return true;
                     return false;
@@ -333,6 +329,7 @@ namespace tud.mci.tangram.Accessibility
         /// <returns>
         /// 	<c>true</c> if this instance is visible; otherwise, <c>false</c>.
         /// </returns>
+        /// <remarks>Parts of this function are time limited to 100 ms.</remarks>
         public bool IsVisible()
         {
             if (IsValid())

@@ -23,17 +23,25 @@ namespace tud.mci.tangram.controller.observer
         #region Members
         #region public
         /// <summary>
+        /// The DOM object for the page object [XDrawPage]
+        /// </summary>
+        public Object DrawPage_anonymouse {get{return DrawPage;}}
+        /// <summary>
         /// The DOM object for the page object
         /// </summary>
-        public readonly XDrawPage DrawPage;
+        internal readonly XDrawPage DrawPage;
         /// <summary>
         /// the corresponding observer for all pages in this DRAW document (the parent)
         /// </summary>
         public readonly OoDrawPagesObserver PagesObserver;
         /// <summary>
+        /// the XAccessible counterpart to the DOM object [XAccessible]
+        /// </summary>
+        public Object AcccessibleCounterpart_anonymouse { get { return AcccessibleCounterpart; } }
+        /// <summary>
         /// the XAccessible counterpart to the DOM object
         /// </summary>
-        public XAccessible AcccessibleCounterpart { get; set; }
+        internal XAccessible AcccessibleCounterpart { get; set; }
 
         /// <summary>
         /// Gets the orientation of the page - portrait or landscape.
@@ -41,7 +49,7 @@ namespace tud.mci.tangram.controller.observer
         /// <value>
         /// The orientation of the page.
         /// </value>
-        public unoidl.com.sun.star.view.PaperOrientation Orientation { get; private set; }
+        public tud.mci.tangram.util.OO.PaperOrientation Orientation { get; private set; }
         /// <summary>
         /// Gets the width of the page in 100th/mm.
         /// </summary>
@@ -98,6 +106,8 @@ namespace tud.mci.tangram.controller.observer
         #endregion
         #endregion
 
+        #region Constructor / Destructor
+
         /// <summary>
         /// Initializes a new instance of the <see cref="OoDrawPageObserver"/> class.
         /// </summary>
@@ -115,37 +125,7 @@ namespace tud.mci.tangram.controller.observer
 
             registerListeners();
         }
-        /// <summary>
-        /// registers various property listeners
-        /// </summary>
-        private void registerListeners()
-        {
-            try
-            {
-                refreshPagePropertiesTimer = new System.Timers.Timer(5000);
-                XPropertySet pageProperties = DrawPage as XPropertySet;
-                if (pageProperties != null)
-                {
-                    //Debug.PrintAllProperties(pageProperties);
 
-                    onRefreshPage(this, null);
-
-                    pageProperties.addPropertyChangeListener("Orientation", eventForwarder);
-                    pageProperties.addVetoableChangeListener("Orientation", eventForwarder);
-
-
-                    refreshPagePropertiesTimer.Elapsed += new System.Timers.ElapsedEventHandler(onRefreshPage);
-                    refreshPagePropertiesTimer.Start();
-                }
-                XMultiPropertySet pageMultiProperties = (XMultiPropertySet)DrawPage;
-                if (pageMultiProperties != null)
-                {
-                    pageMultiProperties.addPropertiesChangeListener(new string[] { }, eventForwarder);
-                }
-            }
-            catch (DisposedException) { ((IDisposable)this).Dispose(); }
-            catch (Exception) { }
-        }
         ~OoDrawPageObserver()
         {
             refreshPagePropertiesTimer.Stop();
@@ -168,81 +148,241 @@ namespace tud.mci.tangram.controller.observer
                     }
                 }
             }
-            catch (Exception){}
+            catch (Exception) { }
         }
 
-        private volatile bool _pageUpdating = false;
-
-        private void onRefreshPage(object source, System.Timers.ElapsedEventArgs e)
-        {
-            if (_pageUpdating) return;
-
-            _pageUpdating = true;
-            TimeLimitExecutor.WaitForExecuteWithTimeLimit(300, () => {
-                UpdatePageProperties(); 
-            }, "RefreshPageProperteis");
-            _pageUpdating = false;
-        }
+        #endregion 
 
         #region Properties
 
-        public bool UpdatePageProperties()
+        private static volatile bool _propertyUpdating;
+        private DateTime _lastPagePropertyUpdate = DateTime.Now;
+        private static readonly TimeSpan _propertyUpdateTimespan = new TimeSpan(0, 0, 0, 1);
+        private static readonly Random rnd = new Random(DateTime.Now.Millisecond);
+        /// <summary>
+        /// registers various property listeners
+        /// </summary>
+        private void registerListeners()
         {
-            bool successs = false;
-
-            if (DrawPage != null)
+            try
             {
-
-                try
+                if (refreshPagePropertiesTimer != null) { refreshPagePropertiesTimer.Stop(); refreshPagePropertiesTimer.Dispose(); }
+                refreshPagePropertiesTimer = new System.Timers.Timer(5000);
+                XPropertySet pageProperties = DrawPage as XPropertySet;
+                if (pageProperties != null)
                 {
-                    //util.Debug.GetAllProperties(DrawPage);
-                    //util.Debug.GetAllProperties(this.PagesObserver.Controller);
+                    //Debug.PrintAllProperties(pageProperties);
 
-                    //pageProperties.
-                    unoidl.com.sun.star.view.PaperOrientation orientation = (unoidl.com.sun.star.view.PaperOrientation)OoUtils.GetProperty(DrawPage, "Orientation");
-                    Width = OoUtils.GetIntProperty(DrawPage, "Width");
-                    Height = OoUtils.GetIntProperty(DrawPage, "Height");
-                    BorderBottom = OoUtils.GetIntProperty(DrawPage, "BorderBottom");
-                    BorderLeft = OoUtils.GetIntProperty(DrawPage, "BorderLeft");
-                    BorderRight = OoUtils.GetIntProperty(DrawPage, "BorderRight");
-                    BorderTop = OoUtils.GetIntProperty(DrawPage, "BorderTop");
+                    onRefreshPage(this, null);
 
-                    //if (this.PagesObserver != null && this.PagesObserver.Controller != null)
-                    //{
-                    //    ZoomValue = OoUtils.GetIntProperty(this.PagesObserver.Controller, "ZoomValue");
-                    //    unoidl.com.sun.star.awt.Point offset = OoUtils.GetProperty(this.PagesObserver.Controller, "ViewOffset") as unoidl.com.sun.star.awt.Point;
-                    //    if(offset != null)
-                    //        ViewOffset = new System.Drawing.Point(offset.X, offset.Y);
-                    //}
+                    pageProperties.addPropertyChangeListener("Orientation", eventForwarder);
+                    pageProperties.addVetoableChangeListener("Orientation", eventForwarder);
 
-                    successs = true;
+                    pageProperties.addPropertyChangeListener("", eventForwarder);
+
+                    refreshPagePropertiesTimer.Elapsed += new System.Timers.ElapsedEventHandler(onRefreshPage);
+
+                    // start the refresh timer with some delay so not all pages will update their properties at the same time!
+                    Task t = new Task(new Action(() =>
+                    {
+                        Thread.Sleep(rnd.Next(1000));
+                        refreshPagePropertiesTimer.Start();
+                    }));
+                    t.Start();
+
+                    //eventForwarder.Modified += eventForwarder_Modified;
+                    //eventForwarder.NotifyEvent += eventForwarder_NotifyEvent;
+                    //eventForwarder.PropertiesChange += eventForwarder_PropertiesChange;
+                    //eventForwarder.PropertyChange += eventForwarder_PropertyChange;
+                    //eventForwarder.VetoableChange += eventForwarder_VetoableChange;
+
                 }
-                catch (NullReferenceException) { ((IDisposable)this).Dispose(); }
-                catch (DisposedException)
+                XMultiPropertySet pageMultiProperties = (XMultiPropertySet)DrawPage;
+                if (pageMultiProperties != null)
                 {
-                    ((IDisposable)this).Dispose();
+                    pageMultiProperties.addPropertiesChangeListener(new string[] { }, eventForwarder);
                 }
             }
+            catch (DisposedException) { ((IDisposable)this).Dispose(); }
+            catch (Exception) { }
+        }
+        #region event forwarder listeners
+
+        //void eventForwarder_VetoableChange(object sender, ForwardedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //void eventForwarder_PropertyChange(object sender, ForwardedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //void eventForwarder_PropertiesChange(object sender, ForwardedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //void eventForwarder_NotifyEvent(object sender, ForwardedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //void eventForwarder_Modified(object sender, ForwardedEventArgs e)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        #endregion
+
+        private void onRefreshPage(object source, System.Timers.ElapsedEventArgs e)
+        {
+            updatePageProperties();
+        }
+
+        /// <summary>
+        /// Updates the page properties.
+        /// </summary>
+        /// <param name="forceUpdate">if set to <c>true</c> to force an update even if the page is currently not the active one.</param>
+        /// <returns>
+        ///   <c>true</c> if the update was successfully fulfilled.
+        /// </returns>
+        /// <remarks>This function is time limited to 200 ms.</remarks>
+        public bool updatePageProperties(bool forceUpdate = false)
+        {
+            if (!forceUpdate && !IsActive()) 
+                return true;
+
+            DateTime now = DateTime.Now;
+            if (now - _lastPagePropertyUpdate < _propertyUpdateTimespan) return false;
+
+            //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " +++++++++ Update page properties REQUEST ["+this.GetHashCode()+"] +++++++++");
+
+            bool successs = false;
+            try
+            {
+                if (!_propertyUpdating && DrawPage != null)
+                {
+                    _propertyUpdating = true;
+                    try
+                    {
+                        successs = TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, new Action(() =>
+                        {
+                            Width = OoUtils.GetIntProperty(DrawPage, "Width");
+                            Height = OoUtils.GetIntProperty(DrawPage, "Height");
+                            BorderBottom = OoUtils.GetIntProperty(DrawPage, "BorderBottom");
+                            BorderLeft = OoUtils.GetIntProperty(DrawPage, "BorderLeft");
+                            BorderRight = OoUtils.GetIntProperty(DrawPage, "BorderRight");
+                            BorderTop = OoUtils.GetIntProperty(DrawPage, "BorderTop");
+                            Orientation = (tud.mci.tangram.util.OO.PaperOrientation)OoUtils.GetProperty(DrawPage, "Orientation");
+                        }), "UpdatePageProperties");
+                    }
+                    catch (NullReferenceException) { ((IDisposable)this).Dispose(); }
+                    catch (DisposedException)
+                    {
+                        ((IDisposable)this).Dispose();
+                    }
+                    _lastPagePropertyUpdate = now;
+                    return successs;
+                }
+            }
+            catch { }
+            finally { _propertyUpdating = false; }
             return successs;
         }
 
-        private int _lastPageNum = 0;
+        /// <summary>
+        /// The cached page number. This field is updated by the <see cref="GetPageNum"/> function.
+        /// Use this only to not stress the API to much.
+        /// </summary>
+        internal int CachedPageNum = 0;
         /// <summary>
         /// Gets the page number.
         /// </summary>
         /// <returns>The current number of this page (Numbers are starting with 1)</returns>
+        /// <remarks>This function is time limited to 100 ms.</remarks>
         public int GetPageNum()
         {
             TimeLimitExecutor.WaitForExecuteWithTimeLimit(
                 100,
-                new Action(() => { _lastPageNum = OoUtils.GetIntProperty(DrawPage, "Number"); })
+                new Action(() => { CachedPageNum = OoUtils.GetIntProperty(DrawPage, "Number"); })
                 , "PageObserver-GetPageNum");
 
-            return _lastPageNum;
+            return CachedPageNum;
+        }
+
+        /// <summary>
+        /// Gets the preview image bitmap data for the page.
+        /// </summary>
+        /// <param name="bitmapData">The bitmap data.</param>
+        /// <remarks>This function is time limited to 100 ms.</remarks>
+        public void GetPreview(out byte[] bitmapData)
+        {
+            byte[] bitmapDataResult = new byte[0];
+            XPropertySet pageProperties = DrawPage as XPropertySet;
+            if (pageProperties != null)
+            {
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
+                    () =>
+                    {
+                        try { bitmapDataResult = (byte[])pageProperties.getPropertyValue("Preview").Value; }
+                        catch (ThreadAbortException) { }
+                    }
+                    , "GetPrieviewBitmap");
+            }
+            bitmapData = bitmapDataResult;
+        }
+
+        int _requestAmount = 0;
+        readonly int _maxRequestAmountUntilRefresh = 10;
+        /// <summary>
+        /// Determines whether this page is the active one or not.
+        /// </summary>
+        /// <param name="forceRefresh">if set to <c>true</c> it forces a refresh on the real page properties, but not on the cached data - can force performance problems.</param>
+        /// <returns>
+        ///   <c>true</c> if this page is active; otherwise, <c>false</c>.
+        /// </returns>
+        /// <remarks>This function uses cached data if it is called frequently.</remarks>
+        public bool IsActive(bool forceRefresh = false)
+        {
+            bool active = false;
+
+            // get active Page
+            if (PagesObserver != null && PagesObserver.DocWnd != null)
+            {
+                int activePageId = -1;
+                if (forceRefresh 
+                    || _requestAmount++ > _maxRequestAmountUntilRefresh 
+                    || (this.PagesObserver != null && this.PagesObserver.DocWnd != null && this.PagesObserver.DocWnd.CachedCurrentPid < 1))
+                {
+                    if (PagesObserver.DocWnd.Controller != null && PagesObserver.DocWnd.Controller is XDrawView)
+                    {
+                        // refresh caches
+                        var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
+
+                        if (page.Equals(this.DrawPage))
+                        {
+                            this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
+                            active = true;
+                        }
+                        _requestAmount = 0;
+                    }
+                }
+                else
+                {
+                    // check caches
+                    if (this.PagesObserver != null && this.PagesObserver.DocWnd != null)
+                    {
+                        activePageId = PagesObserver.DocWnd.CachedCurrentPid;
+                    }
+
+                    active = activePageId == (CachedPageNum > 0 ? CachedPageNum : GetPageNum());
+                }
+            }
+            return active;
         }
 
         #endregion
-
 
         /// <summary>
         /// find the corresponding accessible counterpart object for this page in the accessible tree
@@ -468,94 +608,15 @@ namespace tud.mci.tangram.controller.observer
         #region IUpdateable
         public void Update()
         {
+            updatePageProperties();
             handleChildren();
         }
         #endregion
 
-        #region XEventListener
-
-        protected override void disposing(EventObject Source)
-        {
-            if (Source.Source == DrawPage)
-            {
-                refreshPagePropertiesTimer.Stop();
-                XPropertySet pageProperties = (XPropertySet)DrawPage;
-                if (pageProperties != null)
-                {
-                    pageProperties.removePropertyChangeListener("", eventForwarder);
-                    pageProperties.removeVetoableChangeListener("", eventForwarder);
-                }
-                XMultiPropertySet pageMultiProperties = (XMultiPropertySet)DrawPage;
-                if (pageMultiProperties != null)
-                {
-                    pageMultiProperties.removePropertiesChangeListener(eventForwarder);
-                }
-            }
-            ((IDisposable)this).Dispose();
-        }
-
-        #endregion
-
-        #region XPropertyChangeListener
-
-        protected override void propertyChange(PropertyChangeEvent evt)
-        {
-            if (evt.Source == DrawPage)
-            {
-                System.Diagnostics.Debug.WriteLine(evt.PropertyName + " changed to " + evt.NewValue.Value.ToString() + ", further: " + evt.Further);
-            }
-        }
-
-        #endregion
-
-        #region XVetoableChangeListener
-
-        protected override void vetoableChange(PropertyChangeEvent aEvent)
-        {
-            if (aEvent.Source == DrawPage)
-            {
-                System.Diagnostics.Debug.WriteLine(aEvent.PropertyName + " vetoable changed to " + aEvent.NewValue.Value.ToString() + ", further: " + aEvent.Further);
-            }
-        }
-
-        #endregion
-
-        #region XPropertiesChangeListener
-
-        protected override void propertiesChange(PropertyChangeEvent[] aEvent)
-        {
-            foreach (PropertyChangeEvent evt in aEvent)
-            {
-                if (evt.Source == DrawPage)
-                {
-                    System.Diagnostics.Debug.WriteLine(evt.PropertyName + " are changed to " + evt.NewValue.Value.ToString() + ", further: " + evt.Further);
-                }
-            }
-        }
-
-        #endregion
-
-        public void GetPreview(out byte[] bitmapData)
-        {
-            byte[] bitmapDataResult = new byte[0];
-            XPropertySet pageProperties = DrawPage as XPropertySet;
-            if (pageProperties != null)
-            {
-                TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
-                    () =>
-                    {
-                        try { bitmapDataResult = (byte[])pageProperties.getPropertyValue("Preview").Value; }
-                        catch (ThreadAbortException) { }
-                    }
-                    , "GetPrieviewBitmap");
-            }
-            bitmapData = bitmapDataResult;
-        }
-
         #region IDisposable
 
         void IDisposable.Dispose()
-        {            
+        {
             this.refreshPagePropertiesTimer.Stop();
             this.AcccessibleCounterpart = null;
 
@@ -565,7 +626,7 @@ namespace tud.mci.tangram.controller.observer
             this.shapeList.Clear();
             Disposed = true;
             fire_DisposingEvent();
-            OO.CheckConnection();       
+            OO.CheckConnection();
         }
 
         #endregion
@@ -599,6 +660,6 @@ namespace tud.mci.tangram.controller.observer
         }
 
         #endregion
-    
+
     }
 }

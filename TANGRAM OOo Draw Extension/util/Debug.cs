@@ -79,7 +79,8 @@ namespace tud.mci.tangram.util
         /// <param name="obj">The obj.</param>
         /// <param name="debug">if set to <c>true</c> the services will be printed
         /// to the System.Diagnostics.Debug output.</param>
-        /// <returns></returns>
+        /// <returns>List of all supported service names.</returns>
+        /// <remarks>This function is time limited to 200 ms.</remarks>
         public static string[] GetAllServicesOfObject(Object obj, bool debug = true)
         {
             String output = "";

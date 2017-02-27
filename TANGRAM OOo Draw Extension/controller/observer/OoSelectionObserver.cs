@@ -18,13 +18,26 @@ namespace tud.mci.tangram.controller
 {
     public sealed class OoSelectionObserver : IResetable
     {
+        #region Members
+
         private static readonly OoSelectionObserver instance = new OoSelectionObserver();
         private readonly SelectionEventForwarder eventForwarder = new SelectionEventForwarder();
 
-        private OoSelectionObserver() {
+        #endregion
+
+        #region Singleton Constructor
+
+        private OoSelectionObserver()
+        {
             initEventForwarding();
         }
 
+        /// <summary>
+        /// Gets the singleton of the selection Observer.
+        /// </summary>
+        /// <value>
+        /// The instance.
+        /// </value>
         public static OoSelectionObserver Instance
         {
             get
@@ -33,6 +46,8 @@ namespace tud.mci.tangram.controller
             }
         }
 
+        #endregion
+
         #region Event Forwarding
 
         private void initEventForwarding()
@@ -40,7 +55,7 @@ namespace tud.mci.tangram.controller
             if (eventForwarder != null)
             {
                 eventForwarder.Disposing += new EventHandler<ForwardedEventArgs>(eventForwarder_disposing);
-               // eventForwarder.SelectionChanged += new EventHandler<ForwardedEventArgs>(eventForwarder_selectionChanged);
+                // eventForwarder.SelectionChanged += new EventHandler<ForwardedEventArgs>(eventForwarder_selectionChanged);
             }
         }
 
@@ -77,36 +92,47 @@ namespace tud.mci.tangram.controller
 
         #endregion
 
-        static Object _selectionLock = new Object();
+        //static readonly Object _selectionLock = new Object();
+        /// <summary>
+        /// Get the current selection.
+        /// </summary>
+        /// <param name="selectionSupplier">The selection supplier.</param>
+        /// <returns><c>false</c> if no selection could be achieved; otherwise and [XShapes] collection</returns>
+        /// <remarks>This request is locked and time limited to 100 ms.</remarks>
         public static Object GetSelection(XSelectionSupplier selectionSupplier)
         {
-            Object selection = null;
+            Object selection = false;
             if (selectionSupplier != null)
-            {
-                lock (_selectionLock)
+            {                    
+                //FIXME: you cannot do this in a time limited execution this will lead to an hang on -- why??????
+                try
                 {
-                    //FIXME: you cannot do this in a time limited execution this will lead to an hang on -- why??????
-                    try
+                    lock (selectionSupplier)
                     {
-                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(500, () =>
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
                         {
                             Thread.BeginCriticalRegion();
                             var anySelection = selectionSupplier.getSelection();
                             Thread.EndCriticalRegion();
-                        
+
                             if (anySelection.hasValue())
                             {
                                 selection = anySelection.Value;
                             }
+                            else
+                            {
+                                selection = null;
+                            }
                         }, "GetSelection");
                     }
-                    catch (DisposedException)
-                    {
-                        Logger.Instance.Log(LogPriority.DEBUG, "OoSelectionObserver", "Selection supplier disposed");
-                        OO.CheckConnection();
-                    }
-                    catch (ThreadAbortException) { }
                 }
+                catch (DisposedException)
+                {
+                    Logger.Instance.Log(LogPriority.DEBUG, "OoSelectionObserver", "Selection supplier disposed");
+                    OO.CheckConnection();
+                }
+                catch (ThreadAbortException) { }
+                catch (ThreadInterruptedException) { }
             }
             return selection;
         }

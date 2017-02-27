@@ -40,17 +40,24 @@ namespace tud.mci.tangram.controller.observer
         private static volatile bool initalized = false;
         OoTopWindowObserver tpwndo = OoTopWindowObserver.Instance;
 
+        /// <summary>
+        /// The delay time until selection changes will be collected before forwarding them (in milliseconds).
+        /// </summary>
+        public static int SelectionDelayTime = 100;
+
         #endregion
+
+        #region Singleton Construction
 
         private static OoDrawAccessibilityObserver instance = new OoDrawAccessibilityObserver();
 
         private OoDrawAccessibilityObserver()
         {
-            OoSelectionObserver.Instance.SelectionChanged += new EventHandler<OoSelectionChandedEventArgs>(Instance_SelectionChanged);
+            //OoSelectionObserver.Instance.SelectionChanged += new EventHandler<OoSelectionChandedEventArgs>(Instance_SelectionChanged);
             //drawPgSuppl = OoDrawUtils.GetDrawPageSuppliers(OO.GetDesktop());
 
-            OnShapeBoundRectChange = new OoShapeObserver.BoundRectChangeEventHandler(ShapeBoundRectChangeHandler);
-            OnViewOrZoomChange = new OoDrawPagesObserver.ViewOrZoomChangeEventHandler(ShapeBoundRectChangeHandler);
+            //OnShapeBoundRectChange = new OoShapeObserver.BoundRectChangeEventHandler(ShapeBoundRectChangeHandler);
+            //OnViewOrZoomChange = new OoDrawPagesObserver.ViewOrZoomChangeEventHandler(ShapeBoundRectChangeHandler);
             new Task(initalize).Start();
         }
 
@@ -106,6 +113,8 @@ namespace tud.mci.tangram.controller.observer
                 return instance;
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Returns a list off all known draw/impress docs.
@@ -214,7 +223,6 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-
         /// <summary>
         /// try to gets the corresponding accessible doc for XAccessible.
         /// </summary>
@@ -271,7 +279,7 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        #region Listeners
+        #region OoAccessibleDocWnd Events
 
         private void addListeners(OoAccessibleDocWnd doc)
         {
@@ -283,7 +291,6 @@ namespace tud.mci.tangram.controller.observer
                 doc.SelectionEvent += new EventHandler<OoSelectionChandedEventArgs>(doc_SelectionEvent);
             }
         }
-
 
         void doc_Disposing(object sender, EventArgs e)
         {
@@ -363,7 +370,7 @@ namespace tud.mci.tangram.controller.observer
         {
             if (sender is OoAccessibleDocWnd && e != null)
             {
-                selectionChanged(sender as OoAccessibleDocWnd, new AccessibleEventObject());
+                SelectionChanged(sender as OoAccessibleDocWnd, new AccessibleEventObject());
             }
         }
 
@@ -426,16 +433,16 @@ namespace tud.mci.tangram.controller.observer
                 //case tud.mci.tangram.Accessibility.AccessibleEventId.SECTION_CHANGED:
                 //    break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.SELECTION_CHANGED:
-                    selectionChanged(doc, aEvent);
+                    SelectionChanged(doc, aEvent);
                     break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.SELECTION_CHANGED_ADD:
-                    selectionChanged(doc, aEvent);
+                    SelectionChanged(doc, aEvent);
                     break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.SELECTION_CHANGED_REMOVE:
-                    selectionChanged(doc, aEvent);
+                    SelectionChanged(doc, aEvent);
                     break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.SELECTION_CHANGED_WITHIN:
-                    selectionChanged(doc, aEvent);
+                    SelectionChanged(doc, aEvent);
                     break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.STATE_CHANGED:
                     stateChanged(doc, aEvent);
@@ -490,167 +497,62 @@ namespace tud.mci.tangram.controller.observer
             }
         }
 
+        #region Selection Change Handling
 
         /// <summary>
         /// add a new selection event th the selection stack
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="aEvent"></param>
-        private void selectionChanged(OoAccessibleDocWnd doc, AccessibleEventObject aEvent)
+        internal void SelectionChanged(OoAccessibleDocWnd doc, AccessibleEventObject aEvent)
         {
             if (aEvent != null)
             {
-                selectionStack.Push(new KeyValuePair<OoAccessibleDocWnd, AccessibleEventObject>(doc, aEvent));
-                initSelectionHandlerThread();
+                resetSelectionCache(doc);
+                resetSelectionDelayTimer(doc);
             }
         }
 
 
-        private void handleSelectionChanged(OoAccessibleDocWnd doc, AccessibleEventObject aEvent)
+        Timer selecttionDelayTimer = null;
+        readonly Object _selectiondelayLock = new Object();
+
+        void resetSelectionDelayTimer(OoAccessibleDocWnd doc)
         {
-
-            //FIXME: Do this only if the selection is requested. 
-            // Kill the selection changed handler and let the event handler request for the selected elements
-
-            // check the global selection supplier
-            if (doc != null)
+            lock (_selectiondelayLock)
             {
-                try
+                if (selecttionDelayTimer != null)
                 {
-                    var controller = doc.Controller;
-                    if (controller != null && controller is XSelectionSupplier)
-                    {
-                        XShapes selectedShapes = OoSelectionObserver.GetSelection(controller as XSelectionSupplier) as XShapes;
-
-                        OoDrawPagesObserver pagesObserver = doc.DrawPagesObs;
-                        if (selectedShapes != null && pagesObserver != null)
-                        {
-                            List<OoShapeObserver> selectedShapesList = new List<OoShapeObserver>();
-                            int count = selectedShapes.getCount();
-                            for (int i = 0; i < count; i++)
-                            {
-                                XShape shape = selectedShapes.getByIndex(i).Value as XShape;
-                                if (shape != null)
-                                {
-                                    OoShapeObserver shapeObserver = pagesObserver.GetRegisteredShapeObserver(shape, null);
-                                    if (shapeObserver != null
-                                        //&& shapeObserver.IsValid()
-                                        )
-                                    {
-                                        if (shapeObserver.IsValid())
-                                        {
-                                            selectedShapesList.Add(shapeObserver);
-                                        }
-                                        else
-                                        {
-                                            shapeObserver.Dispose();
-                                            XDrawPage page = OoDrawUtils.GetPageForShape(shape);
-                                            OoDrawPageObserver dpObs = pagesObserver.GetRegisteredPageObserver(page);
-                                            OoShapeObserver so = OoShapeObserverFactory.BuildShapeObserver(shape, dpObs); //new OoShapeObserver(shape, dpObs);
-                                            pagesObserver.RegisterUniqueShape(so);
-                                        }
-
-                                    }
-                                }
-                            }
-                            fireDrawSelectionChangedEvent(doc, selectedShapesList, aEvent == null);
-                        }
-                        else
-                        {
-                            // no selection
-                            fireDrawSelectionChangedEvent(doc, new List<OoShapeObserver>(), aEvent == null);
-                            return;
-                        }
-                    }
+                    selecttionDelayTimer.Change(SelectionDelayTime, Timeout.Infinite);
                 }
-                catch (unoidl.com.sun.star.lang.DisposedException ex)
+                else
                 {
-                    System.Diagnostics.Debug.WriteLine(ex.Source + " " + ex.Message);
+                    selecttionDelayTimer = new Timer(handleSelectionChanged, doc, SelectionDelayTime, Timeout.Infinite);
                 }
             }
         }
 
-        private readonly ConcurrentStack<KeyValuePair<OoAccessibleDocWnd, AccessibleEventObject>> selectionStack = new ConcurrentStack<KeyValuePair<OoAccessibleDocWnd, AccessibleEventObject>>();
-        private Thread selectionHandlerThread;
-
-        /// <summary>
-        /// builds and starts the selection collection thread
-        /// </summary>
-        /// <returns></returns>
-        private Thread initSelectionHandlerThread()
+        private void handleSelectionChanged(Object doc)
         {
-            try
-            {
-                if (selectionHandlerThread != null)
-                {
-                    if (selectionHandlerThread.IsAlive && selectionHandlerThread.ThreadState == ThreadState.Running)
-                    {
-                        return selectionHandlerThread;
-                    }
-                    else if (selectionHandlerThread.ThreadState != ThreadState.Aborted && selectionHandlerThread.ThreadState != ThreadState.Stopped)
-                    {
-                        if (selectionHandlerThread.ThreadState == ThreadState.Unstarted)
-                        {
-                            Thread.Sleep(5);
-                            if (selectionHandlerThread.ThreadState == ThreadState.Unstarted)
-                            { selectionHandlerThread.Start(); }
-                        }
-                        return selectionHandlerThread;
-                    }
-                }
-
-                selectionHandlerThread = new Thread(waitForNewSelectionChanges);
-                selectionHandlerThread.Name = "OoAccesibilityObserverSelectionCollector";
-                selectionHandlerThread.Start();
-
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Thread exception" + ex);
-            }
-            return selectionHandlerThread;
+            //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD BECAUSE TIMER ELAPSED.");
+            handleSelectionChanged(doc as OoAccessibleDocWnd, new AccessibleEventObject());
         }
-
-        /// <summary>
-        /// Waits for new selection changes.
-        /// </summary>
-        private void waitForNewSelectionChanges()
+        private void handleSelectionChanged(OoAccessibleDocWnd ooAccessibleDocWnd, AccessibleEventObject accessibleEventObject)
         {
-            int oldStackSize = 0;
-            int counts = 0;
-            while (oldStackSize < selectionStack.Count && ++counts < 30)
+            lock (_selectiondelayLock)
             {
-                oldStackSize = selectionStack.Count;
-                Thread.Sleep(50);
-            }
-
-            KeyValuePair<OoAccessibleDocWnd, AccessibleEventObject> e;
-            bool success = selectionStack.TryPop(out e);
-            if (success)
-            {
-                TimeLimitExecutor.ExecuteWithTimeLimit(2000, () =>
+                fireDrawSelectionChangedEvent(ooAccessibleDocWnd, true);
+                if (selecttionDelayTimer != null)
                 {
-                    handleSelectionChanged(e.Key, e.Value);
-                }, "HandleSelectionChanged");
-                selectionStack.Clear();
-            }
-            else
-            {
-                //TODO: how to do this again
+                    selecttionDelayTimer.Dispose();
+                    selecttionDelayTimer = null;
+                }
             }
         }
 
         #endregion
 
-        // on selection you get access to the real XShape object but not to the accessible component
-        void Instance_SelectionChanged(object sender, OoSelectionChandedEventArgs e)
-        {
-
-
-            //var selection = e.Selection;
-            //System.Diagnostics.Debug.WriteLine("Accessibility Observer: Selection changed (global Selection Listener)");
-            //util.Debug.GetAllInterfacesOfObject(selection);
-        }
+        #endregion
 
         #region Event Throwing
 
@@ -678,19 +580,20 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Occurs when selections changed inside a draw document.
         /// </summary>
-        public event EventHandler<OoAccessibilitySelectionEventArgs> DrawSelectionChanged;
+        public event EventHandler<OoAccessibilitySelectionChangedEventArgs> DrawSelectionChanged;
 
         #region Fire Event
 
-        /// <summary>
-        /// Gets the last known selection collection.
-        /// </summary>
-        /// <value>
-        /// The last selection.
-        /// </value>
-        public OoAccessibilitySelectionEventArgs LastSelection { get; private set; }
-        private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
-        private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
+        ///// <summary>
+        ///// Gets the last known selection collection.
+        ///// </summary>
+        ///// <value>
+        ///// The last selection.
+        ///// </value>
+        //public OoAccessibilitySelectionEventArgs LastSelection { get; private set; }
+
+        //private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
+        //private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
 
         private void fireDrawWindowOpendEvent(OoAccessibleDocWnd window)
         {
@@ -708,12 +611,8 @@ namespace tud.mci.tangram.controller.observer
             () =>
             {
                 Thread.Sleep(4000);
+                //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD BECAUSE WINDOW OPEND.");
                 handleSelectionChanged(window, null);
-                if (window.DrawPagesObs != null)
-                {
-                    window.DrawPagesObs.ViewOrZoomChangeEventHandlers -= OnViewOrZoomChange;
-                    window.DrawPagesObs.ViewOrZoomChangeEventHandlers += OnViewOrZoomChange;
-                }
             }
             );
             t.Start();
@@ -740,10 +639,10 @@ namespace tud.mci.tangram.controller.observer
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window closed event", ex); }
             }
-            if (window.DrawPagesObs != null)
-            {
-                window.DrawPagesObs.ViewOrZoomChangeEventHandlers -= OnViewOrZoomChange;
-            }
+            //if (window.DrawPagesObs != null)
+            //{
+            //    window.DrawPagesObs.ViewOrZoomChangeEventHandlers -= OnViewOrZoomChange;
+            //}
         }
         private void fireDrawWindowMinimizedEvent(OoAccessibleDocWnd window)
         {
@@ -766,130 +665,164 @@ namespace tud.mci.tangram.controller.observer
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire window activated event", ex); }
             }
+            System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD BECAUSE WINDOW ACTIVATED.");
             // also, get selection on document switch
             handleSelectionChanged(window, null);
         }
 
-        private void fireDrawSelectionChangedEvent(OoAccessibleDocWnd doc, List<OoShapeObserver> selectedShapeObservers, bool silent = false)
+        private void fireDrawSelectionChangedEvent(OoAccessibleDocWnd doc, bool silent = false)
         {
             if (DrawSelectionChanged != null)
             {
                 try
                 {
-                    if (LastSelection != null)
-                    {
-                        foreach (OoShapeObserver shapeObs in LastSelection.SelectedItems)
-                        {
-                            shapeObs.BoundRectChangeEventHandlers -= OnShapeBoundRectChange;
-                        }
-                    }
-                    LastSelection = new OoAccessibilitySelectionEventArgs(doc, selectedShapeObservers, silent);
-                    DrawSelectionChanged.DynamicInvoke(this, LastSelection);
-                    foreach (OoShapeObserver shapeObs in LastSelection.SelectedItems)
-                    {
-                        shapeObs.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
-                    }
+                    //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " SELECTION EVENT FORWARD");
+                    DrawSelectionChanged.Invoke(this, new OoAccessibilitySelectionChangedEventArgs(doc, silent));
                 }
                 catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire selection changed event", ex); }
             }
         }
 
-        // called on shape bound change event, refreshes current selection bounds and invokes as silent selection change
-        private void ShapeBoundRectChangeHandler()
+        #endregion
+
+        #endregion
+
+        #region public Functions
+
+        #region Selection
+
+        readonly ConcurrentDictionary<OoAccessibleDocWnd, OoAccessibilitySelection> _cachedSelection = new ConcurrentDictionary<OoAccessibleDocWnd, OoAccessibilitySelection>();
+
+        void resetSelectionCache(OoAccessibleDocWnd doc = null)
         {
-            if (LastSelection != null)
+            _cachedSelection.Clear();
+            //if (doc == null) 
+            //else if (_cachedSelection.ContainsKey(doc))
+            //{
+            //    OoAccessibilitySelection trash;
+            //    int i = 0;
+            //    while (!_cachedSelection.TryRemove(doc, out trash) && i++ < 3) { Thread.Sleep(5); }
+            //}
+        }
+
+        readonly object _selectionLock = new Object();
+        /// <summary>
+        /// Tries to the get current selection.
+        /// </summary>
+        /// <param name="doc">The document window.</param>
+        /// <param name="selectedShapesList">The list of currently selected shapes.</param>
+        /// <returns><c>true</c> if the selection could be achieved; otherwise <c>false</c> (e.g. because it was aborted by time limit)</returns>
+        /// <remarks>This request is time limited to 300 ms.</remarks>
+        public bool TryGetSelection(OoAccessibleDocWnd doc, out OoAccessibilitySelection selection)
+        {
+            selection = null;
+            List<OoShapeObserver> selectedShapesList2 = new List<OoShapeObserver>();
+            bool innerSuccess = false;
+            bool success = false;
+
+            if (doc != null)
             {
                 try
                 {
-                    LastSelection.refreshBounds();
-                    LastSelection.Silent = true;
-                    DrawSelectionChanged.DynamicInvoke(this, LastSelection);
+                    if (_cachedSelection.ContainsKey(doc))
+                    {
+                        int i = 0;
+                        while (!_cachedSelection.TryGetValue(doc, out selection) && i++ < 3) { Thread.Sleep(5); }
+                        if (i < 3)
+                        {
+                            if (selection != null
+                                && DateTime.Now - selection.SelectionCreationTime < new TimeSpan(0, 1, 0))
+                            {
+                                //System.Diagnostics.Debug.WriteLine("******* GET Cached Selection for WND: " + doc + " result in " + selection.Count + " selected Items.");
+                                return true;
+                            }
+                        }
+                    }
+
+                    success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(300, () =>
+                    {
+                        try
+                        {
+                            lock (doc.SynchLock)
+                            {
+                                innerSuccess = tryGetSelection(doc, out selectedShapesList2);
+                            }
+                        }
+                        catch { innerSuccess = false; }
+                    }, "HandleSelectionChanged");
+
+                    var selection2 = new OoAccessibilitySelection(doc, selectedShapesList2);
+                    if (success & innerSuccess)
+                    {
+                        //System.Diagnostics.Debug.WriteLine("++++++ ADD to cached Selection for WND: " + doc + " result in " + selection2.Count + " selected Items.");
+                        _cachedSelection.AddOrUpdate(doc, selection2, (key, oldValue) => selection2);
+                        selection = selection2;
+                    }
+                    //else resetSelectionCache();                    
                 }
-                catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire selection changed event", ex); }
+                catch (ThreadInterruptedException) { }
+                catch (ThreadAbortException) { }
             }
+
+            //System.Diagnostics.Debug.WriteLine(".... Selection Return: " + (selection != null ? selection.Count.ToString() : " invalid selection"));
+
+            return success & innerSuccess;
         }
 
-        #endregion
+        private bool tryGetSelection(OoAccessibleDocWnd doc, out List<OoShapeObserver> selectedShapesList)
+        {
+            //System.Diagnostics.Debug.WriteLine("  ---> try Get Selection (inner critical Call)");
+            selectedShapesList = new List<OoShapeObserver>();
+            bool success = false;
 
-        #endregion
+            // check the global selection supplier
+            if (doc != null)
+            {
+                try
+                {
+                    var controller = doc.Controller;
+                    if (controller != null && controller is XSelectionSupplier)
+                    {
+                        Object selection = OoSelectionObserver.GetSelection(controller as XSelectionSupplier);
+                        XShapes selectedShapes = selection as XShapes;
 
-        #region TESTS
+                        OoDrawPagesObserver pagesObserver = doc.DrawPagesObs;
+                        if (selectedShapes != null && pagesObserver != null)
+                        {
 
+                            int count = selectedShapes.getCount();
+                            for (int i = 0; i < count; i++)
+                            {
+                                XShape shape = selectedShapes.getByIndex(i).Value as XShape;
+                                if (shape != null)
+                                {
+                                    OoShapeObserver shapeObserver = pagesObserver.GetRegisteredShapeObserver(shape, null);
+                                    if (shapeObserver != null)
+                                    {
+                                        selectedShapesList.Add(shapeObserver);
+                                    }
+                                }
+                            }
+                            success = true;
+                        }
+                        else
+                        {
+                            // no selection
+                            if (selection is bool && ((bool)selection) == false) success = false;
+                            else if (pagesObserver != null) success = true;
+                        }
+                    }
+                }
+                catch (unoidl.com.sun.star.lang.DisposedException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.Source + " " + ex.Message);
+                }
+            }
 
-        #region CHILD Events
+            //System.Diagnostics.Debug.WriteLine("  ---> ~~~~~~~~~ (" + success + ") GET Selection for WND: " + doc + " result in " + selectedShapesList.Count + " selected Items.");
 
-        //private void handleAccessibleChildEvent(OoAccessibleDocWnd doc, object p, uno.Any newVal, uno.Any oldVal)
-        //{
-        //    if (oldVal.hasValue())
-        //    {
-        //        /************************************************************************/
-        //        /*  can be a delete or a change                                        */
-        //        /************************************************************************/
-        //        var val = oldVal.Value;
-        //        if (val != null)
-        //        {
-        //            // System.Diagnostics.Debug.WriteLine("old CHILD: ");
-        //            //OoAccessibility.PrintAccessibleInfos(val as XAccessible);
-        //            //util.Debug.GetAllInterfacesOfObject(val);
-
-        //            //System.Diagnostics.Debug.WriteLine("HashCode: " + val.GetHashCode());
-        //            //util.Debug.GetAllServicesOfObject(val);
-
-        //        }
-        //    }
-        //    handleAccessibleChildEvent(doc, p, newVal);
-        //}
-
-        //private void handleAccessibleChildEvent(OoAccessibleDocWnd doc, object p, uno.Any newVal)
-        //{
-        //    if (newVal.hasValue())
-        //    {
-        //        /************************************************************************/
-        //        /*  can be an add or a change                                           */
-        //        /************************************************************************/
-        //        var val = newVal.Value;
-        //        if (val != null)
-        //        {
-        //            // System.Diagnostics.Debug.WriteLine("new CHILD: ");
-        //            //OoAccessibility.PrintAccessibleInfos(val as XAccessible);
-        //            //util.Debug.GetAllInterfacesOfObject(val);
-
-        //            //System.Diagnostics.Debug.WriteLine("HashCode: " + val.GetHashCode());
-
-        //        }
-        //    }
-        //    else { }
-
-        //    handleAccessibleChildEvent(doc, p);
-        //}
-
-
-        //private void handleAccessibleChildEvent(OoAccessibleDocWnd doc, object p)
-        //{
-        //    if (p != null)
-        //    {
-        //        XAccessible accEle = p as XAccessible;
-
-        //        if (accEle != null)
-        //        {
-        //            if (OoAccessibility.GetAccessibleRole(accEle) == tud.mci.tangram.Accessibility.AccessibleRole.DOCUMENT)
-        //            {
-
-        //            }
-        //        }
-        //    }
-        //}
-
-        #endregion
-
-
-        //#region AllAccesibleElements
-
-        //List<OoAccComponent> accComponents = new List<OoAccComponent>();
-
-        //Dictionary<String, Object> accCompDict = new Dictionary<String, Object>();
-
-        //#endregion
+            return success;
+        }
 
         #endregion
 
@@ -901,31 +834,33 @@ namespace tud.mci.tangram.controller.observer
             drawDocs.Clear();
             drawDocWnds.Clear();
             drawWnds.Clear();
-            //drawPgSuppl.Clear();
-            //drawPgsObsvr.Clear();
-            //while (!drawPgsObsvrBag.IsEmpty)
-            //{
-            //    OoDrawPagesObserver t;
-            //    drawPgsObsvrBag.TryTake(out t);
-            //}
+            resetSelectionCache();
             initalized = false;
-            //drawPgSuppl.InsertRange(0, OoDrawUtils.GetDrawPageSuppliers(OO.GetDesktop()));
         }
+
+        #endregion
+
+        #region IDisposable
 
         void IDisposable.Dispose()
         {
-            //TODO: do some disposables
-            try{
+            try
+            {
                 foreach (var item in this.drawDocs)
                 {
                     item.Value.Dispose();
                 }
-            }catch{}
+            }
+            catch { }
             instance = null;
         }
+
+        #endregion
+
     }
 
-    #region Event Args
+    #region Event Args and Special Classes
+
     /// <summary>
     /// Event arguments for window events
     /// </summary>
@@ -955,11 +890,60 @@ namespace tud.mci.tangram.controller.observer
     }
 
     /// <summary>
-    /// Event arguments for selection events
+    /// Event arguments for selection changed events
     /// </summary>
     /// <seealso cref="System.EventArgs" />
-    public class OoAccessibilitySelectionEventArgs : EventArgs
+    public class OoAccessibilitySelectionChangedEventArgs : EventArgs
     {
+        /// <summary>
+        /// The corresponding window/document the event is thrown from.
+        /// </summary>
+        public readonly OoAccessibleDocWnd Source;
+
+        /// <summary>
+        /// Flag that marks the event as not to be announced by the audio renderer, e.g. for just updating the boundaries if the selection stays the same but selected elements are resized/moved. 
+        /// False by default.
+        /// </summary>
+        public bool Silent { set; get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OoAccessibilitySelectionEventArgs"/> class.
+        /// </summary>
+        /// <param name="source">The corresponding window/document the event is thrown from.</param>
+        /// <param name="selectedItems">The selected items.</param>
+        /// <param name="type">The accessibility event type resulting in this event.</param>
+        public OoAccessibilitySelectionChangedEventArgs(OoAccessibleDocWnd source, bool silent = false)
+        {
+            Source = source;
+            this.Silent = silent;
+        }
+    }
+
+    /// <summary>
+    /// Selection of objects
+    /// </summary>
+    public class OoAccessibilitySelection
+    {
+        #region private Member
+
+        private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
+        private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
+
+        #endregion
+
+        #region public Members
+
+        /// <summary>
+        /// The timestamps when this selection collection was build.
+        /// </summary>
+        public readonly DateTime SelectionCreationTime = DateTime.Now;
+        /// <summary>
+        /// Gets the amount of selected Items.
+        /// </summary>
+        /// <value>
+        /// The count of selected items.
+        /// </value>
+        public int Count { get { return SelectedItems != null ? SelectedItems.Count : 0; } }
         /// <summary>
         /// List of selected items.
         /// </summary>
@@ -979,11 +963,10 @@ namespace tud.mci.tangram.controller.observer
         /// The corresponding window/document the event is thrown from.
         /// </summary>
         public readonly OoAccessibleDocWnd Source;
-        /// <summary>
-        /// Flag that marks the event as not to be announced by the audio renderer, e.g. for just updating the boundaries if the selection stays the same but selected elements are resized/moved. 
-        /// False by default.
-        /// </summary>
-        public bool Silent { set; get; }
+
+        #endregion
+
+        #region Constructor / Destructor
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OoAccessibilitySelectionEventArgs"/> class.
@@ -991,60 +974,183 @@ namespace tud.mci.tangram.controller.observer
         /// <param name="source">The corresponding window/document the event is thrown from.</param>
         /// <param name="selectedItems">The selected items.</param>
         /// <param name="type">The accessibility event type resulting in this event.</param>
-        public OoAccessibilitySelectionEventArgs(OoAccessibleDocWnd source, List<OoShapeObserver> selectedShapeObservers, bool silent)
+        public OoAccessibilitySelection(OoAccessibleDocWnd source, List<OoShapeObserver> selectedShapeObservers)
         {
+            OnShapeBoundRectChange = new OoShapeObserver.BoundRectChangeEventHandler(shapeBoundRectChangeHandler);
+            OnViewOrZoomChange = new OoDrawPagesObserver.ViewOrZoomChangeEventHandler(shapeBoundRectChangeHandler);
             Source = source;
             SelectedItems = selectedShapeObservers;
-            updateBounds(selectedShapeObservers);
-            this.Silent = silent;
+            RefreshBounds();
+            registerToEvents();
         }
 
-        private void updateBounds(List<OoShapeObserver> items)
+        ~OoAccessibilitySelection()
         {
-            System.Drawing.Rectangle bounds = new System.Drawing.Rectangle();
-            System.Drawing.Rectangle screenBounds = new System.Drawing.Rectangle();
-
-            foreach (OoShapeObserver item in items)
+            try
             {
-                //System.Drawing.Rectangle pageBounds = Source.DocumentComponent.ScreenBounds;
-                System.Drawing.Rectangle shapeScreenBoundsRelative = item.GetRelativeScreenBoundsByDom();
-                System.Drawing.Rectangle tempSbRel = new System.Drawing.Rectangle(shapeScreenBoundsRelative.X, shapeScreenBoundsRelative.Y, shapeScreenBoundsRelative.Width, shapeScreenBoundsRelative.Height);
-                System.Drawing.Rectangle shapeScreenBoundsAbsolute = item.GetAbsoluteScreenBoundsByDom(shapeScreenBoundsRelative);
-                System.Drawing.Rectangle tempSbAbs = new System.Drawing.Rectangle(shapeScreenBoundsAbsolute.X, shapeScreenBoundsAbsolute.Y, shapeScreenBoundsAbsolute.Width, shapeScreenBoundsAbsolute.Height);
-
-                if (shapeScreenBoundsRelative.Height > 0 || shapeScreenBoundsRelative.Width > 0)
+                if (Count > 0)
                 {
-                    if (bounds.Width == 0 && bounds.Height == 0) //initial set
+                    foreach (var item in SelectedItems)
                     {
-                        bounds = tempSbRel;
-                        screenBounds = tempSbAbs;
-                    }
-                    else
-                    {
-                        int right = Math.Max(bounds.Right, shapeScreenBoundsRelative.Right);
-                        int bottom = Math.Max(bounds.Bottom, shapeScreenBoundsRelative.Bottom);
-
-                        bounds.X = Math.Min(bounds.X, shapeScreenBoundsRelative.X);
-                        bounds.Y = Math.Min(bounds.Y, shapeScreenBoundsRelative.Y);
-
-                        screenBounds.X = Math.Min(screenBounds.X, tempSbAbs.X);
-                        screenBounds.Y = Math.Min(screenBounds.Y, tempSbAbs.Y);
-
-                        bounds.Width = right - bounds.X;
-                        bounds.Height = bottom - bounds.Y;
-
-                        screenBounds.Size = bounds.Size;
+                        try
+                        {
+                            item.BoundRectChangeEventHandlers -= OnShapeBoundRectChange;
+                            item.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
+                        }
+                        catch { }
                     }
                 }
             }
-            this.SelectionBounds = bounds;
-            this.SelectionScreenBounds = screenBounds;
+            catch { }
         }
 
-        public void refreshBounds()
+        #endregion
+
+        #region BoundsHandling
+
+        DateTime _lastUpdate = DateTime.MinValue;
+        TimeSpan _updateTimeOut = new TimeSpan(0, 0, 1);
+
+        /// <summary>
+        /// Refreshes the bounds.
+        /// </summary>
+        public void RefreshBounds()
         {
-            if (SelectedItems != null) updateBounds(SelectedItems);
+            var now = DateTime.Now;
+            if (now - _lastUpdate > _updateTimeOut)
+            {
+                this.refreshBounds(false);
+                _lastUpdate = now;
+            }
         }
+        private void refreshBounds(bool throwEvent = false)
+        {
+            if (Count > 0)
+            {
+                Task t = new Task(new Action(() => updateBounds(throwEvent)));
+                t.Start();
+            }
+        }
+
+        private void updateBounds(bool throwEvent = false)
+        {
+            var success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(500, () =>
+            {
+                System.Drawing.Rectangle bounds = new System.Drawing.Rectangle();
+                System.Drawing.Rectangle screenBounds = new System.Drawing.Rectangle();
+
+                if (SelectedItems != null && SelectedItems.Count > 0)
+                {
+                    foreach (OoShapeObserver item in SelectedItems)
+                    {
+                        //System.Drawing.Rectangle pageBounds = Source.DocumentComponent.ScreenBounds;
+                        System.Drawing.Rectangle tempSbRel = item.GetRelativeScreenBoundsByDom();
+                        //System.Drawing.Rectangle tempSbRel = new System.Drawing.Rectangle(shapeScreenBoundsRelative.X, shapeScreenBoundsRelative.Y, shapeScreenBoundsRelative.Width, shapeScreenBoundsRelative.Height);
+                        System.Drawing.Rectangle tempSbAbs = item.GetAbsoluteScreenBoundsByDom(tempSbRel);
+                        //System.Drawing.Rectangle tempSbAbs = new System.Drawing.Rectangle(shapeScreenBoundsAbsolute.X, shapeScreenBoundsAbsolute.Y, shapeScreenBoundsAbsolute.Width, shapeScreenBoundsAbsolute.Height);
+
+                        if (tempSbRel.Height > 0 || tempSbRel.Width > 0)
+                        {
+                            if (bounds.Width == 0 && bounds.Height == 0) //initial set
+                            {
+                                bounds = tempSbRel;
+                                screenBounds = tempSbAbs;
+                            }
+                            else
+                            {
+                                int right = Math.Max(bounds.Right, tempSbRel.Right);
+                                int bottom = Math.Max(bounds.Bottom, tempSbRel.Bottom);
+
+                                bounds.X = Math.Min(bounds.X, tempSbRel.X);
+                                bounds.Y = Math.Min(bounds.Y, tempSbRel.Y);
+
+                                screenBounds.X = Math.Min(screenBounds.X, tempSbAbs.X);
+                                screenBounds.Y = Math.Min(screenBounds.Y, tempSbAbs.Y);
+
+                                bounds.Width = right - bounds.X;
+                                bounds.Height = bottom - bounds.Y;
+
+                                screenBounds.Size = bounds.Size;
+                            }
+                        }
+                    }
+                }
+                this.SelectionBounds = bounds;
+                this.SelectionScreenBounds = screenBounds;
+            }, "updateBoundsOfShapes");
+
+            if (success == throwEvent)
+            {
+                OoDrawAccessibilityObserver.Instance.SelectionChanged(Source, null);
+            }
+        }
+
+        private void registerToEvents()
+        {
+            if (Count > 0)
+            {
+                foreach (var item in SelectedItems)
+                {
+                    item.BoundRectChangeEventHandlers -= OnShapeBoundRectChange;
+                    item.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
+                }
+            }
+        }
+
+        // called on shape bound change event, refreshes current selection bounds 
+        // and invokes as silent selection change
+        private void shapeBoundRectChangeHandler()
+        {
+            try
+            {
+                refreshBounds(true);
+            }
+            catch (Exception ex) { Logger.Instance.Log(LogPriority.DEBUG, this, "cant fire selection changed event", ex); }
+        }
+
+        #endregion
+
+        #region Override
+
+        public override bool Equals(object obj)
+        {
+            if (obj != null && obj is OoAccessibilitySelection)
+            {
+                OoAccessibilitySelection objS = obj as OoAccessibilitySelection;
+                if (objS.Source.Equals(this.Source))
+                {
+                    if (objS.Count == this.Count)
+                    {
+                        if (objS.Count > 0)
+                            foreach (var item in objS.SelectedItems)
+                            {
+                                if (!this.SelectedItems.Contains(item))
+                                    return false;
+                            }
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            hash += Source.GetHashCode();
+            if (Count > 0)
+            {
+                foreach (var item in SelectedItems)
+                {
+                    hash += item.GetHashCode();
+                }
+            }
+            return hash.GetHashCode();
+        }
+
+        #endregion
     }
 
     #endregion

@@ -16,6 +16,11 @@ namespace tud.mci.tangram.models.Interfaces
         /// </summary>
         public event EventHandler<AccessibleEventObjectForwarder> NotifyEvent;
 
+        /// <summary>
+        /// Handles accessible events.
+        /// </summary>
+        /// <param name="aEvent">a event.</param>
+        /// <remarks>This Event handler it time limited to 15,000 ms.</remarks>
         void XAccessibleEventListener.notifyEvent(AccessibleEventObject aEvent)
         {
             TimeLimitExecutor.ExecuteWithTimeLimit(15000, delegate() { fireSelectionEvent(aEvent); }, "AccEvntFrwd_NotifyEvent");

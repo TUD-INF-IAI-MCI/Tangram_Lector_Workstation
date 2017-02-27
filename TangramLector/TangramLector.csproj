@@ -115,6 +115,7 @@
     <Compile Include="BrailleIO\Utils.cs" />
     <Compile Include="OO\OOConnector.cs" />
     <Compile Include="OO\OoObserver.cs" />
+    <Compile Include="OO\OpenOfficeDrawShapeManipulator\SelectionRendererHook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="program\DesktopOverlayWindow.cs">
       <SubType>Form</SubType>

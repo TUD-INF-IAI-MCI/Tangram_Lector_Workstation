@@ -391,6 +391,7 @@ namespace tud.mci.tangram.util
         /// <param name="obj">The obj.</param>
         /// <param name="propName">Name of the property.</param>
         /// <returns>the value of the property</returns>
+        /// <remarks>ATTENTION: This function is time limited to 100 ms!</remarks>
         public static String GetStringProperty(Object obj, String propName)
         {
             String result = String.Empty;

@@ -9,6 +9,7 @@ using tud.mci.tangram.TangramLector.OO;
 using tud.mci.tangram.util;
 using tud.mci.tangram.audio;
 using tud.mci.tangram.Uia;
+using tud.mci.tangram.controller.observer;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -120,13 +121,24 @@ namespace tud.mci.tangram.TangramLector
                                 OoConnector ooc = OoConnector.Instance;
                                 if (ooc != null && ooc.Observer != null)
                                 {
-                                    System.Drawing.Rectangle bb = ooc.Observer.SelectedBoundingBox;
+                                    System.Drawing.Rectangle bb = new Rectangle();
+                                    if(OoDrawAccessibilityObserver.Instance != null){
+                                        OoAccessibilitySelection selection = null;
+                                        bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(ooc.Observer.GetActiveDocument(), out selection);
+                                        if (success && selection != null)
+                                        {
+                                            bb = selection.SelectionBounds;
+                                        }
+                                    }                                    
+                                    
                                     ooc.Observer.StartDrawSelectFocusHighlightingMode();
                                     if (bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
                                     communicateSelection = true;
                                 }
                             }
-                            if (communicateSelection && OoConnector.Instance != null && OoConnector.Instance.Observer != null)
+                            if (communicateSelection 
+                                && OoConnector.Instance != null 
+                                && OoConnector.Instance.Observer != null)
                             {
                                 OoConnector.Instance.Observer.CommunicateLastSelection(false);
                             }
