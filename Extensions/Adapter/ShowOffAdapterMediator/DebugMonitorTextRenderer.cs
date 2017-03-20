@@ -258,7 +258,7 @@ namespace ShowOffAdapterMediator
                 {
                     if (e.GetValue() != null)
                     {
-                        String value = e.GetValue().ToString();
+                        String value = String.IsNullOrEmpty(e.DisplayName) ? e.GetValue().ToString() : e.DisplayName;
                         if (!String.IsNullOrWhiteSpace(value))
                         {
                             int x = (e.X + xOffset) * PIN_2_PIXEL_FACTOR + (2 * xShrink);

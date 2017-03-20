@@ -42,6 +42,9 @@ namespace ShowOffAdapterMediator
                 monitor = new ShowOff();
                 ((ShowOff)monitor).SetTitle("Tangram Lektor - Monitor");
                 monitor.Disposed += new EventHandler(monitor_Disposed);
+
+                // FIXME: make this configurable
+                ((ShowOff)monitor).ShowScreenshotMenu();
             }
             catch (Exception ex)
             {
