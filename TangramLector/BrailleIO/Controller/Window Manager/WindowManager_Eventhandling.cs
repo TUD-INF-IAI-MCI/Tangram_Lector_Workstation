@@ -813,7 +813,7 @@ namespace tud.mci.tangram.TangramLector
                         if (vr != null)
                         {
 
-                            CheckForTouchedBrailleText(vr, e);
+                            checkForTouchedBrailleText(vr, e);
 
                             String vrName = vr.Name;
                             Logger.Instance.Log(LogPriority.DEBUG, this, "[INTERACTION] tap in " + vrName);

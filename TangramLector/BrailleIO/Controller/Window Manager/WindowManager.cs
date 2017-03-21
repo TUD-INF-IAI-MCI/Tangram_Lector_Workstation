@@ -928,6 +928,16 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         /// <param name="x">x value of the tap (on pin device)</param>
         /// <param name="y">y value of the tap (on pin device)</param>
+        /// <returns>touched view range</returns>
+        public BrailleIOViewRange GetTouchedViewRange(double x, double y)
+        {
+            return io != null ? io.GetViewAtPosition((int)x, (int)y) : null;
+        }
+        /// <summary>
+        /// Get the touched view range.
+        /// </summary>
+        /// <param name="x">x value of the tap (on pin device)</param>
+        /// <param name="y">y value of the tap (on pin device)</param>
         /// <param name="s">visible screen</param>
         /// <returns>touched view range</returns>
         public BrailleIOViewRange GetTouchedViewRange(double x, double y, BrailleIOScreen s)

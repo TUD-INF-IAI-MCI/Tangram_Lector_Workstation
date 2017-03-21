@@ -852,7 +852,7 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         /// <param name="vr">The viewrange to check.</param>
         /// <param name="e">the gesture event</param>
-        private String CheckForTouchedBrailleText(BrailleIOViewRange vr, GestureEventArgs e)
+        private String checkForTouchedBrailleText(BrailleIOViewRange vr, GestureEventArgs e)
         {
             if (vr.ContentRender is ITouchableRenderer && e != null && e.Gesture != null)
             {
@@ -882,6 +882,34 @@ namespace tud.mci.tangram.TangramLector
                 
             }
             return String.Empty;
+        }
+
+        /// <summary>
+        /// Gets the touched object on the display.
+        /// This function returns only objects from <see cref="ITouchableRenderer"/> renderer.
+        /// </summary>
+        /// <param name="x">The horizontal position.</param>
+        /// <param name="y">The vertical position.</param>
+        /// <returns>The touch object from the <see cref="ITouchableRenderer"/> renderer or <c>null</c></returns>
+        public Object GetTouchedObject(double x, double y)
+        {
+            Object touched = null;
+
+            if (x >= 0 && y >= 0)
+            {
+                // get touched view range
+                BrailleIOViewRange vr = GetTouchedViewRange(x, y);
+                if (vr != null)
+                {
+                    Point tap = GetTapPositionInContent(x, y, vr);
+                    // check if view range handler is ITouchable
+                    if (vr.ContentRender is ITouchableRenderer)
+                    {
+                        touched = ((ITouchableRenderer)vr.ContentRender).GetContentAtPosition(tap.X, tap.Y);
+                    }
+                }
+            }
+            return touched;
         }
 
         #endregion
