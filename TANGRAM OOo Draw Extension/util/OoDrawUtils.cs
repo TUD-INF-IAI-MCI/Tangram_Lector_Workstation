@@ -7,6 +7,7 @@ using unoidl.com.sun.star.accessibility;
 using unoidl.com.sun.star.awt;
 using unoidl.com.sun.star.beans;
 using unoidl.com.sun.star.container;
+using unoidl.com.sun.star.document;
 using unoidl.com.sun.star.drawing;
 using unoidl.com.sun.star.frame;
 using unoidl.com.sun.star.lang;
@@ -86,7 +87,6 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="xDesktop">The XDesktop.</param>
         /// <returns>A list of all available XDrawPagesSupplier</returns>
-        /// <remarks>this function is time limited to 1,200 ms.</remarks>
         public static List<XDrawPagesSupplier> GetDrawPageSuppliers(XDesktop xDesktop)
         {
             //lock (_dpsLock)
@@ -188,12 +188,6 @@ namespace tud.mci.tangram.util
             return page;
         }
 
-        /// <summary>
-        /// Gets the parent shape.
-        /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <returns>the parent shape or <c>null</c>.</returns>
-        /// <remarks>this function is time limited to 500 ms.</remarks>
         internal static XShapes GetParentShape(XShape shape)
         {
             XShapes parent = null;
@@ -832,6 +826,47 @@ namespace tud.mci.tangram.util
         /// <param name="page">The page [XShapes].</param>
         public static void RemoveShapeFromDrawPage(Object shape, Object page) { RemoveShapeFromDrawPage(shape as XShape, page as XShapes); }
 
+        #region undoable
+
+        /// <summary>
+        /// Adds the shape to a page and make this undo/redoable.
+        /// </summary>
+        /// <param name="shape">The shape to add [XShape].</param>
+        /// <param name="page">The page to add to [XShapes].</param>
+        /// <param name="undoManager">The undo manager [XUndoManagerSupplier] 
+        /// - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        public static void AddShapeToDrawPageUndoable(Object shape, Object page, Object undoManager, String title = "")
+        {
+            AddShapeToDrawPageUndoable(shape as XShape, page as XShapes, undoManager as XUndoManagerSupplier, title);
+        }
+
+        /// <summary>
+        /// Adds the shape to a page and make this undo/redoable.
+        /// </summary>
+        /// <param name="shape">The shape to add.</param>
+        /// <param name="page">The page to add to.</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        internal static void AddShapeToDrawPageUndoable(XShape shape, XShapes page, XUndoManagerSupplier undoManager, String title = "")
+        {
+            if (shape != null && page != null)
+            {
+                if (undoManager != null)
+                {
+                    var undoAction = new ActionUndo(
+                        String.IsNullOrWhiteSpace(title) ? "Create Element" : title,
+                        () => { RemoveShapeFromDrawPage(shape, page); }, // undo
+                        () => { AddShapeToDrawPage(shape, page); }  // redo
+                        );
+                    OoUtils.AddActionToUndoManager(undoManager, undoAction);
+                }
+            }
+            AddShapeToDrawPage(shape, page);
+        }
+
+        #endregion
+
         /// <summary>
         /// Gets the current page.
         /// </summary>
@@ -1169,11 +1204,6 @@ namespace tud.mci.tangram.util
 
         #endregion
 
-        //public static void convertIntoUnit(int size, unoidl.com.sun.star.util.MeasureUnit targetUnit)
-        //{
-        //    //    unoidl.com.sun.star.util      
-        //}
-
         #region General Functions
 
         /// <summary>
@@ -1389,7 +1419,7 @@ namespace tud.mci.tangram.util
         public static System.Drawing.Point GetDocumentPositionFromScreenPosition(double x, double y, Object currentPage, Object currentView)
         {
             Point p = GetDocumentPositionFromScreenPosition(x, y, currentPage as XDrawPage, currentView as XDrawView);
-            return new System.Drawing.Point(p.X, p.Y);
+            return new System.Drawing.Point(p.X, p.Y);                  
         }
 
         /// <summary>
@@ -1426,7 +1456,7 @@ namespace tud.mci.tangram.util
                 Point p = new Point(xZoomed, yZoomed);
                 return p;
             }
-            return null;
+            return new Point();
         }
 
         /// <summary>
@@ -1683,11 +1713,11 @@ namespace tud.mci.tangram.util
             trans[0, 2] = tX;
             trans[1, 2] = tY;
 
-            //matrix[0, 2] += tX;
-            //matrix[1,2] += tY;
-            //return matrix;
+            matrix[0, 2] += tX;
+            matrix[1,2] += tY;
+            return matrix;
 
-            var result = MultiplyMatrix(trans, matrix);
+            var result = MultiplyMatrix(matrix, trans);
 
             return result;
         }

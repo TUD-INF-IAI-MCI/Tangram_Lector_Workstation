@@ -407,7 +407,8 @@ namespace tud.mci.tangram.controller.observer
                     if (shape is INameBuilder)
                     {
                         uid = ((INameBuilder)shape).BuildName();
-                    }else
+                    }
+                    else
                         uid = shape.UINameSingular + "_" + (++uidCount);
                 }
 
@@ -600,6 +601,21 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Registers a new shape.
         /// </summary>
+        /// <param name="shape">The dom shape [XShape].</param>
+        /// <param name="pObs">The page the shape is registered on.</param>
+        /// <returns>
+        /// a registered <see cref="OoShapeObserver" /> for this shape
+        /// </returns>
+        public OoShapeObserver RegisterNewShape(Object shape, OoDrawPageObserver pObs = null)
+        {
+            if (shape is XShape)
+                return RegisterNewShape(shape as XShape, pObs);
+            return null;
+        }
+
+        /// <summary>
+        /// Registers a new shape.
+        /// </summary>
         /// <param name="shape">The dom shape.</param>
         /// <returns>a registered <see cref="OoShapeObserver"/> for this shape</returns>
         internal OoShapeObserver RegisterNewShape(XShape shape, OoDrawPageObserver pObs = null)
@@ -612,7 +628,7 @@ namespace tud.mci.tangram.controller.observer
                 var page = OoDrawUtils.GetPageForShape(shape);
                 if (page != null)
                 {
-                    if(pObs == null || !page.Equals(pObs.DrawPage)) 
+                    if (pObs == null || !page.Equals(pObs.DrawPage))
                         pObs = GetRegisteredPageObserver(page);
 
                     if (pObs != null)
@@ -820,7 +836,7 @@ namespace tud.mci.tangram.controller.observer
                         }
                     }
                 }
-                catch (System.Exception){}
+                catch (System.Exception) { }
             }
             return null;
         }
@@ -833,7 +849,7 @@ namespace tud.mci.tangram.controller.observer
             {
                 OoShapeObserver _so = shapeKeyValuePair.Value;
 
-                if(_so != null && !_so.Disposed)
+                if (_so != null && !_so.Disposed)
                 {
                     if (_so.AcccessibleCounterpart != null)
                     {
@@ -1006,7 +1022,7 @@ namespace tud.mci.tangram.controller.observer
                         // It is suggested to allow multiple registration of the same listener, thus for each time a listener is added, it has to be removed.
                         ((XPropertySet)Controller).removePropertyChangeListener("VisibleArea", eventForwarder);
                     }
-                    catch (Exception){}
+                    catch (Exception) { }
                 }
             }
         }

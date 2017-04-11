@@ -731,6 +731,20 @@ namespace tud.mci.tangram.Accessibility
         #region Shape Observer Get
 
         /// <summary>
+        /// Gets the registered shape observer to the given component if it is already registered.
+        /// </summary>
+        /// <param name="xShape">The shape.</param>
+        /// <param name="page">The page to look for.</param>
+        /// <returns>
+        /// an accessible component if it is already registered
+        /// </returns>
+        internal OoShapeObserver GetRegisteredShapeObserver(XShape xShape, OoDrawPageObserver page)
+        {
+            OoShapeObserver shape = DrawPagesObs.GetRegisteredShapeObserver(xShape, page);
+            return shape;
+        }
+
+        /// <summary>
         /// Gets the registered shape observer to the accessible component if it is already registered.
         /// </summary>
         /// <param name="xAccessibleComponent">The x accessible component.</param>
@@ -749,6 +763,25 @@ namespace tud.mci.tangram.Accessibility
         public OoShapeObserver GetRegisteredShapeObserver(OoAccComponent accessibleComponent)
         {
             return GetRegisteredShapeObserver(accessibleComponent.AccComp);
+        }
+
+        /// <summary>
+        /// Gets the registered shape observer to the accessible component if it is already registered.
+        /// </summary>
+        /// <param name="shape">The shape [OoAccComponent], [XAccessibleComponent] or [XShape].</param>
+        /// <param name="page">The page the shape should be.</param>
+        /// <returns>
+        /// an accessible component if it is already registered
+        /// </returns>
+        public OoShapeObserver GetRegisteredShapeObserver(Object shape, OoDrawPageObserver page = null)
+        {
+            if (shape != null)
+            {
+                if (shape is OoAccComponent) return GetRegisteredShapeObserver(shape as OoAccComponent);
+                else if (shape is XAccessibleComponent) return GetRegisteredShapeObserver(shape as XAccessibleComponent);
+                else if (shape is XShape && page != null) return GetRegisteredShapeObserver(shape as XShape, page); 
+            }
+            return null;
         }
 
         #endregion

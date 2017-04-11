@@ -86,13 +86,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         if (e.ReleasedGenericKeys.Intersect(new List<String> { "k4", "k5" }).ToList().Count == 2)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] choose next element");
-                            chooseNextElement();
+                            ChooseNextElement();
                             e.Cancel = true;
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2" }).ToList().Count == 2)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] choose previous element");
-                            choosePreviousElement();
+                            ChoosePreviousElement();
                             e.Cancel = true;
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k5", "k6" }).ToList().Count == 2)
@@ -160,13 +160,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k3" }).ToList().Count == 3)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] choose parent group");
-                            chooseParentOfElement();
+                            ChooseParentOfElement();
                             e.Cancel = true;
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k4", "k5", "k6" }).ToList().Count == 3)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] choose first child in group");
-                            chooseFirstChildOfElement();
+                            ChooseFirstChildOfElement();
                             e.Cancel = true;
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k4", "k5" }).ToList().Count == 3)
@@ -213,13 +213,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>
         /// Go to the next element in the document tree.
         /// </summary>
-        private void chooseNextElement()
+        public void ChooseNextElement()
         {
             if (LastSelectedShapePolygonPoints != null
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
             {
-                selectNextPolygonPoint();
+                SelectNextPolygonPoint();
             }
             else if (LastSelectedShape == null)
             {
@@ -253,13 +253,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        private void choosePreviousElement()
+        public void ChoosePreviousElement()
         {
             if (LastSelectedShapePolygonPoints != null
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
             {
-                selectPreviousePolygonPoint();
+                SelectPreviousePolygonPoint();
             }
             else if (LastSelectedShape == null)
             {
@@ -294,7 +294,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        private void chooseFirstChildOfElement()
+        public void ChooseFirstChildOfElement()
         {
             if (LastSelectedShape == null)
             {
@@ -325,13 +325,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
                 else
                 {
-                    selectNextPolygonPoint();
+                    SelectNextPolygonPoint();
                     if(LastSelectedShapePolygonPoints == null) playError();
                 }
             }
         }
 
-        private void chooseParentOfElement()
+        public void ChooseParentOfElement()
         {
             if (LastSelectedShapePolygonPoints != null)
             {
@@ -400,7 +400,26 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #region Polygon Point Handling
 
-        private void selectNextPolygonPoint()
+        public void SelectPolygonPoint()
+        {
+            if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
+            {
+                LastSelectedShapePolygonPoints = LastSelectedShape.GetPolygonPointsObserver();
+                UpdateLastSelectedPolygonPoints();
+            }
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                SpeakPolygonPoint(LastSelectedShapePolygonPoints);
+                int i;
+                fire_PolygonPointSelected(LastSelectedShapePolygonPoints, LastSelectedShapePolygonPoints.Current(out i));
+            }
+            else
+            {
+                fire_PolygonPointSelected_Reset();
+            }
+        }
+
+        public void SelectNextPolygonPoint()
         {
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
@@ -432,8 +451,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        private void selectPreviousePolygonPoint()
+        public void SelectPreviousePolygonPoint()
         {
+            if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
+            {
+                var pObs = LastSelectedShape.GetPolygonPointsObserver();
+                if (pObs != null) LastSelectedShapePolygonPoints = pObs;
+            }
+
             if (LastSelectedShapePolygonPoints != null)
             {
                 PolyPointDescriptor point;
@@ -447,6 +472,67 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         point = LastSelectedShapePolygonPoints.Last();
                     }
+                }
+                else
+                {
+                    point = new PolyPointDescriptor();
+                }
+
+                SpeakPolygonPoint(LastSelectedShapePolygonPoints);
+                fire_PolygonPointSelected(LastSelectedShapePolygonPoints, point);
+            }
+            else
+            {
+                fire_PolygonPointSelected_Reset();
+            }
+        }
+
+        public void SelectLastPolygonPoint()
+        {
+            if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
+            {
+                    var pObs = LastSelectedShape.GetPolygonPointsObserver();
+                    if (pObs != null) LastSelectedShapePolygonPoints = pObs;
+            }
+
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                PolyPointDescriptor point;
+                if (LastSelectedShapePolygonPoints.HasPoints())
+                {
+                        point = LastSelectedShapePolygonPoints.Last();
+                }
+                else
+                {
+                    point = new PolyPointDescriptor();
+                }
+
+                SpeakPolygonPoint(LastSelectedShapePolygonPoints);
+                fire_PolygonPointSelected(LastSelectedShapePolygonPoints, point);
+            }
+            else
+            {
+                fire_PolygonPointSelected_Reset();
+            }
+        }
+
+        /// <summary>
+        /// Selects the first polygon point.
+        /// </summary>
+        public void SelectFirstPolygonPoint()
+        {
+            if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
+            {
+                var pObs = LastSelectedShape.GetPolygonPointsObserver();
+                if (pObs != null) LastSelectedShapePolygonPoints = pObs;
+            }
+
+            if (LastSelectedShapePolygonPoints != null)
+            {
+                PolyPointDescriptor point;
+                if (LastSelectedShapePolygonPoints.HasPoints())
+                {
+                    point = LastSelectedShapePolygonPoints.First();
                 }
                 else
                 {

@@ -44,6 +44,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private OoShapeObserver _shape = null;
         private readonly Object _shapeLock = new Object();
+        private readonly Object _shapePointLock = new Object();
         /// <summary>
         /// Gets or sets the last selected shape, which is should be modified.
         /// </summary>
@@ -55,7 +56,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 bool fire = false;
                 lock (_shapeLock)
                 {
-                    if (_shape != null && !_shape.IsValid())
+                    if (_shape != null && !_shape.IsValid(false))
                     {
                         _shape = null;
                         _points = null;
@@ -90,7 +91,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             get
             {
-                lock (_shapeLock)
+                lock (_shapePointLock)
                 {
                     //if (_shape != null && (_points == null || _points.Shape != _shape || !_points.IsValid()))
                     //{
@@ -99,9 +100,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     return _points;
                 }
             }
-            private set
+            set
             {
-                lock (_shapeLock)
+                lock (_shapePointLock)
                 {
                     _points = value;
                     if (_points != null)

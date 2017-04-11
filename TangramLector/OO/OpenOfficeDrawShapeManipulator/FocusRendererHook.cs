@@ -45,7 +45,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <param name="currentSelectedShape">The current selected shape.</param>
         public void SetCurrentBoundingBoxByShape(OoShapeObserver currentSelectedShape)
         {
-            if (currentSelectedShape != null && currentSelectedShape.IsValid())
+            if (currentSelectedShape != null && currentSelectedShape.IsValid(false))
             {
                 CurrentBoundingBox = currentSelectedShape.GetAbsoluteScreenBoundsByDom();
             }
@@ -56,11 +56,16 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// Determine if this Hook should be active or not.
         /// </summary>
         public bool Active = false;
-
+                
+        private bool _doRenderBoundingBox = false;
         /// <summary>
         /// Determine if this Hook should render the Bounding box or not.
         /// </summary>
-        public bool DoRenderBoundingBox = false;
+        public bool DoRenderBoundingBox
+        {
+            get { return _doRenderBoundingBox; }
+            set { _doRenderBoundingBox = value; }
+        }
 
         /// <summary>
         /// This hook function is called by an IBrailleIOHookableRenderer before he starts his rendering.
@@ -75,7 +80,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         // Result is addressed in [y, x] notation.
         void IBailleIORendererHook.PostRenderHook(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
-            if (Active && DoRenderBoundingBox && WindowManager.Instance != null && !WindowManager.Instance.IsInMinimapMode())
+            if (Active && _doRenderBoundingBox 
+                && WindowManager.Instance != null && !WindowManager.Instance.IsInMinimapMode())
             {
                 doBlinkingBoundingBox(view, content, ref result, additionalParams);
             }
@@ -92,7 +98,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         virtual protected void doBlinkingBoundingBox(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
             //draw frame as bool pins
-            if (DoRenderBoundingBox &&
+            if (_doRenderBoundingBox &&
                 CurrentPoint.X < 0 && CurrentPoint.Y < 0 &&
                 !(CurrentBoundingBox.Width * CurrentBoundingBox.Height < 1))
             {
@@ -282,13 +288,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                          */
 
                         // cross
-                        setSaveDot(x, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
-                        setSaveDot(x - 1, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
-                        setSaveDot(x + 1, y, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
-                        setSaveDot(x, y - 1, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
-                        setSaveDot(x, y + 1, ref result, DoRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x, y, ref result, _doRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x - 1, y, ref result, _doRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x + 1, y, ref result, _doRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x, y - 1, ref result, _doRenderBoundingBox, result_x_max, result_y_max);
+                        setSaveDot(x, y + 1, ref result, _doRenderBoundingBox, result_x_max, result_y_max);
 
-                        if (DoRenderBoundingBox)
+                        if (_doRenderBoundingBox)
                         {
                             // cross spacing
                             setSaveDot(x - 2, y, ref result, false, result_x_max, result_y_max);

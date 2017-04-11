@@ -98,7 +98,7 @@ namespace TangramLector.OO
         {
             String result = String.Empty;
 
-            if (element != null && element.IsValid())
+            if (element != null && element.IsValid(false))
             {
                 try
                 {

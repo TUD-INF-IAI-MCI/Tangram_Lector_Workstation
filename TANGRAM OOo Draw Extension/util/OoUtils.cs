@@ -226,7 +226,7 @@ namespace tud.mci.tangram.util
         /// <param name="propName">Name of the property.</param>
         /// <param name="value">The value of the property.</param>
         /// <param name="doc">The undo manager.</param>
-        public static bool SetPropertyUndoable(XPropertySet obj, String propName, Object value, XUndoManagerSupplier doc)
+        internal static bool SetPropertyUndoable(XPropertySet obj, String propName, Object value, XUndoManagerSupplier doc)
         {
             bool success = false;
             XUndoManager undoManager = null;
@@ -257,12 +257,12 @@ namespace tud.mci.tangram.util
         /// <summary>
         /// Sets a property and add the change in the uno manager.
         /// </summary>
-        /// <param name="obj">The obj.</param>
+        /// <param name="obj">The obj to change its property [XControl], [XPropertySet].</param>
         /// <param name="propName">Name of the property.</param>
         /// <param name="value">The value of the property.</param>
         /// <param name="doc">The undo manager.</param>
         /// <returns><c>true</c> if the property could be changed successfully</returns>
-        public static bool SetPropertyUndoable(Object obj, String propName, Object value, XUndoManagerSupplier doc)
+        internal static bool SetPropertyUndoable(Object obj, String propName, Object value, XUndoManagerSupplier doc)
         {
             if (obj is XControl)
             {
@@ -286,6 +286,24 @@ namespace tud.mci.tangram.util
             // Now just call our sibling using the correct interface.
             return SetPropertyUndoable(objXPropertySet, propName, value, doc);
         }
+
+
+        /// <summary>
+        /// Sets a property and add the change in the uno manager.
+        /// </summary>
+        /// <param name="obj">The obj to change its property [XControl], [XPropertySet].</param>
+        /// <param name="propName">Name of the property.</param>
+        /// <param name="value">The value of the property.</param>
+        /// <param name="undoManager">The undo manager [XUndoManagerSupplier] - normally this is 
+        /// the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <returns>
+        ///   <c>true</c> if the property could be changed successfully
+        /// </returns>
+        public static bool SetPropertyUndoable(Object obj, String propName, Object value, Object undoManager)
+        { 
+            return SetPropertyUndoable(obj, propName, value, undoManager as XUndoManagerSupplier); 
+        }
+
 
         #endregion
 

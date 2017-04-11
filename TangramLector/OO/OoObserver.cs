@@ -37,19 +37,7 @@ namespace tud.mci.tangram.TangramLector.OO
         #endregion
 
         readonly OpenOfficeDrawShapeManipulator shapeManipulatorFunctionProxy = null;
-
-        ///// <summary>
-        ///// Bounding box of all selected items.
-        ///// </summary>
-        ///// <returns></returns>
-        //public Rectangle SelectedBoundingBox { get; private set; }
-
-        ///// <summary>
-        ///// Get first item of list which is selected on GUI (Mouse focus).
-        ///// </summary>
-        ///// <returns></returns>
-        //public OoShapeObserver SelectedItem { get; private set; }
-
+        public OpenOfficeDrawShapeManipulator OoManipulator { get {return shapeManipulatorFunctionProxy; } }
         #endregion
 
         /// <summary>
@@ -312,39 +300,17 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         public void StartDrawSelectFocusHighlightingMode(OoAccessibilitySelection selection = null)
         {
-            //// look for current selection
-            //// first, if there is none try getting from last selected args
-            // if (SelectedBoundingBox.IsEmpty && OoDrawAccessibilityObserver.Instance.LastSelection != null) 
-            //     SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
-            //Rectangle bb = SelectedBoundingBox;
-
-            //Rectangle bb = new Rectangle();
             if (OoDrawAccessibilityObserver.Instance != null)
             {
                 if (selection == null)
                 {
                     bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(GetActiveDocument(), out selection);
                 }
-                //if (selection != null)
-                //{
-                //    bb = selection.SelectionBounds;
-                //}
             }
 
-            //Rectangle pageBounds = WindowManager.Instance.ScreenObserver.ScreenPos != null ? (Rectangle)WindowManager.Instance.ScreenObserver.ScreenPos : new Rectangle();
             this.DrawSelectFocusRenderer.DoRenderBoundingBox = true;
             this.DrawSelectFocusHighlightMode = true;
             this.DrawSelectFocusRenderer.SetSelection(selection);
-
-            //if (!bb.IsEmpty && pageBounds.Width > 0 && pageBounds.Height > 0)
-            //{
-            //    System.Drawing.Rectangle absBBox = new System.Drawing.Rectangle(bb.X + pageBounds.X, bb.Y + pageBounds.Y, bb.Width, bb.Height);
-            //    this.DrawSelectFocusRenderer.CurrentBoundingBox = absBBox;
-            //}
-            //else
-            //{
-            //    this.DrawSelectFocusRenderer.CurrentBoundingBox = new System.Drawing.Rectangle(-1, -1, 0, 0);
-            //}
         }
 
 
@@ -433,12 +399,6 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     CommunicateSelection(selection.SelectedItems, immediately);
                 }
-
-                //var args = OoDrawAccessibilityObserver.Instance.LastSelection;
-                //if (args != null && args.SelectedItems != null)
-                //{
-                //    CommunicateSelection(args.SelectedItems, immediately);
-                //}
             }
         }
 
@@ -685,32 +645,128 @@ namespace tud.mci.tangram.TangramLector.OO
             return null;
         }
 
+
         /// <summary>
-        /// Gets the shape for modification.
+        /// Sets the shape for modification to the given observer.
         /// </summary>
-        /// <param name="c">The c.</param>
+        /// <param name="shape">The shape.</param>
         /// <param name="observed">The observed.</param>
+        /// <returns>the currently selected Shape observer</returns>
+        public bool SetShapeForModification(OoShapeObserver shape)
+        {
+            if (shape != null)
+            {
+                if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
+                {
+                    OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                    //audioRenderer.PlaySound("Form kann manipuliert werden");
+                    shapeManipulatorFunctionProxy.LastSelectedShape = shape;
+                    return shapeManipulatorFunctionProxy.LastSelectedShape == shape;
+                }
+                else // title+desc dialog handling
+                {
+                    ImageData.Instance.NewSelectionHandling(shape);
+                }
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
+        /// Sets the shape for modification to the given observer.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <param name="observed">The observed.</param>
+        /// <returns>the currently selected Shape observer</returns>
+        public bool SetPolypointForModification(OoPolygonPointsObserver points, OoShapeObserver shape)
+        {
+            if (shape != null && points != null && points.Shape == shape)
+            {
+                if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
+                {
+                    // OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                    shapeManipulatorFunctionProxy.LastSelectedShape = shape;
+                    shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints = points;
+                    // shapeManipulatorFunctionProxy.SelectLastPolygonPoint();
+                    shapeManipulatorFunctionProxy.SelectPolygonPoint();
+                }
+                else // title+desc dialog handling
+                {
+                    ImageData.Instance.NewSelectionHandling(shape);
+                }
+            }
+
+            return false;
+        }
+
+
+
+
+        /// <summary>
+        /// Gets the shape for modification from the given Draw page child object.
+        /// </summary>
+        /// <param name="c">The component to search its shape observer for [<see cref="OoAccComponent"/>], [<see cref="OoShapeObserver"/>], [XShape].</param>
+        /// <param name="observed">The observed window / draw document.</param>
+        /// <returns>The corresponding registered shape observer</returns>
+        public OoShapeObserver GetShapeForModification(Object c, OoAccessibleDocWnd observed, OoDrawPageObserver page = null)
+        {
+            if (c is OoAccComponent)
+            {
+                return GetShapeForModification(c as OoAccComponent, observed);
+            }
+            else if (c is OoShapeObserver)
+            {
+                return GetShapeForModification(c as OoShapeObserver, observed);
+            }
+            else if (observed != null)
+            {
+                return observed.GetRegisteredShapeObserver(c, page != null ? page : observed.GetActivePage());
+            }
+
+            return null;
+        }
+
+
+        /// <summary>
+        /// Sets the shape for modification to the given observer.
+        /// </summary>
+        /// <param name="shape">The shape.</param>
+        /// <param name="observed">The observed.</param>
+        /// <returns>the currently selected Shape observer</returns>
+        public OoShapeObserver GetShapeForModification(OoShapeObserver shape, OoAccessibleDocWnd observed = null)
+        {
+            return SetShapeForModification(shape) ? shape : null;
+        }
+
+        /// <summary>
+        /// Gets the shape observer for modification.
+        /// </summary>
+        /// <param name="c">The component to get the corresponding observer to.</param>
+        /// <param name="observed">The observed window / draw document.</param>
+        /// <returns>The corresponding observer to the shape in the given Draw document.</returns>
         public OoShapeObserver GetShapeForModification(OoAccComponent c, OoAccessibleDocWnd observed)
         {
             if (observed != null && c.Role != AccessibleRole.INVALID)
             {
                 //TODO: prepare name:
 
-                //var shape = observed.DrawPagesObs.GetRegisteredShapeObserver(c.AccComp); 
                 OoShapeObserver shape = observed.GetRegisteredShapeObserver(c);
                 if (shape != null)
                 {
-                    if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
-                    {
-                        OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
-                        //audioRenderer.PlaySound("Form kann manipuliert werden");
-                        shapeManipulatorFunctionProxy.LastSelectedShape = shape;
-                        return shape;
-                    }
-                    else // title+desc dialog handling
-                    {
-                        ImageData.Instance.NewSelectionHandling(shape);
-                    }
+                    return GetShapeForModification(shape, observed);
+
+                    //if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
+                    //{
+                    //    OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                    //    //audioRenderer.PlaySound("Form kann manipuliert werden");
+                    //    shapeManipulatorFunctionProxy.LastSelectedShape = shape;
+                    //    return shape;
+                    //}
+                    //else // title+desc dialog handling
+                    //{
+                    //    ImageData.Instance.NewSelectionHandling(shape);
+                    //}
                 }
                 else
                 {
@@ -802,7 +858,6 @@ namespace tud.mci.tangram.TangramLector.OO
             {
                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[FATAL ERROR] An instance of the WindowManager singleton could not been achieved!");
             }
-
 
             // get all observed documents -- choose the first
             var docs = OoDrawAccessibilityObserver.Instance.GetDrawDocs();

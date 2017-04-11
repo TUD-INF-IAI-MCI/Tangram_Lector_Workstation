@@ -292,85 +292,88 @@ namespace tud.mci.tangram.controller.observer
         {
             if (isUpdating || (DateTime.Now - lastUpdateTime).TotalMilliseconds < 100) return;
             isUpdating = true;
-
-            //TODO: update informations
-            //throw new NotImplementedException();
-            if (AcccessibleCounterpart == null)
+            lock (SynchLock)
             {
-                if (Page != null && Page.PagesObserver != null && Page.PagesObserver.Document != null)
+
+                //TODO: update informations
+                //throw new NotImplementedException();
+                if (AcccessibleCounterpart == null)
                 {
-                    AcccessibleCounterpart = OoAccessibility.GetAccessibleCounterpartFromHash(Shape, Page.PagesObserver.Document.AccCont);
+                    if (Page != null && Page.PagesObserver != null && Page.PagesObserver.Document != null)
+                    {
+                        AcccessibleCounterpart = OoAccessibility.GetAccessibleCounterpartFromHash(Shape, Page.PagesObserver.Document.AccCont);
+                    }
+                    //{
+                    //    var childs = OoAccessibility.GetAllChildrenOfAccessibleObject(Page.PagesObserver.Document.AccCont as XAccessible);
+
+                    //    string current_name = String.Empty;
+                    //    bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () => { current_name = Name; });
+                    //    if (String.IsNullOrEmpty(current_name))
+                    //    {
+                    //        isUpdating = false;
+                    //        lastUpdateTime = DateTime.Now;
+                    //        return;
+                    //    }
+
+                    //    // foreach (var c in childs) { System.Diagnostics.Debug.WriteLine(OoAccessibility.GetAccessibleNamePart(c as XAccessible)); }
+
+                    //    foreach (var child in childs)
+                    //    {
+                    //        if (child is XAccessible)
+                    //        {
+                    //            if (OoUtils.ElementSupportsService(child, OO.Services.DRAWING_ACCESSIBLE_SHAPE))
+                    //            {
+                    //                if (child is XAccessibleComponent)
+                    //                {
+                    //                    var size = ((XAccessibleComponent)child).getSize();
+                    //                    if (size.Width <= 0 || size.Height <= 0)
+                    //                        continue;
+                    //                }
+                    //                // get AccessibleName leads to hang ons
+                    //                var name = OoAccessibility.GetAccessibleNamePart(child as XAccessible);
+                    //                if (name.Equals(current_name))
+                    //                {
+                    //                    // TODO: check other/better possibilities
+
+                    //                    try // change name and check if the name is changed in the accessible view too
+                    //                    {
+                    //                        if (Shape != null)
+                    //                        {
+                    //                            string oldName = OoUtils.GetStringProperty(Shape, "Name");
+                    //                            string newName = this.GetHashCode() + " ";
+                    //                            OoUtils.SetStringProperty(Shape, "Name", newName);
+                    //                            System.Threading.Thread.Sleep(5);
+                    //                            string accName = OoAccessibility.GetAccessibleName(child as XAccessible);
+                    //                            if (accName.StartsWith(newName))
+                    //                            {
+                    //                                AcccessibleCounterpart = child;
+                    //                                OoUtils.SetStringProperty(Shape, "Name", oldName);
+                    //                                break;
+                    //                            }
+                    //                            else
+                    //                            {
+                    //                                OoUtils.SetStringProperty(Shape, "Name", oldName);
+                    //                                continue;
+                    //                            }
+                    //                        }
+
+                    //                    }
+                    //                    catch (Exception)
+                    //                    {
+                    //                    }
+
+                    //                    AcccessibleCounterpart = child;
+                    //                    break;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
-                //{
-                //    var childs = OoAccessibility.GetAllChildrenOfAccessibleObject(Page.PagesObserver.Document.AccCont as XAccessible);
 
-                //    string current_name = String.Empty;
-                //    bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () => { current_name = Name; });
-                //    if (String.IsNullOrEmpty(current_name))
-                //    {
-                //        isUpdating = false;
-                //        lastUpdateTime = DateTime.Now;
-                //        return;
-                //    }
+                if (_ppObs != null) { _ppObs.Update(); } // update polypolygon points
 
-                //    // foreach (var c in childs) { System.Diagnostics.Debug.WriteLine(OoAccessibility.GetAccessibleNamePart(c as XAccessible)); }
-
-                //    foreach (var child in childs)
-                //    {
-                //        if (child is XAccessible)
-                //        {
-                //            if (OoUtils.ElementSupportsService(child, OO.Services.DRAWING_ACCESSIBLE_SHAPE))
-                //            {
-                //                if (child is XAccessibleComponent)
-                //                {
-                //                    var size = ((XAccessibleComponent)child).getSize();
-                //                    if (size.Width <= 0 || size.Height <= 0)
-                //                        continue;
-                //                }
-                //                // get AccessibleName leads to hang ons
-                //                var name = OoAccessibility.GetAccessibleNamePart(child as XAccessible);
-                //                if (name.Equals(current_name))
-                //                {
-                //                    // TODO: check other/better possibilities
-
-                //                    try // change name and check if the name is changed in the accessible view too
-                //                    {
-                //                        if (Shape != null)
-                //                        {
-                //                            string oldName = OoUtils.GetStringProperty(Shape, "Name");
-                //                            string newName = this.GetHashCode() + " ";
-                //                            OoUtils.SetStringProperty(Shape, "Name", newName);
-                //                            System.Threading.Thread.Sleep(5);
-                //                            string accName = OoAccessibility.GetAccessibleName(child as XAccessible);
-                //                            if (accName.StartsWith(newName))
-                //                            {
-                //                                AcccessibleCounterpart = child;
-                //                                OoUtils.SetStringProperty(Shape, "Name", oldName);
-                //                                break;
-                //                            }
-                //                            else
-                //                            {
-                //                                OoUtils.SetStringProperty(Shape, "Name", oldName);
-                //                                continue;
-                //                            }
-                //                        }
-
-                //                    }
-                //                    catch (Exception)
-                //                    {
-                //                    }
-
-                //                    AcccessibleCounterpart = child;
-                //                    break;
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
             }
-
-            if (_ppObs != null) { _ppObs.Update(); } // update polypolygon points
-
             // TODO: update children
             isUpdating = false;
             lastUpdateTime = DateTime.Now;
@@ -385,10 +388,13 @@ namespace tud.mci.tangram.controller.observer
         /// change of properties such as polygon points.
         /// </summary>
         internal static volatile bool LockValidation = false;
-        private static Object _synchLock = new Object();
-        
+        /// <summary>
+        /// The lock object to synchronize parallel access to this object. 
+        /// </summary>
+        public static Object SynchLock = new Object();
+
         bool _valid = true;
-        private const long _validationTreshold = 50000000; // 10.000.000 ~ 1 sec.
+        private const long _validationTreshold = 80000000; // 10.000.000 ~ 1 sec.
         long _lastValidation = DateTime.UtcNow.Ticks;
 
         /// <summary>
@@ -408,71 +414,74 @@ namespace tud.mci.tangram.controller.observer
             if (!force && (ts - _lastValidation < _validationTreshold)) return _valid;
 
             _valid = true;
-            try
+            lock (SynchLock)
             {
-                if (!Disposed && Shape != null && Page != null)
+                try
                 {
-                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
+                    if (!Disposed && Shape != null && Page != null)
                     {
-                        try
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
                         {
-
-                            var test1 = Shape.GetHashCode();
-                            string uiName = UINameSingular;
-                            if (test1 == 0 || String.IsNullOrEmpty(uiName))
+                            try
                             {
-                                _valid = false;
-                                Dispose();
-                                return;
+
+                                var test1 = Shape.GetHashCode();
+                                string uiName = UINameSingular;
+                                if (test1 == 0 || String.IsNullOrEmpty(uiName))
+                                {
+                                    _valid = false;
+                                    Dispose();
+                                    return;
+                                }
+
+                                if (AcccessibleCounterpart != null) AcccessibleCounterpart.GetHashCode();
+                                else
+                                {
+                                    Update();
+                                }
+
+                                if (!OoUtils.ElementSupportsService(Shape, OO.Services.DRAW_SHAPE))
+                                {
+                                    _valid = false;
+                                    return;
+                                }
+
+                                //var services = util.Debug.GetAllServicesOfObject(Shape, false);
+                                //if (services.Length == 0)
+                                //{
+                                //    valid = false;
+                                //    return;
+                                //}
+
+                                //// test if a parent exists
+                                //XShapes parent;
+                                //bool parentSuccess = tryGetParentByXShape(out parent, Shape);
+                                //if (parentSuccess && parent == null)
+                                //{
+                                //    valid = false;
+                                //    // should bee disposed?!
+                                //    Dispose();
+                                //    return;
+                                //}
+
+                                _valid = true;
+
                             }
-
-                            if (AcccessibleCounterpart != null) AcccessibleCounterpart.GetHashCode();
-                            else
-                            {
-                                Update();
-                            }
-
-                            if (!OoUtils.ElementSupportsService(Shape, OO.Services.DRAW_SHAPE))
-                            {
-                                _valid = false;
-                                return;
-                            }
-
-                            //var services = util.Debug.GetAllServicesOfObject(Shape, false);
-                            //if (services.Length == 0)
-                            //{
-                            //    valid = false;
-                            //    return;
-                            //}
-
-                            //// test if a parent exists
-                            //XShapes parent;
-                            //bool parentSuccess = tryGetParentByXShape(out parent, Shape);
-                            //if (parentSuccess && parent == null)
-                            //{
-                            //    valid = false;
-                            //    // should bee disposed?!
-                            //    Dispose();
-                            //    return;
-                            //}
-
-                            _valid = true;
-
-                        }
-                        catch (System.Threading.ThreadAbortException) { DisableValidationTemporary(); }
-                        catch (System.Threading.ThreadInterruptedException) { DisableValidationTemporary(); }
-                    }, "ShapeValidation Shape " + _lastName);
+                            catch (System.Threading.ThreadAbortException) { DisableValidationTemporary(); }
+                            catch (System.Threading.ThreadInterruptedException) { DisableValidationTemporary(); }
+                        }, "ShapeValidation Shape " + _lastName);
+                    }
+                    else
+                    {
+                        _valid = false;
+                    }
                 }
-                else
+                catch (unoidl.com.sun.star.lang.DisposedException)
                 {
-                    _valid = false;
+                    Dispose();
                 }
+                catch { }
             }
-            catch (unoidl.com.sun.star.lang.DisposedException)
-            {
-                Dispose();
-            }
-            catch { }
 
             _lastValidation = ts;
             return _valid;
@@ -606,11 +615,10 @@ namespace tud.mci.tangram.controller.observer
         /// <returns>the png file size (only > 0 if successful)</returns>
         virtual public int GetShapeAsPng(out byte[] pngFileData)
         {
-
             pngFileData = new byte[0];
             object doc = GetDocument();
             // see https://blog.oio.de/2010/10/27/copy-and-paste-without-clipboard-using-openoffice-org-api/
-            if (IsValid() && doc != null && Shape != null)
+            if (IsValid(false) && doc != null && Shape != null)
             {
                 System.Drawing.Rectangle rectDom = GetRelativeScreenBoundsByDom();
 
@@ -625,11 +633,11 @@ namespace tud.mci.tangram.controller.observer
 
                 /* create com.sun.star.comp.MemoryStream, Debug.GetAllInterfacesOfObject(memoryOutStream) gets:
                     unoidl.com.sun.star.io.XStream
-	                unoidl.com.sun.star.io.XSeekableInputStream
-	                unoidl.com.sun.star.io.XOutputStream
-	                unoidl.com.sun.star.io.XTruncate
-	                unoidl.com.sun.star.lang.XTypeProvider
-	                unoidl.com.sun.star.uno.XWeak
+                    unoidl.com.sun.star.io.XSeekableInputStream
+                    unoidl.com.sun.star.io.XOutputStream
+                    unoidl.com.sun.star.io.XTruncate
+                    unoidl.com.sun.star.lang.XTypeProvider
+                    unoidl.com.sun.star.uno.XWeak
                  */
                 //XMultiServiceFactory xmsf = OO.GetMultiServiceFactory(OO.GetContext(), OO.GetMultiComponentFactory(OO.GetContext()));
                 XStream memoryStream = (XStream)OO.GetContext().getServiceManager().createInstanceWithContext("com.sun.star.comp.MemoryStream", OO.GetContext());
@@ -743,7 +751,9 @@ namespace tud.mci.tangram.controller.observer
                     {
                         // docModel.unlockControllers();
                     }
-                }else{
+                }
+                else
+                {
                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE] can't get relative screen bounds from shape ");
                 }
 
@@ -862,32 +872,35 @@ namespace tud.mci.tangram.controller.observer
             bool success = false;
             try
             {
-                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DELETE] shape: " + this.Name);
-
-                if (this.Page != null)
+                lock (SynchLock)
                 {
-                    var pObs = this.Page.PagesObserver;
-                    if (pObs != null)
+                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[DELETE] shape: " + this.Name);
+
+                    if (this.Page != null)
                     {
-                        var contrl = pObs.Controller;
-                        if (contrl != null)
+                        var pObs = this.Page.PagesObserver;
+                        if (pObs != null)
                         {
-                            OoDispatchHelper.ActionWithChangeAndResetSelection(
-                                                new Action(() =>
-                                                {
-                                                    success = OoDispatchHelper.CallDispatch(
-                                                        DispatchURLs.SID_DELETE,
-                                                        contrl as XDispatchProvider
-                                                        );
-                                                }),
-                                                contrl as unoidl.com.sun.star.view.XSelectionSupplier,
-                                                Shape
-                                            );
-                            success = !IsValid();
+                            var contrl = pObs.Controller;
+                            if (contrl != null)
+                            {
+                                OoDispatchHelper.ActionWithChangeAndResetSelection(
+                                                    new Action(() =>
+                                                    {
+                                                        success = OoDispatchHelper.CallDispatch(
+                                                            DispatchURLs.SID_DELETE,
+                                                            contrl as XDispatchProvider
+                                                            );
+                                                    }),
+                                                    contrl as unoidl.com.sun.star.view.XSelectionSupplier,
+                                                    Shape
+                                                );
+                                success = !IsValid();
+                            }
                         }
                     }
+                    return success;
                 }
-                return success;
             }
             finally
             {

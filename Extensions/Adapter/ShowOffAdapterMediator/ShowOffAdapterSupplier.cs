@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using tud.mci.tangram.TangramLector.Extension;
-using BrailleIO;
-using tud.mci.tangram;
+﻿using BrailleIO;
 using BrailleIO.Interface;
-using tud.mci.tangram.TangramLector;
+using System;
+using System.Collections.Generic;
+using tud.mci.tangram;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.TangramLector;
+using tud.mci.tangram.TangramLector.Extension;
 
 namespace ShowOffAdapterMediator
 {
@@ -42,9 +40,8 @@ namespace ShowOffAdapterMediator
                 monitor = new ShowOff();
                 ((ShowOff)monitor).SetTitle("Tangram Lektor - Monitor");
                 monitor.Disposed += new EventHandler(monitor_Disposed);
+                //((ShowOff)monitor).ShowScreenshotMenu();
 
-                // FIXME: make this configurable
-                ((ShowOff)monitor).ShowScreenshotMenu();
             }
             catch (Exception ex)
             {

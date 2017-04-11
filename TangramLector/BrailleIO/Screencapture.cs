@@ -301,6 +301,12 @@ namespace tud.mci.tangram.TangramLector
                 }
             }
             catch (Exception) { }
+
+            if (result != null)
+            {
+                // result.Save(@"c:/temp/" + DateTime.Now.Ticks.ToString() + "_sc.png", ImageFormat.Png);
+            }
+
             return result;
         }
 
@@ -455,7 +461,7 @@ namespace tud.mci.tangram.TangramLector
         /// <returns></returns>
         public static Image CaptureWindow(IntPtr handle, int height, int width, int nXSrc = 0, int nYSrc = 0, int nXDest = 0, int nYDest = 0)
         {
-            if (!tud.mci.tangram.TangramLector.ScreenCapture.User32.IsWindow(handle))
+            if (!ScreenCapture.User32.IsWindow(handle))
             {
                 //TODO: how to handle this
                 return new Bitmap(1, 1);
@@ -606,7 +612,10 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         private static class GDI32
         {
-            public const int SRCCOPY = 0x00CC0020; // BitBlt dwRop parameter
+            /// <summary>
+            /// BitBlt dwRop parameter
+            /// </summary>
+            public const int SRCCOPY = 0x00CC0020;
 
             /// <summary>
             /// The BitBlt function performs a bit-block transfer of the color data corresponding 

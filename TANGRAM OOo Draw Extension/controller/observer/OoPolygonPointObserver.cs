@@ -17,6 +17,13 @@ namespace tud.mci.tangram.controller.observer
     public class OoPolygonPointsObserver : IUpdateable, IEnumerable
     {
         #region Member
+        /// <summary>
+        /// Gets a value indicating whether this instance is empty.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is empty; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEmpty { get; private set; }
 
         volatile bool _updating = false;
         private readonly Object _lock = new Object();
@@ -56,7 +63,7 @@ namespace tud.mci.tangram.controller.observer
         /// ATTENTION: is only for derivation and internal use. 
         /// This constructor leaves the class as a non-functional object.
         /// </summary>
-        protected OoPolygonPointsObserver() { }
+        protected OoPolygonPointsObserver() { IsEmpty = true; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OoPolygonPointsObserver" /> class.
@@ -73,7 +80,7 @@ namespace tud.mci.tangram.controller.observer
             Shape.BoundRectChangeEventHandlers += Shape_BoundRectChangeEventHandlers;
             Shape.ObserverDisposing += Shape_ObserverDisposing;
             Update();
-
+            IsEmpty = false;
         }
 
         void Shape_ObserverDisposing(object sender, EventArgs e)

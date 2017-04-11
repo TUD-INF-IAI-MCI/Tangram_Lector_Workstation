@@ -7,6 +7,7 @@ using System.Drawing;
 using tud.mci.tangram.TangramLector.SpecializedFunctionProxies;
 using tud.mci.tangram.controller.observer;
 using tud.mci.tangram.audio;
+using System.Threading;
 
 namespace tud.mci.tangram.TangramLector.OO
 {
@@ -46,7 +47,7 @@ namespace tud.mci.tangram.TangramLector.OO
             {
                 OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
 
-                if (_shape != null && _shape.IsValid())
+                if (_shape != null && _shape.IsValid(false))
                 {
                     startFocusHighlightModes();
 
@@ -100,8 +101,15 @@ namespace tud.mci.tangram.TangramLector.OO
             if (shapeManipulatorFunctionProxy != null)
             {
                 OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
+                var point = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
 
-                if (_shape != null && _shape.IsValid())
+                //if (point != null && !point.IsEmpty)
+                //{
+                //    // make a timeout ;-) and start again
+                //    pausePointHighligting();
+                //}
+
+                if (_shape != null)
                 {
                     if (OnShapeBoundRectChange != null)
                     {
@@ -120,7 +128,9 @@ namespace tud.mci.tangram.TangramLector.OO
                 DrawSelectFocusRenderer.DoRenderBoundingBox = false;
                 blinkFocusActive = false;
             }
+
         }
+
 
         private int invertRGBColor(int rbgColor)
         {
@@ -147,23 +157,25 @@ namespace tud.mci.tangram.TangramLector.OO
 
                 //doFocusHighlighting(blinkStateOn);
                 BrailleIOMediator.Instance.RefreshDisplay(true);
-            }else 
-            if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
-            {
-                _render = true;
-                DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
-                BrailleIOMediator.Instance.RefreshDisplay(true);
             }
             else
-            {
-                DrawSelectFocusHighlightMode = false;
-                DrawSelectFocusRenderer.DoRenderBoundingBox = false;
-
-                if (_render) {
-                    _render = false;
-                    BrailleIOMediator.Instance.RefreshDisplay(true); 
+                if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
+                {
+                    _render = true;
+                    DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
+                    BrailleIOMediator.Instance.RefreshDisplay(true);
                 }
-            }
+                else
+                {
+                    DrawSelectFocusHighlightMode = false;
+                    DrawSelectFocusRenderer.DoRenderBoundingBox = false;
+
+                    if (_render)
+                    {
+                        _render = false;
+                        BrailleIOMediator.Instance.RefreshDisplay(true);
+                    }
+                }
         }
 
         /// <summary>
@@ -261,11 +273,18 @@ namespace tud.mci.tangram.TangramLector.OO
             {
                 byte[] pngData;
                 shapeManipulatorFunctionProxy.LastSelectedShape.GetShapeAsPng(out pngData);
-                Rectangle newBBox = shapeManipulatorFunctionProxy.LastSelectedShape.GetAbsoluteScreenBoundsByDom();
-                DesktopOverlayWindow.Instance.refreshBounds(newBBox, ref pngData);
-                BrailleDomFocusRenderer.CurrentBoundingBox = newBBox;
+                if (pngData != null && pngData.Length > 0)
+                {
+                    Rectangle newBBox = shapeManipulatorFunctionProxy.LastSelectedShape.GetAbsoluteScreenBoundsByDom();
+                    DesktopOverlayWindow.Instance.refreshBounds(newBBox, ref pngData);
+                    BrailleDomFocusRenderer.CurrentBoundingBox = newBBox;
 
-                GC.AddMemoryPressure(pngData.Length);
+                    GC.AddMemoryPressure(pngData.Length);
+                }
+                else
+                {
+                    Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant get png data overlay picture for BrailleFocus");
+                }
             }
         }
 
@@ -279,6 +298,75 @@ namespace tud.mci.tangram.TangramLector.OO
         private static void playError() { AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error); }
 
         #endregion
+
+        #region PolyPoint Focus Highlighting
+
+        Timer pauseTimer;
+
+        private void pausePointHighligting()
+        {
+            if (shapeManipulatorFunctionProxy != null)
+            {
+                if (pauseTimer == null)
+                {
+                    pauseTimer = buildPauseTimer(
+                        (x) =>
+                        {
+                            startFocusHighlightModes();
+                            pauseTimer.Dispose();
+                            pauseTimer = null;
+                        },
+                        getFocusTimerPauseTimeout());
+                }
+                else
+                {
+                    if (shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints == null || shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints.IsEmpty)
+                    {
+                        pauseTimer.Dispose();
+                        pauseTimer = null;
+                    }
+                    else
+                    {
+                        if (pauseTimer != null) pauseTimer.Change(getFocusTimerPauseTimeout(), Timeout.Infinite);
+                        else pausePointHighligting();
+                    }
+                }
+            }
+        }
+
+        private static Timer buildPauseTimer(System.Threading.TimerCallback callback, int interval)
+        {
+            Timer t = new Timer(callback, null, interval, Timeout.Infinite);
+            return t;
+        }
+
+
+        private const string FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY = "FocusHighlightPause";
+
+
+        private static int getFocusTimerPauseTimeout()
+        {
+            int timeout = 5000;
+
+            // load the timeout from the app.config
+            try
+            {
+                var config = System.Configuration.ConfigurationManager.AppSettings;
+                if (config != null && config.Count > 0)
+                {
+                    var value = config[FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY];
+                    if (!String.IsNullOrWhiteSpace(value))
+                        timeout = Convert.ToInt32(value);
+                }
+            }
+            catch { }
+
+            return timeout;
+        }
+
+
+        #endregion
+
 
     }
 }
