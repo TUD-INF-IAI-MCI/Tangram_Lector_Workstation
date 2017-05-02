@@ -41,15 +41,18 @@ namespace tud.mci.tangram.TangramLector.OO
 
         #endregion
 
-        internal void InitBrailleDomFocusHighlightMode()
+        /// <summary>
+        /// Sets the shape or point to blink and starts the blinking frame around the last selected shape.
+        /// </summary>
+        internal void InitBrailleDomFocusHighlightMode(OoShapeObserver _shape = null)
         {
             if (shapeManipulatorFunctionProxy != null)
             {
-                OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
+                if(_shape == null) _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
 
                 if (_shape != null && _shape.IsValid(false))
                 {
-                    startFocusHighlightModes();
+                    StartFocusHighlightModes();
 
                     // inform sighted user 
                     byte[] pngData;
@@ -70,10 +73,12 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
                 }
             }
-
         }
 
-        private void startFocusHighlightModes()
+        /// <summary>
+        /// Starts the focus highlight modes.
+        /// </summary>
+        internal void StartFocusHighlightModes()
         {
             if (shapeManipulatorFunctionProxy != null)
             {
@@ -89,13 +94,19 @@ namespace tud.mci.tangram.TangramLector.OO
                     //oFillColor = _shape.FillColor;
                     //oLineColor = _shape.LineColor;
                     // start highlighting focus (may be switched off later, e.g. by timer or key press
+
+                    BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
+                    
                     brailleDomFocusHighlightMode = true;
                     blinkFocusActive = true;
                 }
             }
         }
 
-        private void stopFocusHighlightModes()
+        /// <summary>
+        /// Stops / pauses the focus highlight modes.
+        /// </summary>
+        internal void StopFocusHighlightModes()
         {
 
             if (shapeManipulatorFunctionProxy != null)
@@ -127,9 +138,83 @@ namespace tud.mci.tangram.TangramLector.OO
                 DrawSelectFocusHighlightMode = false;
                 DrawSelectFocusRenderer.DoRenderBoundingBox = false;
                 blinkFocusActive = false;
+
+                PauseFocusHighlightModes();
+
             }
 
         }
+
+        #region Pause Focus Highlighting
+
+        private const string FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY = "FocusHighlightPause";
+
+        private static int getFocusTimerPauseTimeout()
+        {
+            int timeout = 5000;
+
+            // load the timeout from the app.config
+            try
+            {
+                var config = System.Configuration.ConfigurationManager.AppSettings;
+                if (config != null && config.Count > 0)
+                {
+                    var value = config[FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY];
+                    if (!String.IsNullOrWhiteSpace(value))
+                        timeout = Convert.ToInt32(value);
+                }
+            }
+            catch { }
+
+            return timeout;
+        }
+
+        Timer fhpt = null;
+        Timer focusHighlightPauseTimer
+        {
+            get
+            {
+                //if (fhpt == null) {
+                //    fhpt = new Timer(focusHighlightPausTimerCB, null, 0, Timeout.Infinite);
+                //}
+                return fhpt;
+            }
+            set
+            {
+                if (fhpt != null)
+                {
+                    fhpt.Dispose();
+                    fhpt = null;
+                }
+                fhpt = value;
+            }
+        }
+
+        /// <summary>
+        /// Pauses the focus highlight modes.
+        /// </summary>
+        internal void PauseFocusHighlightModes()
+        {
+            if (shapeManipulatorFunctionProxy != null)
+            {
+                if (BrailleDomFocusRenderer != null)
+                {
+                    if (BrailleDomFocusRenderer.DoRenderBoundingBox == false)
+                    {
+                        // check if the timer is already running
+                        focusHighlightPauseTimer = new Timer(focusHighlightPausTimerCB, null, getFocusTimerPauseTimeout(), Timeout.Infinite);
+                    }
+                }
+            }
+        }
+
+        void focusHighlightPausTimerCB(object status)
+        {
+            focusHighlightPauseTimer = null;
+            StartFocusHighlightModes();
+        }
+
+        #endregion
 
 
         private int invertRGBColor(int rbgColor)
@@ -298,75 +383,6 @@ namespace tud.mci.tangram.TangramLector.OO
         private static void playError() { AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error); }
 
         #endregion
-
-        #region PolyPoint Focus Highlighting
-
-        Timer pauseTimer;
-
-        private void pausePointHighligting()
-        {
-            if (shapeManipulatorFunctionProxy != null)
-            {
-                if (pauseTimer == null)
-                {
-                    pauseTimer = buildPauseTimer(
-                        (x) =>
-                        {
-                            startFocusHighlightModes();
-                            pauseTimer.Dispose();
-                            pauseTimer = null;
-                        },
-                        getFocusTimerPauseTimeout());
-                }
-                else
-                {
-                    if (shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints == null || shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints.IsEmpty)
-                    {
-                        pauseTimer.Dispose();
-                        pauseTimer = null;
-                    }
-                    else
-                    {
-                        if (pauseTimer != null) pauseTimer.Change(getFocusTimerPauseTimeout(), Timeout.Infinite);
-                        else pausePointHighligting();
-                    }
-                }
-            }
-        }
-
-        private static Timer buildPauseTimer(System.Threading.TimerCallback callback, int interval)
-        {
-            Timer t = new Timer(callback, null, interval, Timeout.Infinite);
-            return t;
-        }
-
-
-        private const string FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY = "FocusHighlightPause";
-
-
-        private static int getFocusTimerPauseTimeout()
-        {
-            int timeout = 5000;
-
-            // load the timeout from the app.config
-            try
-            {
-                var config = System.Configuration.ConfigurationManager.AppSettings;
-                if (config != null && config.Count > 0)
-                {
-                    var value = config[FOCUS_HIGHLIGHT_PAUSE_CONFIG_KEY];
-                    if (!String.IsNullOrWhiteSpace(value))
-                        timeout = Convert.ToInt32(value);
-                }
-            }
-            catch { }
-
-            return timeout;
-        }
-
-
-        #endregion
-
 
     }
 }

@@ -150,7 +150,7 @@ namespace tud.mci.tangram.TangramLector.OO
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
                 OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
-                stopFocusHighlightModes();
+                StopFocusHighlightModes();
 
                 try
                 {
@@ -183,7 +183,7 @@ namespace tud.mci.tangram.TangramLector.OO
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
                 //OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
-                stopFocusHighlightModes();
+                StopFocusHighlightModes();
 
                 // memorize original properties to be restored after blinking
                 if (((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape != null)
@@ -194,14 +194,17 @@ namespace tud.mci.tangram.TangramLector.OO
             {
                 if (e != null && e.PolygonPoints != null)
                 {
-                    Point p = e.PolygonPoints.TransformPointCoordinatesIntoScreenCoordinates(e.Point);
-                    BrailleDomFocusRenderer.CurrentPoint = p;
-                    //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
+                    BrailleDomFocusRenderer.CurrentPolyPoint = e.PolygonPoints;
+
+                    // Point p = e.PolygonPoints.TransformPointCoordinatesIntoScreenCoordinates(e.Point);
+                    // BrailleDomFocusRenderer.CurrentPoint = p;
+                    // System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
                 }
                 else
                 {
-                    BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
+                    // BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
+                    BrailleDomFocusRenderer.CurrentPolyPoint = null;
                 }
             }
 

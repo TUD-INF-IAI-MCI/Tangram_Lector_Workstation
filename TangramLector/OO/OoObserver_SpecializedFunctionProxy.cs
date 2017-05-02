@@ -91,32 +91,32 @@ namespace tud.mci.tangram.TangramLector.OO
                                 case "k8":
                                     if (blinkFocusActive)
                                     {
-                                        stopFocusHighlightModes();
+                                        StopFocusHighlightModes();
                                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.focus.blinking") + " " + LL.GetTrans("tangram.lector.oo_observer.deactivated"));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] blinking Braille focus frame off");
                                     }
                                     else
                                     {
-                                        startFocusHighlightModes();
+                                        StartFocusHighlightModes();
                                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.focus.blinking") + " " + LL.GetTrans("tangram.lector.oo_observer.activated"));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] blinking Braille focus frame on");
                                     }
                                     e.Cancel = true;
                                     break;
                                 case "cru":
-                                    if(shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) stopFocusHighlightModes();
+                                    if(shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
                                     break;
                                 case "crr":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) stopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
                                     break;
                                 case "crd":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) stopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
                                     break;
                                 case "crl":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) stopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
                                     break;
                                 case "crc":
-                                    stopFocusHighlightModes();
+                                    StopFocusHighlightModes();
                                     break;
                                 default:
                                     break;
@@ -133,7 +133,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
                             if (e.ReleasedGenericKeys.Contains("crc"))
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                             }
 
                             #endregion
@@ -142,19 +142,19 @@ namespace tud.mci.tangram.TangramLector.OO
 
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crr" }).ToList().Count == 2)
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crl" }).ToList().Count == 2)
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "crd", "crr" }).ToList().Count == 2)
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "crd", "crl" }).ToList().Count == 2)
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                             }
 
                             #endregion
@@ -195,7 +195,7 @@ namespace tud.mci.tangram.TangramLector.OO
                             // open title/description dialog
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k2", "k3", "k4", "k5" }).ToList().Count == 4)
                             {
-                                stopFocusHighlightModes();
+                                StopFocusHighlightModes();
                                 openTitleDescDialog();
                                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] open title and description dialog");
                                 e.Cancel = true;

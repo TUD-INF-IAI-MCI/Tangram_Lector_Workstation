@@ -37,7 +37,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>
         /// The current point
         /// </summary>
-        public Point CurrentPoint = new Point(-1, -1);
+        private Point CurrentPoint
+        {
+            get
+            {
+                int trash; 
+                if (CurrentPolyPoint != null)
+                {
+                    var PointDescriptor =  CurrentPolyPoint.Current(out trash);
+                    return CurrentPolyPoint.TransformPointCoordinatesIntoScreenCoordinates(PointDescriptor);
+                }
+                else
+                {
+                    return new Point(-1, -1);
+                }
+            }
+        }
+
+
+        public OoPolygonPointsObserver CurrentPolyPoint = null;
 
         /// <summary>
         /// Sets the current bounding box by shape.
