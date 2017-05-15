@@ -64,7 +64,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 break;
                             case "crc":
                                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
-                                rotateThroughModes();
+                                RotateThroughModes();
                                 e.Cancel = true;
                                 //TODO: open element manipulation dialog
                                 break;
@@ -118,7 +118,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 )
                             {
                                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog (weak handling)");
-                                rotateThroughModes();
+                                RotateThroughModes();
                                 e.Cancel = true;
                             }
                         }

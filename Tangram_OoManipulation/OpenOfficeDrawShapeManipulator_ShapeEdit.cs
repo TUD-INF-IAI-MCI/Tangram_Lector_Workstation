@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.util;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
@@ -18,7 +19,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private readonly int _maxMode = Enum.GetValues(typeof(ModificationMode)).Cast<int>().Max();
 
-        private void rotateThroughModes()
+        public void RotateThroughModes()
         {
             if (LastSelectedShape == null)
             {
@@ -352,6 +353,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 string name = "";
                 PatterDic.Add("no_pattern", "no_pattern");
+                PatterDic.Add("white_pattern", "white_pattern");
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "Application folder: " + appData);
 #if LIBRE
@@ -413,6 +415,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (bitmapName == "no_pattern")
                 {
                     LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.NONE;
+                }
+                else if (bitmapName == "white_pattern")
+                {
+                    LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.SOLID;
+                    LastSelectedShape.FillColor = OoUtils.ConvertToColorInt(System.Drawing.Color.White);
                 }
                 else
                 {
