@@ -613,13 +613,14 @@ namespace tud.mci.tangram.util
                 CreateShape(drawDoc, OO.Services.DRAW_SHAPE_BEZIER_CLOSED) :
                 CreateShape(drawDoc, OO.Services.DRAW_SHAPE_BEZIER_OPEN);
         }
-        // <summary>
+
+        /// <summary>
         /// Creates a Bezier shape.
         /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
         /// </summary>
         /// <param name="drawDoc">The draw document.</param>
         /// <param name="closed">if set to <c>true</c> the form will be closed automatically.</param>
-        /// <returns>The Bezier shape[XShape] or <c>null</c></returns>
+        /// <returns>The Bezier shape [XShape] or <c>null</c></returns>
         public static Object CreateBezierShape_anonymous(Object drawDoc, bool closed = true)
         { return CreateBezierShape(drawDoc, closed); }
 
@@ -1716,10 +1717,6 @@ namespace tud.mci.tangram.util
             matrix[0, 2] += tX;
             matrix[1,2] += tY;
             return matrix;
-
-            var result = MultiplyMatrix(matrix, trans);
-
-            return result;
         }
 
 
@@ -2704,7 +2701,27 @@ namespace tud.mci.tangram.util
         /// </returns>
         public override string ToString()
         {
-            return this.GetType().ToString() + " - " + Flag.ToString() + " " + X + " " + Y + (Value != null ? " " + Value.ToString() : "");
+            return /*this.GetType().ToString() + " - " + */Flag.ToString() + " " + X + " " + Y + (Value != null ? " " + Value.ToString() : "");
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is PolyPointDescriptor)
+            {
+                return base.Equals(obj) || (
+                    ((PolyPointDescriptor)obj).X.Equals(X) &&
+                    ((PolyPointDescriptor)obj).Y.Equals(Y) &&
+                    ((PolyPointDescriptor)obj).Flag.Equals(Flag) &&
+                    ((PolyPointDescriptor)obj).Value.Equals(Value));
+            }
+            return false;
         }
     }
 

@@ -740,6 +740,31 @@ namespace tud.mci.tangram.controller.observer
             return p;
         }
 
+        public String ToExportString()
+        {
+            String exp = String.Empty;
+
+            List<List<PolyPointDescriptor>> polys = CachedPolyPointList;
+
+            if (polys != null && polys.Count > 0)
+            {
+                foreach (List<PolyPointDescriptor> poly in polys)
+                {
+                    if (exp != String.Empty) exp += "\n";
+                    if (poly != null && poly.Count > 0)
+                    {
+                        exp += String.Join(", ", poly);
+                    }
+                }
+            }
+
+
+            return exp;
+        }
+
+
+
+
         #endregion
 
         #region Point Access
@@ -931,6 +956,9 @@ namespace tud.mci.tangram.controller.observer
         #endregion
 
         #endregion
+
+        
+
 
     }
 }
