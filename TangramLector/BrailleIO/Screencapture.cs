@@ -448,6 +448,58 @@ namespace tud.mci.tangram.TangramLector
             return CaptureWindow(handle, height, width);
         }
 
+        //static IntPtr _scrDC = IntPtr.Zero;
+        //static IntPtr scrDC {
+        //    get {
+        //        if (_scrDC == IntPtr.Zero)
+        //        {
+        //            _scrDC = User32.GetDC(User32.GetDesktopWindow());
+        //        } return _scrDC;
+        //    }
+        //}
+
+        #region Source Device Context from a window handle
+
+        static IntPtr _lastSrcDC = IntPtr.Zero;
+        static IntPtr _lastSrcHndl = IntPtr.Zero;
+        static IntPtr getDeviceContext(IntPtr whndl)
+        {
+            if (_lastSrcHndl == whndl)
+            {
+                if (_lastSrcDC == IntPtr.Zero)
+                    _lastSrcDC = User32.GetWindowDC(whndl);
+            }
+            else
+            {                
+                if (_lastSrcDC != IntPtr.Zero)
+                {
+                    User32.ReleaseDC(_lastSrcHndl, _lastSrcDC);
+                    GDI32.DeleteObject(_lastSrcDC);
+                    _lastSrcDC = IntPtr.Zero;
+                }
+                _lastSrcDC = User32.GetWindowDC(whndl);
+                _lastSrcHndl = whndl;
+
+            }
+            return _lastSrcDC;
+        }
+
+        #endregion
+
+        #region Destination Device Context
+
+        static IntPtr _hdcDest = IntPtr.Zero;
+        static IntPtr getCompatibleDeviceContext(IntPtr hdcSrc)
+        {
+            // create a device context we can copy to
+            // IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
+            if(_hdcDest == IntPtr.Zero)
+                _hdcDest = GDI32.CreateCompatibleDC(IntPtr.Zero);
+            return _hdcDest;
+        }
+
+        #endregion
+
         /// <summary>
         /// Creates an Image object containing a screen shot of a specific window
         /// </summary>
@@ -463,32 +515,58 @@ namespace tud.mci.tangram.TangramLector
         {
             if (!ScreenCapture.User32.IsWindow(handle))
             {
+                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture ("+handle+") is not a window!");
                 //TODO: how to handle this
                 return new Bitmap(1, 1);
             }
 
             // get the device context (DC) for the entire target window
-            IntPtr hdcSrc = User32.GetWindowDC(handle);
+            // IntPtr hdcSrc = User32.GetWindowDC(handle);
+            // IntPtr hdcSrc = User32.GetDC(handle); // do not use this because then the mapping of wnd content position to img position does not longer fit. 
+            IntPtr hdcSrc = getDeviceContext(handle);
             // create a device context we can copy to
-            IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
+            // IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
+            // IntPtr hdcDest = GDI32.CreateCompatibleDC(IntPtr.Zero); // If this handle is NULL, the function creates a memory DC compatible with the application's current screen.
+            IntPtr hdcDest = getCompatibleDeviceContext(hdcSrc);
+            if (hdcDest == IntPtr.Zero)
+            {
+                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
+                //TODO: how to handle this
+                return new Bitmap(1, 1);
+            }
+
             // create a bitmap we can copy it to,
             // using GetDeviceCaps to get the width/height
             IntPtr hBitmap = GDI32.CreateCompatibleBitmap(hdcSrc, width, height);
+            // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
+            if (hBitmap == IntPtr.Zero)
+            {
+                //FIXME: how to handle this? Stackoverflow exception ?
+                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
+                getDeviceContext(IntPtr.Zero);
+                return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+            }
+
             // select the bitmap object
             IntPtr hOld = GDI32.SelectObject(hdcDest, hBitmap);
             // copy the bit blocks of the window bitmap to the save bitmap 
-            GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
-            
-            //// restore selection
-            //GDI32.SelectObject(hdcDest, hOld);
-            
-            
+            bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
+            if (!success)
+            {
+                //TODO: how to handle this
+                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
+                getDeviceContext(IntPtr.Zero);
+                return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+            }
+            // restore selection
+            GDI32.SelectObject(hdcDest, hOld);
+
+
             // clean up
-            User32.ReleaseDC(handle, hdcSrc);
-            GDI32.DeleteDC(hdcDest);
-            User32.ReleaseDC(handle, hdcSrc);
-            
-            
+            // User32.ReleaseDC(handle, hdcSrc);
+            // GDI32.DeleteDC(hdcDest);
+
+
             // get a .NET image object for it
             Image img = null;
             try
@@ -508,23 +586,9 @@ namespace tud.mci.tangram.TangramLector
                 // GDI32.DeleteObject(hdcDest);
                 GDI32.DeleteObject(hOld);
                 // GDI32.DeleteObject(hdcSrc);
-                //forceGCFree();
             }
             return img;
         }
-
-        //static volatile int _capCount = 0;
-        //private static void forceGCFree()
-        //{
-        //    if (_capCount > 10)
-        //    {
-        //        var rs = GC.WaitForFullGCComplete(10);
-        //        if (rs.HasFlag(GCNotificationStatus.Succeeded))
-        //        {
-        //            _capCount = 0;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Captures a screen shot of a specific window, and saves it to a file
@@ -746,6 +810,16 @@ namespace tud.mci.tangram.TangramLector
             /// indicating an error or an invalid hWnd parameter.</returns>
             [DllImport("user32.dll")]
             public static extern IntPtr GetWindowDC(IntPtr hWnd);
+            /// <summary>
+            /// The GetDC function retrieves a handle to a device context (DC) for the client area of a 
+            /// specified window or for the entire screen. You can use the returned handle in subsequent 
+            /// GDI functions to draw in the DC. The device context is an opaque data structure, whose 
+            /// values are used internally by GDI.
+            /// </summary>
+            /// <param name="hWnd">The h WND.</param>
+            /// <returns></returns>
+            [DllImport("user32.dll")]
+            public static extern IntPtr GetDC(IntPtr hWnd);
 
             /// <summary>
             /// The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on class or private DCs.
