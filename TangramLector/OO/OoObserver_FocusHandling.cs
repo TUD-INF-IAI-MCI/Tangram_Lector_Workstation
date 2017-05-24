@@ -241,14 +241,14 @@ namespace tud.mci.tangram.TangramLector.OO
                 BrailleDomFocusRenderer.DoRenderBoundingBox = blinkStateOn;
 
                 //doFocusHighlighting(blinkStateOn);
-                BrailleIOMediator.Instance.RefreshDisplay(true);
+                // BrailleIOMediator.Instance.RefreshDisplay(true);
             }
             else
                 if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
                 {
                     _render = true;
                     DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
-                    BrailleIOMediator.Instance.RefreshDisplay(true);
+                    // BrailleIOMediator.Instance.RefreshDisplay(true);
                 }
                 else
                 {
@@ -258,7 +258,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     if (_render)
                     {
                         _render = false;
-                        BrailleIOMediator.Instance.RefreshDisplay(true);
+                        // BrailleIOMediator.Instance.RefreshDisplay(true);
                     }
                 }
         }

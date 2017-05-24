@@ -663,6 +663,22 @@ namespace tud.mci.tangram.util
             return ConvertToColorInt(BitConverter.GetBytes(c.R)[0], BitConverter.GetBytes(c.G)[0], BitConverter.GetBytes(c.B)[0]);
         }
 
+        /// <summary>
+        /// Gets a randomized color.
+        /// </summary>
+        /// <param name="minDarkness">The minimum darkness.</param>
+        /// <returns></returns>
+        public static int GetRandomizedColor(int minDarkness = 0)
+        {
+            var rand = new Random(DateTime.Now.Millisecond);
+
+            return ConvertToColorInt(
+                BitConverter.GetBytes(rand.Next(minDarkness, 255))[0],
+                BitConverter.GetBytes(rand.Next(minDarkness, 255))[0],
+                BitConverter.GetBytes(rand.Next(minDarkness, 255))[0]);
+        } 
+
+
         #endregion
 
         #region XNamed

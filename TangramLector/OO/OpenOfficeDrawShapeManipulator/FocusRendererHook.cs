@@ -68,6 +68,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 CurrentBoundingBox = currentSelectedShape.GetAbsoluteScreenBoundsByDom();
             }
             else CurrentBoundingBox = new Rectangle(-1, -1, 0, 0);
+
         }
 
         /// <summary>
