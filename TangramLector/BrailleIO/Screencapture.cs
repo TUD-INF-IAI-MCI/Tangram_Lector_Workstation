@@ -470,7 +470,7 @@ namespace tud.mci.tangram.TangramLector
                     _lastSrcDC = User32.GetWindowDC(whndl);
             }
             else
-            {                
+            {
                 if (_lastSrcDC != IntPtr.Zero)
                 {
                     User32.ReleaseDC(_lastSrcHndl, _lastSrcDC);
@@ -493,7 +493,7 @@ namespace tud.mci.tangram.TangramLector
         {
             // create a device context we can copy to
             // IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
-            if(_hdcDest == IntPtr.Zero)
+            if (_hdcDest == IntPtr.Zero)
                 _hdcDest = GDI32.CreateCompatibleDC(IntPtr.Zero);
             return _hdcDest;
         }
@@ -513,11 +513,16 @@ namespace tud.mci.tangram.TangramLector
         /// <returns></returns>
         public static Image CaptureWindow(IntPtr handle, int height, int width, int nXSrc = 0, int nYSrc = 0, int nXDest = 0, int nYDest = 0)
         {
+            IntPtr hBitmap = IntPtr.Zero;
+            IntPtr hOld = IntPtr.Zero;
+            // get a .NET image object for it
+            Image img = null;
+
             if (!ScreenCapture.User32.IsWindow(handle))
             {
-                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture ("+handle+") is not a window!");
+                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture (" + handle + ") is not a window!");
                 //TODO: how to handle this
-                return new Bitmap(1, 1);
+                return img;
             }
 
             // get the device context (DC) for the entire target window
@@ -532,52 +537,53 @@ namespace tud.mci.tangram.TangramLector
             {
                 Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
                 //TODO: how to handle this
-                return new Bitmap(1, 1);
+                return img;
             }
 
-            // create a bitmap we can copy it to,
-            // using GetDeviceCaps to get the width/height
-            IntPtr hBitmap = GDI32.CreateCompatibleBitmap(hdcSrc, width, height);
-            // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
-            if (hBitmap == IntPtr.Zero)
-            {
-                //FIXME: how to handle this? Stackoverflow exception ?
-                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
-                getDeviceContext(IntPtr.Zero);
-                return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
-            }
-
-            // select the bitmap object
-            IntPtr hOld = GDI32.SelectObject(hdcDest, hBitmap);
-            // copy the bit blocks of the window bitmap to the save bitmap 
-            bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
-            if (!success)
-            {
-                //TODO: how to handle this
-                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
-                getDeviceContext(IntPtr.Zero);
-                return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
-            }
-            // restore selection
-            GDI32.SelectObject(hdcDest, hOld);
-
-
-            // clean up
-            // User32.ReleaseDC(handle, hdcSrc);
-            // GDI32.DeleteDC(hdcDest);
-
-
-            // get a .NET image object for it
-            Image img = null;
             try
             {
+                // create a bitmap we can copy it to,
+                // using GetDeviceCaps to get the width/height
+                hBitmap = GDI32.CreateCompatibleBitmap(hdcSrc, width, height);
+                // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
+                if (hBitmap == IntPtr.Zero)
+                {
+                    //FIXME: how to handle this? Stackoverflow exception ?
+                    Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
+                    getDeviceContext(IntPtr.Zero);
+                    return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                }
+
+                // select the bitmap object
+                hOld = GDI32.SelectObject(hdcDest, hBitmap);
+                // copy the bit blocks of the window bitmap to the save bitmap 
+                bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
+                if (!success)
+                {
+                    //TODO: how to handle this
+                    Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
+                    getDeviceContext(IntPtr.Zero);
+                    return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                }
+                // restore selection
+                GDI32.SelectObject(hdcDest, hOld);
+
+
+                // clean up
+                // User32.ReleaseDC(handle, hdcSrc);
+                // GDI32.DeleteDC(hdcDest);
+
+
                 if (hBitmap != null && hBitmap != IntPtr.Zero)
                 {
                     img = Image.FromHbitmap(hBitmap);
                 }
                 else { }
+
+                return img;
+
             }
-            catch { }
+            catch { return img; }
             finally
             {
                 //_capCount++;
@@ -587,7 +593,7 @@ namespace tud.mci.tangram.TangramLector
                 GDI32.DeleteObject(hOld);
                 // GDI32.DeleteObject(hdcSrc);
             }
-            return img;
+
         }
 
         /// <summary>
@@ -710,7 +716,7 @@ namespace tud.mci.tangram.TangramLector
             public static extern bool BitBlt(IntPtr hObject, int nXDest, int nYDest,
                 int nWidth, int nHeight, IntPtr hObjectSource,
                 int nXSrc, int nYSrc, int dwRop);
-            
+
             /// <summary>
             /// The CreateCompatibleBitmap function creates a bitmap compatible with the device that is associated with the specified device context.
             /// <seealso cref="https://msdn.microsoft.com/de-de/library/windows/desktop/dd183488(v=vs.85).aspx"/>
