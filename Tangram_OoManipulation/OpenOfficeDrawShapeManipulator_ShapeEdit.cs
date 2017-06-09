@@ -19,7 +19,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private readonly int _maxMode = Enum.GetValues(typeof(ModificationMode)).Cast<int>().Max();
 
-        public void RotateThroughModes()
+        /// <summary>
+        /// Rotates through shape manipulation modes.
+        /// </summary>
+        /// <param name="shapeRecentlyCreated">Set true if function is called because of shape creation.</param>
+        public void RotateThroughModes(bool shapeRecentlyCreated=false)
         {
             if (LastSelectedShape == null)
             {
@@ -53,15 +57,15 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             Mode = (ModificationMode)Enum.ToObject(typeof(ModificationMode), m);
             Logger.Instance.Log(LogPriority.MIDDLE, this, "[MODE SWITCH] to the new mode: " + Mode);
-            comunicateModeSwitch(Mode);
+            comunicateModeSwitch(Mode, shapeRecentlyCreated);
         }
 
-        private void comunicateModeSwitch(ModificationMode mode)
+        private void comunicateModeSwitch(ModificationMode mode, bool shapeRecentlyCreated)
         {
             String audio = getAudioFeedback(mode);
             String detail = getDetailRegionFeedback(mode);
 
-            AudioRenderer.Instance.PlaySoundImmediately(audio);
+            if(!shapeRecentlyCreated) AudioRenderer.Instance.PlaySoundImmediately(audio);
             sentTextFeedback(detail);
         }
 
