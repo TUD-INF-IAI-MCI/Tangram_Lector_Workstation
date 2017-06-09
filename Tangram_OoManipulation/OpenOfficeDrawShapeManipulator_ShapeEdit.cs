@@ -60,12 +60,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             comunicateModeSwitch(Mode, shapeRecentlyCreated);
         }
 
-        private void comunicateModeSwitch(ModificationMode mode, bool shapeRecentlyCreated)
+        private void comunicateModeSwitch(ModificationMode mode, bool noAudio=false)
         {
             String audio = getAudioFeedback(mode);
             String detail = getDetailRegionFeedback(mode);
 
-            if(!shapeRecentlyCreated) AudioRenderer.Instance.PlaySoundImmediately(audio);
+            if(!noAudio) AudioRenderer.Instance.PlaySoundImmediately(audio);
             sentTextFeedback(detail);
         }
 
