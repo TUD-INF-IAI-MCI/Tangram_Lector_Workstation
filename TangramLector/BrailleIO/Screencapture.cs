@@ -548,9 +548,11 @@ namespace tud.mci.tangram.TangramLector
                 // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
                 if (hBitmap == IntPtr.Zero)
                 {
+                    
                     //FIXME: how to handle this? Stackoverflow exception ?
                     Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
                     getDeviceContext(IntPtr.Zero);
+                    return img;                    
                     return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
                 }
 
@@ -560,10 +562,13 @@ namespace tud.mci.tangram.TangramLector
                 bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
                 if (!success)
                 {
+                    
                     //TODO: how to handle this
                     Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
+                    return img;
                     getDeviceContext(IntPtr.Zero);
-                    return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                    // return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                    
                 }
                 // restore selection
                 GDI32.SelectObject(hdcDest, hOld);
