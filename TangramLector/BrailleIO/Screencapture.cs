@@ -33,6 +33,7 @@ namespace tud.mci.tangram.TangramLector
     public class ScreenObserver
     {
         #region Members
+
         //double refreshRate;
         Timer refreshTimer;
         /// <summary>
@@ -63,6 +64,7 @@ namespace tud.mci.tangram.TangramLector
         /// The screen position.
         /// </value>
         public Object ScreenPos { private set; get; }
+
         #endregion
 
         #region Constructor
@@ -147,7 +149,9 @@ namespace tud.mci.tangram.TangramLector
 
         int _runs = -1;
         //int captureCount = 0;
+
         #region Timer
+
         void refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             _runs++;
@@ -212,7 +216,8 @@ namespace tud.mci.tangram.TangramLector
         }
         #endregion
 
-        #region Screencapturing
+        #region Screen capturing
+
         /// <summary>
         /// Sets a window handle to capture.
         /// </summary>
@@ -325,6 +330,29 @@ namespace tud.mci.tangram.TangramLector
     /// </summary>
     public static class ScreenCapture
     {
+        #region Member
+
+        private static bool debug = false;
+        private static bool configLoaded = false;
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="ScreenCapture"/> is enabled for debug output.
+        /// Can be set by the app.config key "ScreenCapturer_DEBUG".
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if debug; otherwise, <c>false</c>.
+        /// </value>
+        public static bool Debug
+        {
+            get {
+                if (!configLoaded)
+                    loadConfiguration();
+                return debug; 
+            }
+            set { debug = value; }
+        }
+
+        #endregion
+
         /// <summary>
         /// Saves an image to a file.
         /// </summary>
@@ -520,7 +548,7 @@ namespace tud.mci.tangram.TangramLector
 
             if (!ScreenCapture.User32.IsWindow(handle))
             {
-                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture (" + handle + ") is not a window!");
+                if(Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture (" + handle + ") is not a window!");
                 //TODO: how to handle this
                 return img;
             }
@@ -535,7 +563,7 @@ namespace tud.mci.tangram.TangramLector
             IntPtr hdcDest = getCompatibleDeviceContext(hdcSrc);
             if (hdcDest == IntPtr.Zero)
             {
-                Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
+                if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
                 //TODO: how to handle this
                 return img;
             }
@@ -550,10 +578,10 @@ namespace tud.mci.tangram.TangramLector
                 {
                     
                     //FIXME: how to handle this? Stackoverflow exception ?
-                    Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
+                    if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
                     getDeviceContext(IntPtr.Zero);
                     return img;                    
-                    return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                    //return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
                 }
 
                 // select the bitmap object
@@ -564,9 +592,9 @@ namespace tud.mci.tangram.TangramLector
                 {
                     
                     //TODO: how to handle this
-                    Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
+                    if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
                     return img;
-                    getDeviceContext(IntPtr.Zero);
+                    //getDeviceContext(IntPtr.Zero);
                     // return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
                     
                 }
@@ -681,6 +709,60 @@ namespace tud.mci.tangram.TangramLector
                 img.Save(filename, format);
             }
         }
+
+
+
+        #region Configuration
+
+        /// <summary>
+        /// Loads the app config configurations if set.
+        /// </summary>
+        internal static void loadConfiguration()
+        {
+            try
+            {
+                var config = System.Configuration.ConfigurationManager.AppSettings;
+                if (config != null && config.Count > 0)
+                {
+                    setDebugModeFromConfig(config);
+                }
+                configLoaded = true;
+            }
+            catch { }
+        }
+
+        #region debug
+
+        /// <summary>
+        /// The sound volume configuration key to search for in the app.config file.
+        /// </summary>
+        internal const String SCREEN_CAP_DEBUG_CONFIG_KEY = "ScreenCapturer_DEBUG";
+        /// <summary>
+        /// Sets the debug if the corresponding key <see cref="SCREEN_CAP_DEBUG_CONFIG_KEY" />
+        /// was set in the app.config of the current running application.
+        /// </summary>
+        /// <param name="config">The loaded configuration app settings.</param>
+        internal static void setDebugModeFromConfig(System.Collections.Specialized.NameValueCollection config)
+        {
+            try
+            {
+                if (config != null && config.Count > 0)
+                {
+                    var value = config[SCREEN_CAP_DEBUG_CONFIG_KEY];
+                    if (value != null)
+                    {
+                        bool margin = Convert.ToBoolean(value);
+                        Debug = margin;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #endregion
+
 
         /// <summary>
         /// Helper class containing Gdi32 API functions
