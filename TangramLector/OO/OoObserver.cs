@@ -689,7 +689,10 @@ namespace tud.mci.tangram.TangramLector.OO
                 if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
                 {
                     // OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
-                    shapeManipulatorFunctionProxy.LastSelectedShape = shape;
+                    if (shapeManipulatorFunctionProxy.LastSelectedShape != shape)
+                    {
+                        shapeManipulatorFunctionProxy.LastSelectedShape = shape;
+                    }
                     shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints = points;
                     // shapeManipulatorFunctionProxy.SelectLastPolygonPoint();
                     shapeManipulatorFunctionProxy.SelectPolygonPoint();
