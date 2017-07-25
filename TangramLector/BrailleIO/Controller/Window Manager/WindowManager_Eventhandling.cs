@@ -93,7 +93,8 @@ namespace tud.mci.tangram.TangramLector
                                 {
                                     this.ScreenObserver.Stop();
                                     audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate"));
-                                    bool res = io.Recalibrate();
+                                    // bool res = io.Recalibrate();
+                                    bool res = io.RecalibrateAll();
                                     this.ScreenObserver.Start();
                                     audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate.success", (res ? "" : LL.GetTrans("tangram.lector.not") + " ")));
                                 }
