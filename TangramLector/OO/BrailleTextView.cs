@@ -253,8 +253,8 @@ namespace tud.mci.tangram.TangramLector.OO
                             {
                                 if (shape != null && !shape.Disposed )
                                 {
-                                    if(shape.IsVisible())
-                                        if (shape.HasText)
+                                   // if()
+                                        if (shape.HasText && shape.IsVisible())
                                         {
                                             textElements.Add(new TextElemet(shape));
                                         }
