@@ -360,7 +360,7 @@ namespace tud.mci.tangram.controller.observer
                         // refresh caches
                         var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
 
-                        if (page.Equals(this.DrawPage))
+                        if (page != null && page.Equals(this.DrawPage))
                         {
                             this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
                             active = true;
