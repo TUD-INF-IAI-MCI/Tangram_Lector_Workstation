@@ -597,6 +597,22 @@ namespace tud.mci.tangram.TangramLector
         }
 
         /// <summary>
+        /// Sets the content of the status region.
+        /// </summary>
+        /// <param name="status">Should be a string of the LectorStateNames class.</param>
+        public void SetStatusRegionContent(String status)
+        {
+            BrailleIOScreen vs = io.GetView(BS_MAIN_NAME) as BrailleIOScreen;
+            if (vs != null)
+            {
+                int width = vs.GetViewRange(VR_STATUS_NAME).GetWidth();
+                int maxCharacters = width / 3 - 1; // one Braille letter needs 3 pins
+                status = status.Substring(0, maxCharacters);
+                setRegionContent(vs, VR_STATUS_NAME, status);
+            }
+        }
+
+        /// <summary>
         /// Updates the content of status region.
         /// </summary>
         private void updateStatusRegionContent()
@@ -604,9 +620,12 @@ namespace tud.mci.tangram.TangramLector
             BrailleIOScreen vs = io.GetView(BS_MAIN_NAME) as BrailleIOScreen;
             if (vs != null)
             {
-                if (InteractionManager != null && InteractionManager.Mode.Equals(InteractionMode.Braille))
+                if (InteractionManager != null)
                 {
-                    setRegionContent(vs, VR_STATUS_NAME, LectorStateNames.BRAILLE_MODE);
+                    if (InteractionManager.Mode.Equals(InteractionMode.Braille))
+                    {
+                        setRegionContent(vs, VR_STATUS_NAME, LectorStateNames.BRAILLE_MODE);
+                    }
                     return;
                 }
                 FollowFocusModes mode = FocusMode;
@@ -1169,10 +1188,26 @@ namespace tud.mci.tangram.TangramLector
     /// </summary>
     public static class LectorStateNames
     {
+        /// <summary>
+        /// Used when system is in normal interaction mode (default).
+        /// </summary>
         public const string STANDARD_MODE = "std";
-        public const string BRAILLE_MODE = "bsm";
+        /// <summary>
+        /// Used when inputs are interpreted as Braille keyboard.
+        /// </summary>
+        public const string BRAILLE_MODE = "brm";
+        /// <summary>
+        /// Used when focus following mode is set to mouse following.
+        /// </summary>
         public const string FOLLOW_MOUSE_FOCUS_MODE = "mff";
+        /// <summary>
+        /// Used when focus following mode is set to Braille focus following.
+        /// </summary>
         public const string FOLLOW_BRAILLE_FOCUS_MODE = "bff";
+        /// <summary>
+        /// Used while gestures or taps create drawing objects within the canvas.
+        /// </summary>
+        public const string DIRECT_DRAWING_MODE = "drw";
     }
 
     /// <summary>
@@ -1180,8 +1215,17 @@ namespace tud.mci.tangram.TangramLector
     /// </summary>
     public enum FollowFocusModes
     {
+        /// <summary>
+        /// Used when no focus following is activated.
+        /// </summary>
         NONE,
+        /// <summary>
+        /// Used when mouse focus following is activated.
+        /// </summary>
         FOLLOW_MOUSE_FOCUS,
+        /// <summary>
+        /// Used when Braille focus following is activated.
+        /// </summary>
         FOLLOW_BRAILLE_FOCUS
     }
 
