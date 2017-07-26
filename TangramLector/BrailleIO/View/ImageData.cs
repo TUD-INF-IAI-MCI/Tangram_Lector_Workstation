@@ -204,8 +204,8 @@ namespace tud.mci.tangram.TangramLector
                     break;
                 case TITLE_DESC_SAVE_VIEW_NAME:
                     content = LL.GetTrans("tangram.lector.image_data.save")
-                    + "|" + LL.GetTrans("tangram.lector.image_data.not_save")
-                    + "|" + LL.GetTrans("tangram.lector.image_data.cancel");
+                    + " | " + LL.GetTrans("tangram.lector.image_data.not_save")
+                    + " | " + LL.GetTrans("tangram.lector.image_data.cancel");
                     break;
                 default:
                     break;
@@ -538,10 +538,10 @@ namespace tud.mci.tangram.TangramLector
             switch (activeProperty)
             {
                 case Property.Title:
-                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.title") + ":";
+                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.title") + ": ";
                     break;
                 case Property.Description:
-                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.desc") + ":";
+                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.desc") + ": ";
                     break;
                 default:
                     break;

@@ -625,8 +625,8 @@ namespace tud.mci.tangram.TangramLector
                     if (InteractionManager.Mode.Equals(InteractionMode.Braille))
                     {
                         setRegionContent(vs, VR_STATUS_NAME, LectorStateNames.BRAILLE_MODE);
-                    }
-                    return;
+                        return;
+                    }  
                 }
                 FollowFocusModes mode = FocusMode;
                 switch (mode)
