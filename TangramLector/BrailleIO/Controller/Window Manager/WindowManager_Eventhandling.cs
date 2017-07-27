@@ -58,6 +58,14 @@ namespace tud.mci.tangram.TangramLector
             {
                 updateStatusRegionContent();
             }
+            else if (e != null && (e.NewValue.Equals(InteractionMode.Gesture) || e.OldValue.Equals(InteractionMode.Gesture)))
+            {
+                updateStatusRegionContent();
+            }
+            else if (e != null && (e.NewValue.Equals(InteractionMode.Manipulation) || e.OldValue.Equals(InteractionMode.Manipulation)))
+            {
+                updateStatusRegionContent();
+            }
         }
 
         protected override void im_ButtonCombinationReleased(object sender, ButtonReleasedEventArgs e)
@@ -132,7 +140,7 @@ namespace tud.mci.tangram.TangramLector
                                     }                                    
                                     
                                     ooc.Observer.StartDrawSelectFocusHighlightingMode();
-                                    if (bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
+                                    if (bb != null && bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
                                     communicateSelection = true;
                                 }
                             }

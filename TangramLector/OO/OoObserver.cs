@@ -314,6 +314,14 @@ namespace tud.mci.tangram.TangramLector.OO
             this.DrawSelectFocusRenderer.DoRenderBoundingBox = true;
             this.DrawSelectFocusHighlightMode = true;
             this.DrawSelectFocusRenderer.SetSelection(selection);
+
+            // TODO: center selection on the pin-matrix device
+            //if (selection != null)
+            //{
+            //    System.Drawing.Rectangle bb = new Rectangle();
+            //    bb = selection.SelectionBounds; // TODO: SelectionBounds are always 0
+            //    if (windowManager != null && bb != null && bb.Width > 0 && bb.Height > 0) windowManager.MoveToObject(bb);
+            //}
         }
 
 
