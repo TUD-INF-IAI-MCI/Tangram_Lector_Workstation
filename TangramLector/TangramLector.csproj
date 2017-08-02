@@ -209,6 +209,7 @@
     <ProjectReference Include="..\..\..\BrailleIOPrivate\BrailleIO_Dialog\BrailleIO_Dialog.csproj">
       <Project>{C3B946F4-E4D9-4683-A15E-7ED7905EB5E1}</Project>
       <Name>BrailleIO_Dialog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognition\GestureRecognition.csproj">
       <Project>{ad929d1d-1054-43e8-af88-78bdbc7a2bea}</Project>
       <Name>GestureRecognition</Name>
