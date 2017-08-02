@@ -18,7 +18,7 @@ namespace tud.mci.tangram.controller.observer
 
         /// <summary>
         /// Get all available observers for the children in the DOM tree.
-        /// ATTENTION: this function brings high load to the connection to OO. It should bee avoided to use this function to often.
+        /// ATTENTION: this function brings high load to the connection to OO. It should be avoided to use this function too often.
         /// Cache the result of this function for child handling etc.
         /// </summary>
         /// <returns>list of child observers</returns>

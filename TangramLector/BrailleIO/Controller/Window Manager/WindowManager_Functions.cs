@@ -100,7 +100,7 @@ namespace tud.mci.tangram.TangramLector
                 if (vr.ContentBox.Height >= vr.ContentHeight && vr.ContentBox.Width >= vr.ContentWidth)
                 {
                     if (oldZoom >= newZoom) return false;
-                    
+
                     oldCenter = Point.Empty;
                     // central point of focused element as center for zooming
                     if (OoConnector.Instance != null && OoConnector.Instance.Observer != null)
@@ -622,7 +622,7 @@ namespace tud.mci.tangram.TangramLector
                 currentView = view;
                 if (view.Equals(LectorView.Braille))
                 {
-                    InteractionManager.ChangeMode(InteractionMode.Braille);
+                    //InteractionManager.ChangeMode(InteractionMode.Braille);
                 }
                 else if (view.Equals(LectorView.Drawing))
                 {
@@ -672,13 +672,14 @@ namespace tud.mci.tangram.TangramLector
                     {
                         if (center != null) { center.SetVisibility(false); }
                         center2.SetVisibility(true);
+                        io.RefreshDisplay(true);
                         return center2;
                     }
                 }
                 else
                 {
-                    if (center != null) { center.SetVisibility(true); }
-                    if (center2 != null) { center2.SetVisibility(false); }
+                    if (center != null) { center.SetVisibility(true); io.RefreshDisplay(true); }
+                    if (center2 != null) { center2.SetVisibility(false); io.RefreshDisplay(true); }
                     return center;
                 }
             }
@@ -857,29 +858,29 @@ namespace tud.mci.tangram.TangramLector
             if (vr.ContentRender is ITouchableRenderer && e != null && e.Gesture != null)
             {
                 var touchRendeer = (ITouchableRenderer)vr.ContentRender;
-                    // calculate the position in the content
-                    int x = (int)e.Gesture.NodeParameters[0].X;
-                    int y = (int)e.Gesture.NodeParameters[0].Y;
+                // calculate the position in the content
+                int x = (int)e.Gesture.NodeParameters[0].X;
+                int y = (int)e.Gesture.NodeParameters[0].Y;
 
-                    x = x - vr.ViewBox.X - vr.ContentBox.X - vr.GetXOffset();
-                    y = y - vr.ViewBox.Y - vr.ContentBox.Y - vr.GetYOffset();
+                x = x - vr.ViewBox.X - vr.ContentBox.X - vr.GetXOffset();
+                y = y - vr.ViewBox.Y - vr.ContentBox.Y - vr.GetYOffset();
 
-                    var touchedElement = touchRendeer.GetContentAtPosition(x, y);
-                    if (touchedElement != null && touchedElement is RenderElement)
+                var touchedElement = touchRendeer.GetContentAtPosition(x, y);
+                if (touchedElement != null && touchedElement is RenderElement)
+                {
+                    var touchedValue = ((RenderElement)touchedElement).GetValue();
+                    if (((RenderElement)touchedElement).HasSubParts())
                     {
-                        var touchedValue = ((RenderElement)touchedElement).GetValue();
-                        if (((RenderElement)touchedElement).HasSubParts())
+                        List<RenderElement> touchedSubparts = ((RenderElement)touchedElement).GetSubPartsAtPoint(x, y);
+                        if (touchedSubparts != null && touchedSubparts.Count > 0)
                         {
-                            List<RenderElement> touchedSubparts = ((RenderElement)touchedElement).GetSubPartsAtPoint(x, y);
-                            if (touchedSubparts != null && touchedSubparts.Count > 0)
-                            {
-                                touchedValue = touchedSubparts[0].GetValue();
-                            }
+                            touchedValue = touchedSubparts[0].GetValue();
                         }
-                        System.Diagnostics.Debug.WriteLine("----- [BRAILLE TEXT TOUCHED] : '" + touchedValue.ToString() + "'");
-                        return touchedValue.ToString();
                     }
-                
+                    System.Diagnostics.Debug.WriteLine("----- [BRAILLE TEXT TOUCHED] : '" + touchedValue.ToString() + "'");
+                    return touchedValue.ToString();
+                }
+
             }
             return String.Empty;
         }

@@ -677,6 +677,10 @@ namespace tud.mci.tangram.TangramLector
                             if (center2 != null)
                                 center2.SetVisibility(false);
                             break;
+                        case LectorView.Braille:
+                            String content = "Hallo Welt"; // TODO: set real content
+                            setRegionContent(screen, VR_CENTER_2_NAME, content);
+                            break;
                         default:
                             setCaptureArea();
                             break;

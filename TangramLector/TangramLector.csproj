@@ -101,6 +101,7 @@
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_TopMostSpFProxy.cs" />
     <Compile Include="BrailleIO\View\GUI_Menu.cs" />
     <Compile Include="BrailleIO\View\ImageData.cs" />
+    <Compile Include="BrailleIO\View\SceneGraphView.cs" />
     <Compile Include="OO\BrailleTextView.cs" />
     <Compile Include="OO\DrawDocumentRendererHook.cs" />
     <Compile Include="OO\OoObserver_FocusHandling.cs" />
@@ -205,6 +206,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BrailleIOPrivate\BrailleIO_Dialog\BrailleIO_Dialog.csproj">
+      <Project>{C3B946F4-E4D9-4683-A15E-7ED7905EB5E1}</Project>
+      <Name>BrailleIO_Dialog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\BrailleIO\BrailleIO.csproj">
       <Project>{623e618c-f034-473e-a5af-280b20a5ba8f}</Project>
       <Name>BrailleIO</Name>

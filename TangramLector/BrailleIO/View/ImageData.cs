@@ -29,6 +29,7 @@ namespace tud.mci.tangram.TangramLector
         }
 
         private static readonly ImageData instance = new ImageData();
+        private volatile bool isOpen = false;
 
         public readonly CaretRenderer CaretHook = new CaretRenderer();
         public UnderLiningRenderer UnderLiningHook = new UnderLiningRenderer();
@@ -104,6 +105,7 @@ namespace tud.mci.tangram.TangramLector
             }
 
             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.image_data.generic_property_value", speak, propertiesDic[activeProperty.ToString().ToLower()]));
+            isOpen = true;
         }
 
         public const string TITLE_DESC_VIEW_NAME = "imageData";
@@ -468,6 +470,7 @@ namespace tud.mci.tangram.TangramLector
             gui_Menu.resetGuiMenu();
             audioOutput += " " + LL.GetTrans("tangram.lector.image_data.dialog_closed");
             audioRenderer.PlaySoundImmediately(audioOutput);
+            isOpen = false;
 
             //change Interaction mode
             InteractionManager.Instance.ChangeMode(InteractionMode.Normal);
@@ -533,23 +536,26 @@ namespace tud.mci.tangram.TangramLector
 
         void brailleInput_Changed(object sender, InputChangedEventArgs args)
         {
-            // append braille input to shown text
-            string label = "";
-            switch (activeProperty)
+            if (isOpen)
             {
-                case Property.Title:
-                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.title") + ": ";
-                    break;
-                case Property.Description:
-                    label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.desc") + ": ";
-                    break;
-                default:
-                    break;
-            }
+                // append braille input to shown text
+                string label = "";
+                switch (activeProperty)
+                {
+                    case Property.Title:
+                        label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.title") + ": ";
+                        break;
+                    case Property.Description:
+                        label = LL.GetTrans("tangram.lector.image_data.ef") + " " + LL.GetTrans("tangram.lector.image_data.desc") + ": ";
+                        break;
+                    default:
+                        break;
+                }
 
-            _lastInputString = args.Input;
-            BrailleIOViewRange vr = detailViewDic[TITLE_DESC_VIEW_NAME];
-            setScrollableViewRangeTextContent(vr, label + args.Input);
+                _lastInputString = args.Input;
+                BrailleIOViewRange vr = detailViewDic[TITLE_DESC_VIEW_NAME];
+                setScrollableViewRangeTextContent(vr, label + args.Input);
+            }
         }
 
         void im_GesturePerformedEvent(object sender, GestureEventArgs e)
