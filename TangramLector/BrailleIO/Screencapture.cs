@@ -539,8 +539,10 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="nXSrc">The x-coordinate, in logical units, of the upper-left corner of the source rectangle.</param>
         /// <param name="nYSrc">The y-coordinate, in logical units, of the upper-left corner of the source rectangle.</param>
         /// <returns></returns>
+        /// <remarks>There is aproblem with OpenGL and other high end rendering libraries. They can prvent from generating screenshots. Turn them off. </remarks>
         public static Image CaptureWindow(IntPtr handle, int height, int width, int nXSrc = 0, int nYSrc = 0, int nXDest = 0, int nYDest = 0)
         {
+
             IntPtr hBitmap = IntPtr.Zero;
             IntPtr hOld = IntPtr.Zero;
             // get a .NET image object for it
@@ -563,6 +565,8 @@ namespace tud.mci.tangram.TangramLector
             IntPtr hdcDest = getCompatibleDeviceContext(hdcSrc);
             if (hdcDest == IntPtr.Zero)
             {
+                System.Console.WriteLine(Marshal.GetLastWin32Error());
+
                 if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
                 //TODO: how to handle this
                 return img;
@@ -576,21 +580,31 @@ namespace tud.mci.tangram.TangramLector
                 // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
                 if (hBitmap == IntPtr.Zero)
                 {
-                    
-                    //FIXME: how to handle this? Stackoverflow exception ?
-                    if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
-                    getDeviceContext(IntPtr.Zero);
-                    return img;                    
-                    //return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                    IntPtr hDest = GDI32.CreateCompatibleDC(hdcSrc);
+                    hBitmap = GDI32.CreateCompatibleBitmap(hDest, width, height);
+
+                    if (hBitmap == IntPtr.Zero)
+                    {
+
+                        System.Console.WriteLine(Marshal.GetLastWin32Error());
+                        //FIXME: how to handle this? Stackoverflow exception ?
+                        if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
+                        getDeviceContext(IntPtr.Zero);
+                        return img;
+                        //return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
+                    }
                 }
 
                 // select the bitmap object
                 hOld = GDI32.SelectObject(hdcDest, hBitmap);
                 // copy the bit blocks of the window bitmap to the save bitmap 
-                bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc, GDI32.SRCCOPY);
+                bool success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc,
+                    (int)(System.Drawing.CopyPixelOperation.SourceCopy | System.Drawing.CopyPixelOperation.CaptureBlt)
+                    // GDI32.SRCCOPY
+                    );
                 if (!success)
                 {
-                    
+                    System.Console.WriteLine(Marshal.GetLastWin32Error());
                     //TODO: how to handle this
                     if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
                     return img;
@@ -799,7 +813,7 @@ namespace tud.mci.tangram.TangramLector
             /// rectangle to achieve the final color.</param>
             /// <returns>If the function succeeds, the return value is nonzero. 
             /// If the function fails, the return value is zero.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern bool BitBlt(IntPtr hObject, int nXDest, int nYDest,
                 int nWidth, int nHeight, IntPtr hObjectSource,
                 int nXSrc, int nYSrc, int dwRop);
@@ -813,7 +827,7 @@ namespace tud.mci.tangram.TangramLector
             /// <param name="nHeight">The bitmap height, in pixels.</param>
             /// <returns>If the function succeeds, the return value is a handle to the compatible bitmap (DDB).
             /// If the function fails, the return value is NULL.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern IntPtr CreateCompatibleBitmap(IntPtr hDC, int nWidth,
                 int nHeight);
 
@@ -824,7 +838,7 @@ namespace tud.mci.tangram.TangramLector
             /// <param name="hDC">A handle to an existing DC. If this handle is NULL, the function creates a memory DC compatible with the application's current screen.</param>
             /// <returns>If the function succeeds, the return value is the handle to a memory DC.
             /// If the function fails, the return value is NULL.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
 
             /// <summary>
@@ -834,7 +848,7 @@ namespace tud.mci.tangram.TangramLector
             /// </summary>
             /// <param name="hDC">A handle to the device context.</param>
             /// <returns>If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern bool DeleteDC(IntPtr hDC);
 
             /// <summary>
@@ -846,7 +860,7 @@ namespace tud.mci.tangram.TangramLector
             /// <param name="hObject">A handle to a logical pen, brush, font, bitmap, region, or palette.</param>
             /// <returns>If the function succeeds, the return value is nonzero.
             /// If the specified handle is not valid or is currently selected into a DC, the return value is zero.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern bool DeleteObject(IntPtr hObject);
 
             /// <summary>
@@ -857,8 +871,14 @@ namespace tud.mci.tangram.TangramLector
             /// <param name="hDC">A handle to the DC.</param>
             /// <param name="hObject">A handle to the object to be selected..</param>
             /// <returns>If an error occurs and the selected object is not a region, the return value is NULL. Otherwise, it is HGDI_ERROR.</returns>
-            [DllImport("gdi32.dll")]
+            [DllImport("gdi32.dll", SetLastError = true)]
             public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+
+
+            [DllImport("gdi32.dll")]
+            public static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
+
+
         }
 
         /// <summary>
@@ -878,7 +898,7 @@ namespace tud.mci.tangram.TangramLector
                 public int right;
                 public int bottom;
             }
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr GetDesktopWindow();
 
             /// <summary>
@@ -901,7 +921,7 @@ namespace tud.mci.tangram.TangramLector
             /// <returns>If the function succeeds, the return value is a handle to a device context
             /// for the specified window. If the function fails, the return value is NULL, 
             /// indicating an error or an invalid hWnd parameter.</returns>
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr GetWindowDC(IntPtr hWnd);
             /// <summary>
             /// The GetDC function retrieves a handle to a device context (DC) for the client area of a 
@@ -911,7 +931,7 @@ namespace tud.mci.tangram.TangramLector
             /// </summary>
             /// <param name="hWnd">The h WND.</param>
             /// <returns></returns>
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr GetDC(IntPtr hWnd);
 
             /// <summary>
@@ -921,15 +941,26 @@ namespace tud.mci.tangram.TangramLector
             /// <param name="hWnd">A handle to the window whose DC is to be released.</param>
             /// <param name="hDC">A handle to the DC to be released.</param>
             /// <returns>The return value indicates whether the DC was released. If the DC was released, the return value is 1. If the DC was not released, the return value is zero.</returns>
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr ReleaseDC(IntPtr hWnd, IntPtr hDC);
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr GetWindowRect(IntPtr hWnd, ref RECT rect);
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr GetClientRect(IntPtr hWnd, ref RECT rect);
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern bool ClientToScreen(IntPtr hWnd, ref System.Drawing.Point lpPoint);
 
+
+            [DllImport("user32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool PrintWindow(IntPtr hwnd, IntPtr hDC, uint nFlags);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool GetWindowRect(HandleRef hWnd, out RECT lpRect);
+
+            [DllImport("user32.dll")]
+            public static extern int GetWindowRgn(IntPtr hWnd, IntPtr hRgn);
         }
     }
 }
