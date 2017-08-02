@@ -205,6 +205,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognition\GestureRecognition.csproj">
+      <Project>{ad929d1d-1054-43e8-af88-78bdbc7a2bea}</Project>
+      <Name>GestureRecognition</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\BrailleIO\BrailleIO.csproj">
       <Project>{623e618c-f034-473e-a5af-280b20a5ba8f}</Project>
       <Name>BrailleIO</Name>
@@ -216,10 +220,6 @@
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\BrailleRenderer\BrailleRenderer.csproj">
       <Project>{fc472e01-7c5a-4982-9825-59589aaadccb}</Project>
       <Name>BrailleRenderer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognizer\GestureRecognizer.csproj">
-      <Project>{73bd1f41-ce19-40de-a0ec-a70a9f003dec}</Project>
-      <Name>GestureRecognizer</Name>
     </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
       <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
