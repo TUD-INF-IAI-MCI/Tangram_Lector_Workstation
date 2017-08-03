@@ -426,10 +426,13 @@ namespace tud.mci.tangram.TangramLector
                             {
                                 foreach (Type type in types)
                                 {
-                                    IBrailleIOAdapterSupplier o = extensibility.ExtensionLoader.CreateObjectFromType(type) as IBrailleIOAdapterSupplier;
-                                    if (o != null)
+                                    if (typeof(IBrailleIOAdapterSupplier).IsAssignableFrom(type))
                                     {
-                                        suppliers.Add(o);
+                                        IBrailleIOAdapterSupplier o = extensibility.ExtensionLoader.CreateObjectFromType(type) as IBrailleIOAdapterSupplier;
+                                        if (o != null)
+                                        {
+                                            suppliers.Add(o);
+                                        }
                                     }
                                 }
                             }
@@ -562,8 +565,11 @@ namespace tud.mci.tangram.TangramLector
                             {
                                 foreach (Type type in types)
                                 {
-                                    IInteractionContextProxy o = extensibility.ExtensionLoader.CreateObjectFromType(type) as IInteractionContextProxy;
-                                    if (o != null) { ssfp.Add(o); }
+                                    if (typeof(IInteractionContextProxy).IsAssignableFrom(type))
+                                    {
+                                        IInteractionContextProxy o = extensibility.ExtensionLoader.CreateObjectFromType(type) as IInteractionContextProxy;
+                                        if (o != null) { ssfp.Add(o); }
+                                    }
                                 }
                             }
                         }

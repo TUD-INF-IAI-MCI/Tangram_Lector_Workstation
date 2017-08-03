@@ -565,7 +565,7 @@ namespace tud.mci.tangram.TangramLector
             IntPtr hdcDest = getCompatibleDeviceContext(hdcSrc);
             if (hdcDest == IntPtr.Zero)
             {
-                System.Console.WriteLine(Marshal.GetLastWin32Error());
+                if (Debug) System.Console.WriteLine(Marshal.GetLastWin32Error());
 
                 if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't get compatible DC!");
                 //TODO: how to handle this
@@ -586,7 +586,7 @@ namespace tud.mci.tangram.TangramLector
                     if (hBitmap == IntPtr.Zero)
                     {
 
-                        System.Console.WriteLine(Marshal.GetLastWin32Error());
+                        if (Debug) System.Console.WriteLine(Marshal.GetLastWin32Error());
                         //FIXME: how to handle this? Stackoverflow exception ?
                         if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
                         getDeviceContext(IntPtr.Zero);
@@ -604,7 +604,7 @@ namespace tud.mci.tangram.TangramLector
                     );
                 if (!success)
                 {
-                    System.Console.WriteLine(Marshal.GetLastWin32Error());
+                    if (Debug) System.Console.WriteLine(Marshal.GetLastWin32Error());
                     //TODO: how to handle this
                     if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
                     return img;
