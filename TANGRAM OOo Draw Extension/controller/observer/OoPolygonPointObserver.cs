@@ -740,29 +740,17 @@ namespace tud.mci.tangram.controller.observer
             return p;
         }
 
+        /// <summary>
+        /// Exports a string representation of polygons.
+        /// Can be uses to import it again.
+        /// </summary>
+        /// <returns>A multi-line string of a polypolygon points definitions.</returns>
         public String ToExportString()
         {
-            String exp = String.Empty;
-
             List<List<PolyPointDescriptor>> polys = CachedPolyPointList;
-
-            if (polys != null && polys.Count > 0)
-            {
-                foreach (List<PolyPointDescriptor> poly in polys)
-                {
-                    if (exp != String.Empty) exp += "\n";
-                    if (poly != null && poly.Count > 0)
-                    {
-                        exp += String.Join(", ", poly);
-                    }
-                }
-            }
-
-
+            String exp = PolygonHelper.BuildExportString(polys);
             return exp;
         }
-
-
 
 
         #endregion

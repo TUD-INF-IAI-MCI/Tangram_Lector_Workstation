@@ -1182,6 +1182,32 @@ namespace tud.mci.tangram.util
             return w;
         }
 
+
+        /// <summary>
+        /// Gets the bounding box of an object / shape.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <returns>The bounding box in 100th / mm.</returns>
+        public static System.Drawing.Rectangle GetBounds(Object obj)
+        {
+            if(obj != null){
+                var bb = OoUtils.GetProperty(obj, "BoundRect");
+                if (bb != null && bb is Rectangle)
+                {
+                    Rectangle bB = bb as Rectangle;
+                    return new System.Drawing.Rectangle(
+                        bB.X,
+                        bB.Y,
+                        bB.Width,
+                        bB.Height
+                        );
+                }
+            }
+
+            return new System.Drawing.Rectangle();
+        }
+
+
         /// <summary>
         /// Sets the FillColor property of an element.
         /// </summary>
@@ -1420,7 +1446,7 @@ namespace tud.mci.tangram.util
         public static System.Drawing.Point GetDocumentPositionFromScreenPosition(double x, double y, Object currentPage, Object currentView)
         {
             Point p = GetDocumentPositionFromScreenPosition(x, y, currentPage as XDrawPage, currentView as XDrawView);
-            return new System.Drawing.Point(p.X, p.Y);                  
+            return new System.Drawing.Point(p.X, p.Y);
         }
 
         /// <summary>
@@ -1715,7 +1741,7 @@ namespace tud.mci.tangram.util
             trans[1, 2] = tY;
 
             matrix[0, 2] += tX;
-            matrix[1,2] += tY;
+            matrix[1, 2] += tY;
             return matrix;
         }
 
@@ -2330,6 +2356,55 @@ namespace tud.mci.tangram.util
                 success = true;
             }
             return success;
+        }
+
+
+        /// <summary>
+        /// Builds an export string for the poly polygon.
+        /// </summary>
+        /// <param name="polys">The polygon points.</param>
+        /// <returns>A multi-line string of the polypolygon points. One line per polygon.</returns>
+        public static string BuildExportString(List<List<PolyPointDescriptor>> polys)
+        {
+            String exp = String.Empty;
+            if (polys != null && polys.Count > 0)
+            {
+                foreach (List<PolyPointDescriptor> poly in polys)
+                {
+                    if (exp != String.Empty) exp += "\n";
+                    if (poly != null && poly.Count > 0)
+                    {
+                        exp += String.Join(", ", poly);
+                    }
+                }
+            }
+            return exp;
+        }
+
+        /// <summary>
+        /// Builds a list of lists of poly point descriptors from a comma ',' separated list of short describing string.
+        /// Every (new)line will result in an separate polygon point descriptor list.
+        /// Each of the point description-string must be of the structure 'FLAG X Y [V[.vv]]' the different parts have to be separated by a free space.
+        /// The FLAG can be the first letter of the type (C will turn into CORTOL and S into SMOOTH) or the whole word. The value parameter 'V' is optional
+        /// </summary>
+        /// <param name="ppDescr">The polypolygon points.</param>
+        /// <returns>A List of Lists of PolyPointDescriptor objects filled with the specified values.</returns>
+        public static List<List<PolyPointDescriptor>> ParsePolyPointsFromString(string polypoints)
+        {
+            List<List<PolyPointDescriptor>> polyPoints = new List<List<PolyPointDescriptor>>();
+            if (!String.IsNullOrWhiteSpace(polypoints))
+            {
+                var lines = polypoints.Split("\r\n".ToArray());
+                foreach (var line in lines)
+                {
+                    if (!String.IsNullOrWhiteSpace(line))
+                    {
+                        var PolygonPoints = tud.mci.tangram.util.PolygonHelper.ParsePolyPointDescriptorsFromString(line);
+                        polyPoints.Add(PolygonPoints);
+                    }
+                }
+            }
+            return polyPoints;
         }
 
         /// <summary>

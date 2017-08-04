@@ -136,7 +136,7 @@ namespace tud.mci.tangram.util
         /// <param name="propName">Name of the property.</param>
         /// <param name="value">The value of the property.</param>
         /// <returns><c>true</c> if the property could been set without an error, otherwise <c>false</c></returns>
-        public static bool SetProperty(XPropertySet obj, String propName, Object value)
+        internal static bool SetProperty(XPropertySet obj, String propName, Object value)
         {
             if (obj != null)
             {
@@ -346,7 +346,7 @@ namespace tud.mci.tangram.util
         /// <returns>
         /// the property form the property set or null
         /// </returns>
-        public static Object GetProperty(XPropertySet obj, String propName)
+        internal static Object GetProperty(XPropertySet obj, String propName)
         {
             try
             {
