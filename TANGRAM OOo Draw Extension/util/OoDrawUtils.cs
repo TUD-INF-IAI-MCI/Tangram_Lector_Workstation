@@ -1190,7 +1190,8 @@ namespace tud.mci.tangram.util
         /// <returns>The bounding box in 100th / mm.</returns>
         public static System.Drawing.Rectangle GetBounds(Object obj)
         {
-            if(obj != null){
+            if (obj != null)
+            {
                 var bb = OoUtils.GetProperty(obj, "BoundRect");
                 if (bb != null && bb is Rectangle)
                 {
@@ -1660,13 +1661,12 @@ namespace tud.mci.tangram.util
         #region Matrix Translation
 
         /// <summary>
-        /// Apply an Translation to a 3 x 3 matrix.
+        /// Apply a translation to a 3 x 3 matrix.
         /// </summary>
         /// <param name="matrix">The matrix [HomogenMatrix3].</param>
         /// <param name="tX">The translation in horizontal direction.</param>
         /// <param name="tY">The translation in vertical direction.</param>
         /// <returns>The Matrix with applied translation [HomogenMatrix3].</returns>
-        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
         public static object Translate2DHomogenMatrix3_anonymous(object matrix, double tX, double tY)
         {
             if (matrix is HomogenMatrix3)
@@ -1679,13 +1679,12 @@ namespace tud.mci.tangram.util
         }
 
         /// <summary>
-        /// Apply an Translation to a 3 x 3 matrix.
+        /// Apply a translation to a 3 x 3 matrix.
         /// </summary>
         /// <param name="matrix">The matrix.</param>
         /// <param name="tX">The translation in horizontal direction.</param>
         /// <param name="tY">The translation in vertical direction.</param>
         /// <returns>The Matrix with applied translation.</returns>
-        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
         internal static HomogenMatrix3 Translate2DHomogenMatrix3(HomogenMatrix3 matrix, double tX, double tY)
         {
             double[,] m = ConvertHomogenMatrix3ToMatrix(matrix);
@@ -1694,40 +1693,28 @@ namespace tud.mci.tangram.util
         }
 
         /// <summary>
-        /// Apply an Translation to a 3 x 3 matrix.
+        /// Apply a translation to a 3 x 3 matrix.
         /// </summary>
         /// <param name="matrix">The matrix.</param>
         /// <param name="tX">The translation in horizontal direction.</param>
         /// <param name="tY">The translation in vertical direction.</param>
         /// <returns>The Matrix with applied translation.</returns>
-        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
         internal static HomogenMatrix3 Translate2DHomogenMatrix3(double[,] matrix, double tX, double tY)
         {
             double[,] result = Translate2DMatrix(matrix, tX, tY);
             return ConvertMatrixToHomogenMatrix3(result);
         }
 
-        static readonly double[,] translationMatrix2D = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
         /// <summary>
-        /// Apply an Translation to a 3 x 3 matrix.
+        /// Apply a translation to a 3 x 3 matrix.
         /// </summary>
         /// <param name="matrix">The matrix.</param>
         /// <param name="tX">The translation in horizontal direction.</param>
         /// <param name="tY">The translation in vertical direction.</param>
         /// <returns>The Matrix with applied translation.</returns>
-        /// <exception cref="System.ArgumentException">Number of columns in First Matrix should be equal to Number of rows in Second Matrix.</exception>
         public static double[,] Translate2DMatrix(double[,] matrix, double tX, double tY)
         {
             /** Translation Matrix
-             * 
-             * Three dimensional
-             * 
-             *  1   0   0   tX
-             *  0   1   0   tY
-             *  0   0   0   tZ
-             *  0   0   0   1
-             *  
-             * -------------------------
              * 
              * Two dimensional
              * 
@@ -1736,18 +1723,110 @@ namespace tud.mci.tangram.util
              *  0   0   1
              * */
 
-            var trans = translationMatrix2D;
+            var trans = BasicTransformationMatrix2D;
             trans[0, 2] = tX;
             trans[1, 2] = tY;
+
+            var mt = MultiplyMatrix(trans, matrix);
+            return mt;
 
             matrix[0, 2] += tX;
             matrix[1, 2] += tY;
             return matrix;
         }
 
+        #endregion
+
+        #region Matrix Scaling
 
         /// <summary>
-        /// Multiplies the matrixes.
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix [HomogenMatrix3].</param>
+        /// <param name="sX">The translation in horizontal direction.</param>
+        /// <param name="sY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation [HomogenMatrix3].</returns>
+        public static object Scale2DHomogenMatrix3_anonymous(object matrix, double sX, double sY)
+        {
+            if (matrix is HomogenMatrix3)
+            {
+                double[,] m = ConvertHomogenMatrix3ToMatrix(matrix as HomogenMatrix3);
+                double[,] result = Scale2DMatrix(m, sX, sY);
+                return ConvertMatrixToHomogenMatrix3(result);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Apply an Translation to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="sX">The translation in horizontal direction.</param>
+        /// <param name="sY">The translation in vertical direction.</param>
+        /// <returns>The Matrix with applied translation.</returns>
+        internal static HomogenMatrix3 Scale2DHomogenMatrix3(HomogenMatrix3 matrix, double sX, double sY)
+        {
+            double[,] m = ConvertHomogenMatrix3ToMatrix(matrix);
+            double[,] result = Scale2DMatrix(m, sX, sY);
+            return ConvertMatrixToHomogenMatrix3(result);
+        }
+
+        /// <summary>
+        /// Apply a scaling to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="sX">The scaling in horizontal direction.</param>
+        /// <param name="sY">The scaling in vertical direction.</param>
+        /// <returns>The Matrix with applied scaling.</returns>
+        internal static HomogenMatrix3 Scale2DHomogenMatrix3(double[,] matrix, double sX, double sY)
+        {
+            double[,] result = Scale2DMatrix(matrix, sX, sY);
+            return ConvertMatrixToHomogenMatrix3(result);
+        }
+
+
+        /// <summary>
+        /// Apply a scaling to a 3 x 3 matrix.
+        /// </summary>
+        /// <param name="matrix">The matrix.</param>
+        /// <param name="tX">The scaling in horizontal direction.</param>
+        /// <param name="tY">The scaling in vertical direction.</param>
+        /// <returns>The Matrix with applied scaling.</returns>
+        public static double[,] Scale2DMatrix(double[,] matrix, double sX, double sY)
+        {
+            /** Scale Matrix
+             * 
+             * Two dimensional
+             * 
+             *  sX  0   0
+             *  0   sY  0
+             *  0   0   1
+             * */
+
+            var trans = BasicTransformationMatrix2D;
+            trans[0, 0] = sX;
+            trans[1, 1] = sY;
+
+            matrix = MultiplyMatrix(matrix, trans);
+
+            return matrix;
+        }
+
+
+        #endregion
+
+        #region Matrix Utils
+
+
+        static readonly double[,] _transformnMatrix2D = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+
+        internal static double[,] BasicTransformationMatrix2D
+        {
+            get { return OoDrawUtils._transformnMatrix2D.Clone() as double[,]; }
+        }
+
+        /// <summary>
+        /// Multiplies the matrices.
         /// </summary>
         /// <param name="a">The first Matrix.</param>
         /// <param name="b">The second Matrix.</param>

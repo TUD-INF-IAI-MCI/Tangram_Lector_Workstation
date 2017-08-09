@@ -793,22 +793,22 @@ namespace tud.mci.tangram.Accessibility
         /// Tries to call the active page observer only once
         /// </summary>
         /// <returns></returns>
-        public OoDrawPageObserver GetActivePage()
+        public OoDrawPageObserver GetActivePage(bool forecRefresh = false)
         {
-            int i = 0;
-            while (_runing && ++i < 10)
-            {
-                Thread.Sleep(50);
-            }
+            //int i = 0;
+            //while (_runing && ++i < 10)
+            //{
+            //    Thread.Sleep(50);
+            //}
 
-            if (!_runing)
-            {
-                OoDrawPageObserver pObs = getActivePageObserver();
+            //if (!_runing)
+            //{
+            OoDrawPageObserver pObs = getActivePageObserver(forecRefresh);
                 if (pObs != null)
                 {
                     return pObs;
                 }
-            }
+            //}
             return null;
         }
 
@@ -842,14 +842,23 @@ namespace tud.mci.tangram.Accessibility
         /// Return the observer of the current active page.
         /// </summary>
         /// <returns></returns>
-        private OoDrawPageObserver getActivePageObserver()
+        private OoDrawPageObserver getActivePageObserver(bool refresh = false)
         {
-            if (_lastPageObs != null && DateTime.Now - _lastPageObsObserving < _maxCachePageTime) return _lastPageObs;
-
+            if (!refresh && _lastPageObs != null && DateTime.Now - _lastPageObsObserving < _maxCachePageTime)
+            {
+                return _lastPageObs;
+            }
+            System.Diagnostics.Debug.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] _______ new gartering of cached active page.");
             // if this is hanging or called multiple times
             int tries = 0;
             while (_runing && tries++ < 10) { Thread.Sleep(10); }
-            if (_runing) { return _lastPageObs; }
+            if (_runing)
+            {
+                System.Diagnostics.Debug.WriteLine("~~~~~~~ cached active page return after wait a while.");
+                return _lastPageObs;
+            }
+            else if (!refresh && _lastPageObs != null && DateTime.Now - _lastPageObsObserving < _maxCachePageTime)
+                return _lastPageObs;
 
             _runing = true;
             OoDrawPageObserver pageObs = null;
