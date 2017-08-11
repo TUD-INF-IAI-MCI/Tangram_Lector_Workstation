@@ -214,46 +214,54 @@ namespace tud.mci.tangram.TangramLector.OO
 
         private volatile OoAccessibleDocWnd lastCachedDoc = null;
 
+        volatile bool _textGetting = false;
+
         /// <summary>
         /// Get a list of available Observers of elements containing text. This listed is cached.
         /// </summary>
         /// <returns>a cached list of text containing elements</returns>
         private List<TextElemet> getAllTextElementsOfDoc()
         {
-            List<TextElemet> textElements = new List<TextElemet>();
-            OoAccessibleDocWnd doc = null;
+            if (_textGetting) return cachedtextElements;
+
+            _textGetting = true;
+
             try
             {
-                doc = OoConnector.Instance.Observer.GetActiveDocument();
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] can't get active DRAW document", ex);
-            }
-
-            if (doc != null)
-            {
-
-                //check for caching
-                DateTime now = DateTime.Now;
-
-                if (doc != lastCachedDoc || (now - lastCache > cachingPeriode))
+                List<TextElemet> textElements = new List<TextElemet>();
+                OoAccessibleDocWnd doc = null;
+                try
                 {
-                    // get text elements
-                    var pageObs = doc.GetActivePage();
+                    doc = OoConnector.Instance.Observer.GetActiveDocument();
+                }
+                catch (System.Exception ex)
+                {
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[ERROR] can't get active DRAW document", ex);
+                }
 
-                    if (pageObs != null)
+                if (doc != null)
+                {
+
+                    //check for caching
+                    DateTime now = DateTime.Now;
+
+                    if (doc != lastCachedDoc || (now - lastCache > cachingPeriode))
                     {
-                        // clone the list to enable disposing of elements from the list without destroying the iterator
-                        List<OoShapeObserver> shapes = new List<OoShapeObserver>(pageObs.shapeList);
+                        // get text elements
+                        var pageObs = doc.GetActivePage();
 
-                        if (shapes != null && shapes.Count > 0)
+                        if (pageObs != null)
                         {
-                            foreach (OoShapeObserver shape in shapes)
+                            // clone the list to enable disposing of elements from the list without destroying the iterator
+                            List<OoShapeObserver> shapes = new List<OoShapeObserver>(pageObs.shapeList);
+
+                            if (shapes != null && shapes.Count > 0)
                             {
-                                if (shape != null && !shape.Disposed )
+                                foreach (OoShapeObserver shape in shapes)
                                 {
-                                   // if()
+                                    if (shape != null && !shape.Disposed)
+                                    {
+                                        // if()
                                         if (shape.HasText && shape.IsVisible())
                                         {
                                             textElements.Add(new TextElemet(shape));
@@ -263,19 +271,24 @@ namespace tud.mci.tangram.TangramLector.OO
                                         //    //if (!shape.IsValid()) 
                                         //    shape.Dispose();
                                         //}
+                                    }
                                 }
                             }
-                        }
 
-                        // cache
-                        lastCache = now;
-                        lastCachedDoc = doc;
-                        cachedtextElements = textElements;
+                            // cache
+                            lastCache = now;
+                            lastCachedDoc = doc;
+                            cachedtextElements = textElements;
+                        }
                     }
                 }
-            }
 
-            return cachedtextElements;
+                return cachedtextElements;
+            }
+            finally
+            {
+                _textGetting = false;
+            }
         }
 
         /// <summary>

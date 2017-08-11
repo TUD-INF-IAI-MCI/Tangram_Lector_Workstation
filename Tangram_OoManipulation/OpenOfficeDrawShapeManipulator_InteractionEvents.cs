@@ -233,7 +233,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         LastSelectedShape = first;
                         sayLastSelectedShape();
                     }
-                    else {
+                    else
+                    {
                         playError();
                     }
                 }
@@ -259,7 +260,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
             {
-                SelectPreviousePolygonPoint();
+                SelectPreviousPolygonPoint();
             }
             else if (LastSelectedShape == null)
             {
@@ -326,7 +327,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 else
                 {
                     SelectNextPolygonPoint();
-                    if(LastSelectedShapePolygonPoints == null) playError();
+                    if (LastSelectedShapePolygonPoints == null) playError();
                 }
             }
         }
@@ -400,6 +401,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #region Polygon Point Handling
 
+        /// <summary>
+        /// Selects the first available polygon point.
+        /// </summary>
         public void SelectPolygonPoint()
         {
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
@@ -419,7 +423,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        public void SelectNextPolygonPoint()
+        /// <summary>
+        /// Selects the next following polygon point.
+        /// </summary>
+        /// <param name="ignoreLastDuplicate">if set to <c>true</c> to ignore the last point of an closed bezier, 
+        /// because it's the same as the first point..</param>
+        public void SelectNextPolygonPoint(bool ignoreLastDuplicate = true)
         {
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
@@ -431,7 +440,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 PolyPointDescriptor point;
                 if (LastSelectedShapePolygonPoints.HasPoints())
                 {
-                    if (!LastSelectedShapePolygonPoints.HasNext())
+                    if (!LastSelectedShapePolygonPoints.HasNext(ignoreLastDuplicate))
                     {
                         LastSelectedShapePolygonPoints.ResetIterator();
                     }
@@ -451,7 +460,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        public void SelectPreviousePolygonPoint()
+        /// <summary>
+        /// Selects the previous polygon point.
+        /// </summary>
+        public void SelectPreviousPolygonPoint(bool ignoreLastDuplicate = true)
         {
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
@@ -471,6 +483,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     else
                     {
                         point = LastSelectedShapePolygonPoints.Last();
+                        if (ignoreLastDuplicate && LastSelectedShapePolygonPoints.HasPrevious())
+                            point = LastSelectedShapePolygonPoints.Previous();
                     }
                 }
                 else
@@ -491,8 +505,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
-                    var pObs = LastSelectedShape.GetPolygonPointsObserver();
-                    if (pObs != null) LastSelectedShapePolygonPoints = pObs;
+                var pObs = LastSelectedShape.GetPolygonPointsObserver();
+                if (pObs != null) LastSelectedShapePolygonPoints = pObs;
             }
 
             if (LastSelectedShapePolygonPoints != null)
@@ -500,7 +514,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 PolyPointDescriptor point;
                 if (LastSelectedShapePolygonPoints.HasPoints())
                 {
-                        point = LastSelectedShapePolygonPoints.Last();
+                    point = LastSelectedShapePolygonPoints.Last();
                 }
                 else
                 {
@@ -594,10 +608,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     index += 1;
                     string nodeType = LL.GetTrans("tangram.oomanipulation.element_speaker.label." + point.Flag.ToString());
 
+                    // remove one point from count if first and last point is equal
+                    int count = pointsObs.Count - (pointsObs.FirstPointEqualsLastPoint() ? 1 : 0);
+
                     String audio = LL.GetTrans("tangram.oomanipulation.element_speaker.audio.point",
                         nodeType,
                         index,
-                        pointsObs.Count
+                        count
                         );
 
                     return audio;
@@ -623,11 +640,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     index += 1;
                     string nodeType = LL.GetTrans("tangram.oomanipulation.element_speaker.label." + point.Flag.ToString());
 
+                    // remove one point from count if first and last point is equal
+                    int count = pointsObs.Count - (pointsObs.FirstPointEqualsLastPoint() ? 1 : 0);
 
                     String text = LL.GetTrans("tangram.oomanipulation.element_speaker.text.point",
                         nodeType,
                         index,
-                        pointsObs.Count,
+                        count,
                          (((float)point.X / 1000f)).ToString("0.##cm"),
                          (((float)point.Y / 1000f)).ToString("0.##cm")
                         );

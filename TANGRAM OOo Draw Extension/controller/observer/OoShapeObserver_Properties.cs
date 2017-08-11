@@ -458,6 +458,10 @@ namespace tud.mci.tangram.controller.observer
             set { setBoolProperty("SizeProtect", value); }
         }
 
+
+        String _cachedText = String.Empty;
+        DateTime _lastTextGetting = DateTime.Now;
+        static readonly TimeSpan _textGettingSpan = new TimeSpan(0, 0, 2);
         /// <summary>
         /// if the Shape is XTextRange (containing some text)
         /// returns the string that is included in this text range.
@@ -470,9 +474,16 @@ namespace tud.mci.tangram.controller.observer
         {
             get
             {
+                if (DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
+                
                 XTextRange xTextRange = Shape as XTextRange;
-                if (xTextRange != null) return xTextRange.getString();
-                return String.Empty;
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
+                {
+                    if (xTextRange != null) _cachedText = xTextRange.getString();
+                }, "GetShapeText");
+
+                _lastTextGetting = DateTime.Now;
+                return _cachedText;
             }
             set
             {
@@ -878,7 +889,8 @@ namespace tud.mci.tangram.controller.observer
             try
             {
                 Task t = new Task(
-                    () => {
+                    () =>
+                    {
                         LockValidation = true;
                         try { PolygonHelper.SetPolyPoints(Shape, points, false, GetDocument()); }
                         finally { LockValidation = false; }

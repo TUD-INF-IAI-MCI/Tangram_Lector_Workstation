@@ -149,6 +149,44 @@ namespace tud.mci.tangram.controller.observer
             return _isBezier;
         }
 
+
+        /// <summary>
+        /// The tolerated distance between points to be taken as equal.
+        /// </summary>
+        const int POINT_EQUAL_TOLERANCE = 2;
+
+        bool _firstIsLast = false;
+        /// <summary>
+        /// Check if first and last point are equal. This is e.g. the case for Beziere curves.
+        /// </summary>
+        /// <param name="cached">if set to <c>true</c> [cached].</param>
+        /// <returns></returns>
+        virtual public bool FirstPointEqualsLastPoint(bool cached = false)
+        {
+            if (IsClosed())
+            {
+                if (IsBezier()) return _firstIsLast = true;
+                else if (!cached)
+                {
+                    if (this.Count > 1)
+                    {
+                        var firts = this[0];
+                        var last = this[this.Count - 1];
+
+                        if (firts.Flag == PolygonFlags.NORMAL && last.Flag == PolygonFlags.NORMAL &&
+                            Math.Abs(firts.X - last.X) <= POINT_EQUAL_TOLERANCE &&
+                            Math.Abs(firts.Y - last.Y) <= POINT_EQUAL_TOLERANCE)
+                        {
+                            return _firstIsLast = true;
+                        }
+                    }
+                    else return _firstIsLast = false;
+                }
+            }
+            else _firstIsLast = false;
+            return _firstIsLast;
+        }
+
         #endregion
 
         #region Modification
@@ -881,6 +919,21 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// Determines whether this instance has a next polygon point.
         /// </summary>
+        /// <param name="ignoreLastDuplicate">if set to <c>true</c> to ignore the 
+        /// last point of a closed Bezier shape because its exactly the same as 
+        /// the first.</param>
+        /// <returns>
+        ///   <c>true</c> if this instance has a next point; otherwise, <c>false</c>.
+        /// </returns>
+        virtual public bool HasNext(bool ignoreLastDuplicate) {
+            if (ignoreLastDuplicate && _iteratorIndex == Count -2 && FirstPointEqualsLastPoint()) {
+                return false;
+            }
+            else return (_iteratorIndex + 1) < Count; 
+        }
+        /// <summary>
+        /// Determines whether this instance has a next polygon point.
+        /// </summary>
         /// <returns>
         ///   <c>true</c> if this instance has a next point; otherwise, <c>false</c>.
         /// </returns>
@@ -921,6 +974,22 @@ namespace tud.mci.tangram.controller.observer
             return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
         }
 
+
+        /// <summary>
+        /// Get the last Point of this instance and sets the iterator to this element.
+        /// </summary>
+        /// <returns>the last point</returns>
+        virtual public PolyPointDescriptor Last(bool ignoreLastDuplicate)
+        {
+            if (!ignoreLastDuplicate || Count < 2) return Last();
+
+            _iteratorIndex = (Count - 2);
+            if (HasNext(ignoreLastDuplicate))
+                return Next();
+
+            return _iteratorIndex > 0 ? GetPolyPointDescriptor(_iteratorIndex) : new PolyPointDescriptor();
+        }
+
         /// <summary>
         /// Get the last Point of this instance and sets the iterator to this element.
         /// </summary>
@@ -945,7 +1014,7 @@ namespace tud.mci.tangram.controller.observer
 
         #endregion
 
-        
+
 
 
     }
