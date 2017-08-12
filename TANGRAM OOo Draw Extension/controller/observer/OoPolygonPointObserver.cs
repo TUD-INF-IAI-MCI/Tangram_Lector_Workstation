@@ -163,8 +163,8 @@ namespace tud.mci.tangram.controller.observer
         /// <returns></returns>
         virtual public bool FirstPointEqualsLastPoint(bool cached = false)
         {
-            if (IsClosed())
-            {
+            // if (IsClosed())
+            // {
                 if (IsBezier()) return _firstIsLast = true;
                 else if (!cached)
                 {
@@ -182,8 +182,8 @@ namespace tud.mci.tangram.controller.observer
                     }
                     else return _firstIsLast = false;
                 }
-            }
-            else _firstIsLast = false;
+            //}
+            //else _firstIsLast = false;
             return _firstIsLast;
         }
 

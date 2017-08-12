@@ -1897,6 +1897,70 @@ namespace tud.mci.tangram.util
         }
 
         /// <summary>
+        /// Determines whether the specified shape (freeform) is only a complex line definition.
+        /// This check is essential for setting fill styles to lines will cause the application to break!
+        /// </summary>
+        /// <param name="shape">The freeform shape to check [XShape].</param>
+        /// <returns>
+        ///   <c>true</c> if the specified shape is a line; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsLine(Object shape) { return IsLine(shape as XShape); }
+        /// <summary>
+        /// Determines whether the specified shape (freeform) is only a complex line definition.
+        /// This check is essential for setting fill styles to lines will cause the application to break!
+        /// </summary>
+        /// <param name="shape">The freeform shape to check [XShape].</param>
+        /// <returns>
+        ///   <c>true</c> if the specified shape is a line; otherwise, <c>false</c>.
+        /// </returns>
+        internal static bool IsLine(XShape shape)
+        {
+            if (shape != null)
+            {
+                if (IsFreeform(shape))
+                {
+                    // check for <= 2 NORMAL points
+                    if (IsClosedFreeForm(shape))
+                    {
+                        var ppoits = PolygonHelper.GetPolyPoints(shape);
+                        if (ppoits != null && ppoits.Count > 0)
+                        {
+                            foreach (var polygon in ppoits)
+                            {
+                                if (checkForLine(polygon)) return true;
+                            }
+                        }
+                    }
+                    else return true; // is a polyline or open Bezier
+                }
+                else if (OoUtils.ElementSupportsService(shape, OO.Services.DRAW_SHAPE_LINE)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks for more then 2 edge points in a path definition.
+        /// </summary>
+        /// <param name="polygon">The polygon.</param>
+        /// <returns><c>true</c> if less then 3 edge points are in this path definition.</returns>
+        private static bool checkForLine(List<PolyPointDescriptor> polygon)
+        {
+            if (polygon != null && polygon.Count > 0)
+            {
+                int normals = 0;
+                foreach (var point in polygon)
+                {
+                    if (point.Flag == PolygonFlags.NORMAL || point.Flag == PolygonFlags.SMOOTH || point.Flag == PolygonFlags.SYMMETRIC)
+                    {
+                        if (++normals > 2) return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+
+        /// <summary>
         /// Determines whether the specified shape is freeform.
         /// Freeforms are polygons, polylines and Bezier curves.
         /// </summary>

@@ -334,7 +334,9 @@ namespace tud.mci.tangram.TangramLector
                                     InteractionManager.Instance.AddNewDevice(adapter);
                                 }
                             }
-                            catch (Exception e) { Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[EEROR] can't initialize and register extension adapter:\n" + e); }
+                            catch (Exception e) { 
+                                Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[EEROR] can't initialize and register extension adapter:\n" + e); 
+                            }
                         }
                     }
                 }
@@ -439,7 +441,7 @@ namespace tud.mci.tangram.TangramLector
                         }
                         catch (System.Exception ex)
                         {
-                            Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[ERROR] Cant build instance of adapter supplier:\n" + ex);
+                            Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[ERROR] Can't build instance of adapter supplier:\n" + ex);
                         }
                     }
                 }
@@ -575,7 +577,7 @@ namespace tud.mci.tangram.TangramLector
                         }
                         catch (System.Exception ex)
                         {
-                            Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[ERROR] Cant build instance of specialized function proxy:\n" + ex);
+                            Logger.Instance.Log(LogPriority.DEBUG, "LectorGUI", "[ERROR] Can't build instance of specialized function proxy:\n" + ex);
                         }
                     }
                 }
