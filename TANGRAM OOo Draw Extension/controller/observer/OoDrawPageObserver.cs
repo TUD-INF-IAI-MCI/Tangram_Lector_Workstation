@@ -25,7 +25,7 @@ namespace tud.mci.tangram.controller.observer
         /// <summary>
         /// The DOM object for the page object [XDrawPage]
         /// </summary>
-        public Object DrawPage_anonymouse {get{return DrawPage;}}
+        public Object DrawPage_anonymouse { get { return DrawPage; } }
         /// <summary>
         /// The DOM object for the page object
         /// </summary>
@@ -250,44 +250,47 @@ namespace tud.mci.tangram.controller.observer
         /// <remarks>This function is time limited to 200 ms.</remarks>
         public bool updatePageProperties(bool forceUpdate = false)
         {
-            if (!forceUpdate && !IsActive()) 
+            if (!forceUpdate && !IsActive())
                 return true;
 
             DateTime now = DateTime.Now;
             if (now - _lastPagePropertyUpdate < _propertyUpdateTimespan) return false;
 
             //System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("hh:mm:ss.fff") + " +++++++++ Update page properties REQUEST ["+this.GetHashCode()+"] +++++++++");
-
             bool successs = false;
-            try
+            lock (this.PagesObserver.DocWnd.SynchLock)
             {
-                if (!_propertyUpdating && DrawPage != null)
+
+                try
                 {
-                    _propertyUpdating = true;
-                    try
+                    if (!_propertyUpdating && DrawPage != null)
                     {
-                        successs = TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, new Action(() =>
+                        _propertyUpdating = true;
+                        try
                         {
-                            Width = OoUtils.GetIntProperty(DrawPage, "Width");
-                            Height = OoUtils.GetIntProperty(DrawPage, "Height");
-                            BorderBottom = OoUtils.GetIntProperty(DrawPage, "BorderBottom");
-                            BorderLeft = OoUtils.GetIntProperty(DrawPage, "BorderLeft");
-                            BorderRight = OoUtils.GetIntProperty(DrawPage, "BorderRight");
-                            BorderTop = OoUtils.GetIntProperty(DrawPage, "BorderTop");
-                            Orientation = (tud.mci.tangram.util.OO.PaperOrientation)OoUtils.GetProperty(DrawPage, "Orientation");
-                        }), "UpdatePageProperties");
+                            successs = TimeLimitExecutor.WaitForExecuteWithTimeLimit(200, new Action(() =>
+                            {
+                                Width = OoUtils.GetIntProperty(DrawPage, "Width");
+                                Height = OoUtils.GetIntProperty(DrawPage, "Height");
+                                BorderBottom = OoUtils.GetIntProperty(DrawPage, "BorderBottom");
+                                BorderLeft = OoUtils.GetIntProperty(DrawPage, "BorderLeft");
+                                BorderRight = OoUtils.GetIntProperty(DrawPage, "BorderRight");
+                                BorderTop = OoUtils.GetIntProperty(DrawPage, "BorderTop");
+                                Orientation = (tud.mci.tangram.util.OO.PaperOrientation)OoUtils.GetProperty(DrawPage, "Orientation");
+                            }), "UpdatePageProperties");
+                        }
+                        catch (NullReferenceException) { ((IDisposable)this).Dispose(); }
+                        catch (DisposedException)
+                        {
+                            ((IDisposable)this).Dispose();
+                        }
+                        _lastPagePropertyUpdate = now;
+                        return successs;
                     }
-                    catch (NullReferenceException) { ((IDisposable)this).Dispose(); }
-                    catch (DisposedException)
-                    {
-                        ((IDisposable)this).Dispose();
-                    }
-                    _lastPagePropertyUpdate = now;
-                    return successs;
                 }
+                catch { }
+                finally { _propertyUpdating = false; }
             }
-            catch { }
-            finally { _propertyUpdating = false; }
             return successs;
         }
 
@@ -347,37 +350,45 @@ namespace tud.mci.tangram.controller.observer
         {
             bool active = false;
 
-            // get active Page
-            if (PagesObserver != null && PagesObserver.DocWnd != null)
+            try
             {
-                int activePageId = -1;
-                if (forceRefresh 
-                    || _requestAmount++ > _maxRequestAmountUntilRefresh 
-                    || (this.PagesObserver != null && this.PagesObserver.DocWnd != null && this.PagesObserver.DocWnd.CachedCurrentPid < 1))
+                // get active Page
+                if (PagesObserver != null && PagesObserver.DocWnd != null)
                 {
-                    if (PagesObserver.DocWnd.Controller != null && PagesObserver.DocWnd.Controller is XDrawView)
+                    int activePageId = -1;
+                    if (forceRefresh
+                        || _requestAmount++ > _maxRequestAmountUntilRefresh
+                        || (this.PagesObserver != null && this.PagesObserver.DocWnd != null && this.PagesObserver.DocWnd.CachedCurrentPid < 1))
                     {
-                        // refresh caches
-                        var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
-
-                        if (page != null && page.Equals(this.DrawPage))
+                        if (PagesObserver.DocWnd.Controller != null && PagesObserver.DocWnd.Controller is XDrawView)
                         {
-                            this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
-                            active = true;
-                        }
-                        _requestAmount = 0;
-                    }
-                }
-                else
-                {
-                    // check caches
-                    if (this.PagesObserver != null && this.PagesObserver.DocWnd != null)
-                    {
-                        activePageId = PagesObserver.DocWnd.CachedCurrentPid;
-                    }
+                            // refresh caches
+                            var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
 
-                    active = activePageId == (CachedPageNum > 0 ? CachedPageNum : GetPageNum());
+                            if (page != null && page.Equals(this.DrawPage))
+                            {
+                                this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
+                                active = true;
+                            }
+                            _requestAmount = 0;
+                        }
+                    }
+                    else
+                    {
+                        // check caches
+                        if (this.PagesObserver != null && this.PagesObserver.DocWnd != null)
+                        {
+                            activePageId = PagesObserver.DocWnd.CachedCurrentPid;
+                        }
+
+                        active = activePageId == (CachedPageNum > 0 ? CachedPageNum : GetPageNum());
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Page disposed.", ex);
+                ((IDisposable)this).Dispose();
             }
             return active;
         }

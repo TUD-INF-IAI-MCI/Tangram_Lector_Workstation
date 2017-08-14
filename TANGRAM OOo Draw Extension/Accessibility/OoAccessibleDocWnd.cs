@@ -932,6 +932,8 @@ namespace tud.mci.tangram.Accessibility
             int pid = -1;
             try
             {
+                _gettingPageID = true;
+
                 //lock (SynchLock)
                 //{
                 bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,

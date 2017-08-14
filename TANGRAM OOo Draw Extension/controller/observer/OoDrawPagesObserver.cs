@@ -21,6 +21,7 @@ namespace tud.mci.tangram.controller.observer
     public class OoDrawPagesObserver : PropertiesEventForwarderBase, IUpdateable, IDisposingObserver
     {
         #region Members
+
         /// <summary>
         /// The Accessible Document Window (implementing com.sun.start.drawing.AccessibleDrawDocumentView). A reference, set by constructor for easy access to its screen coordinates.
         /// </summary>
