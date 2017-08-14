@@ -25,7 +25,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <param name="shapeRecentlyCreated">Set true if function is called because of shape creation.</param>
         public void RotateThroughModes(bool shapeRecentlyCreated=false)
         {
-            if (LastSelectedShape == null)
+            if (!IsShapeSelected /*LastSelectedShape == null*/)
             {
                 return;
             }
@@ -112,7 +112,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private bool emptyShapeForManipulationError()
         {
-            if (LastSelectedShape == null)
+            if (!IsShapeSelected /*LastSelectedShape == null*/)
             {
                 return true;
             }
@@ -446,7 +446,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void changeLineStyle(int p)
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected /*LastSelectedShape != null*/)
             {
                 string lineStyleName = "";
 

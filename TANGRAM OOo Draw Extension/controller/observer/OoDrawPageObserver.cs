@@ -360,17 +360,20 @@ namespace tud.mci.tangram.controller.observer
                         || _requestAmount++ > _maxRequestAmountUntilRefresh
                         || (this.PagesObserver != null && this.PagesObserver.DocWnd != null && this.PagesObserver.DocWnd.CachedCurrentPid < 1))
                     {
-                        if (PagesObserver.DocWnd.Controller != null && PagesObserver.DocWnd.Controller is XDrawView)
+                        lock (this.PagesObserver.DocWnd.SynchLock)
                         {
-                            // refresh caches
-                            var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
-
-                            if (page != null && page.Equals(this.DrawPage))
+                            if (PagesObserver.DocWnd.Controller != null && PagesObserver.DocWnd.Controller is XDrawView)
                             {
-                                this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
-                                active = true;
-                            }
-                            _requestAmount = 0;
+                                // refresh caches
+                                var page = ((XDrawView)PagesObserver.DocWnd.Controller).getCurrentPage();
+
+                                if (page != null && page.Equals(this.DrawPage))
+                                {
+                                    this.PagesObserver.DocWnd.CachedCurrentPid = activePageId = GetPageNum();
+                                    active = true;
+                                }
+                                _requestAmount = 0;
+                            } 
                         }
                     }
                     else

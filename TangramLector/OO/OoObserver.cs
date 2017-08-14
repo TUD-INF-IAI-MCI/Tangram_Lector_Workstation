@@ -37,7 +37,7 @@ namespace tud.mci.tangram.TangramLector.OO
         #endregion
 
         readonly OpenOfficeDrawShapeManipulator shapeManipulatorFunctionProxy = null;
-        public OpenOfficeDrawShapeManipulator OoManipulator { get {return shapeManipulatorFunctionProxy; } }
+        public OpenOfficeDrawShapeManipulator OoManipulator { get { return shapeManipulatorFunctionProxy; } }
         #endregion
 
         /// <summary>
@@ -149,30 +149,31 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
-                OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
                 StopFocusHighlightModes();
-
                 try
                 {
-                    if (_shape != null)
+                    if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
                     {
-                        // memorize original properties to be restored after blinking
-                        InitBrailleDomFocusHighlightMode();
+                        OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
+                        if (_shape != null)
+                        {
+                            // memorize original properties to be restored after blinking
+                            InitBrailleDomFocusHighlightMode();
 
-                        WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
-                        if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) jumpToDomFocus();
-                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] new DOM focus " + _shape.Name + " " + _shape.Text);
+                            WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
+                            if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) jumpToDomFocus();
+                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] new DOM focus " + _shape.Name + " " + _shape.Text);
+                        }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    _shape = null;
                     Logger.Instance.Log(LogPriority.OFTEN, this, "[DRAW INTERACTION] new DOM focus error --> shape is null", ex);
                 }
-                if (BrailleDomFocusRenderer != null)
-                {
-                    BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
-                }
+                //if (BrailleDomFocusRenderer != null)
+                //{
+                //    BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
+                //}
             }
         }
 
@@ -186,7 +187,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 StopFocusHighlightModes();
 
                 // memorize original properties to be restored after blinking
-                if (((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape != null)
+                if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected/*LastSelectedShape != null*/)
                     InitBrailleDomFocusHighlightMode();
             }
 
@@ -797,8 +798,19 @@ namespace tud.mci.tangram.TangramLector.OO
             return null;
         }
 
+
+        /// <summary>
+        /// Check if a shape is selected for manipulation (DOM / Braille focus).
+        /// </summary>
+        /// <returns><c>true</c> if a shape was selected for mainipulation.</returns>
+        public bool IsShapeSelected()
+        {
+            return shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected;
+        }
+
         /// <summary>
         /// Gets the last selected shape (DOM / Braille focus).
+        /// You shoul call <see cref="IsShapeSelected"/> if you only want to know if a shape is selected.
         /// </summary>
         /// <returns>The OoShapeObserever for the DRAW-object or <c>null</c></returns>
         public OoShapeObserver GetLastSelectedShape()
@@ -1037,7 +1049,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         private void speakDescription()
         {
-            if (shapeManipulatorFunctionProxy == null || shapeManipulatorFunctionProxy.LastSelectedShape == null)
+            if (shapeManipulatorFunctionProxy == null || shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
             {
                 return;
             }

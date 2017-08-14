@@ -23,7 +23,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// brailleDomFocusRenderer
         /// </summary>
         public bool DrawSelectFocusHighlightMode = true;
-        private bool blinkStateOn = false;
+        private volatile bool blinkStateOn = false;
         /// <summary>
         /// true if braille focus is blinking, false if braille focus is not blinking
         /// </summary>
@@ -48,7 +48,7 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (shapeManipulatorFunctionProxy != null)
             {
-                if(_shape == null) _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
+                if (_shape == null) _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
 
                 if (_shape != null && _shape.IsValid(false))
                 {
@@ -63,11 +63,11 @@ namespace tud.mci.tangram.TangramLector.OO
                             _shape.GetAbsoluteScreenBoundsByDom(),   // bounding box
                             0.75,                           // opacity (0.0 (transparent) .. 1.0)
                             1500,                           // The total blinking time in ms until blinking stops and the window is hidden again
-                            //The pattern of milliseconds to be on|off|..., 
-                            // e.g. [250,150,250,150,250,150,800,1000] for three short flashes (on for 250ms) 
-                            // with gaps (of 150ms) and one long on time (800ms) followed by a pause(1s).
-                            // The pattern is repeated until the total blinking time is over.
-                            // If less than 2 values are given, the default of [500, 500] is used!
+                                                            //The pattern of milliseconds to be on|off|..., 
+                                                            // e.g. [250,150,250,150,250,150,800,1000] for three short flashes (on for 250ms) 
+                                                            // with gaps (of 150ms) and one long on time (800ms) followed by a pause(1s).
+                                                            // The pattern is repeated until the total blinking time is over.
+                                                            // If less than 2 values are given, the default of [500, 500] is used!
                             new int[8] { 250, 150, 250, 150, 250, 150, 500, 150 }
                             );
                     }
@@ -80,23 +80,25 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         internal void StartFocusHighlightModes()
         {
-            if (shapeManipulatorFunctionProxy != null)
+            focusHighlightPauseTimer = null;  // Stopps the blinking pause timer 
+
+            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
             {
-                OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
+                // OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
 
-                if (_shape != null)
+
+                //if (_shape != null)
                 {
-                    _shape.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
-                    _shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers += OnViewOrZoomChange;
-                    // TODO: listen to changes by oo draw!
-                    //oFillTransparence = _shape.FillTransparence;
-                    //oLineTransparence = _shape.LineTransparence;
-                    //oFillColor = _shape.FillColor;
-                    //oLineColor = _shape.LineColor;
-                    // start highlighting focus (may be switched off later, e.g. by timer or key press
 
-                    BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
-                    
+
+                    //_shape.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
+                    //_shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers += OnViewOrZoomChange;
+
+
+
+                    //BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
+                    BrailleDomFocusRenderer.CurrentBoundingBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds;
+
                     brailleDomFocusHighlightMode = true;
                     blinkFocusActive = true;
                 }
@@ -111,8 +113,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
             if (shapeManipulatorFunctionProxy != null)
             {
-                OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
-                var point = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
+                //var point = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
 
                 //if (point != null && !point.IsEmpty)
                 //{
@@ -120,18 +121,6 @@ namespace tud.mci.tangram.TangramLector.OO
                 //    pausePointHighligting();
                 //}
 
-                if (_shape != null)
-                {
-                    if (OnShapeBoundRectChange != null)
-                    {
-                        _shape.BoundRectChangeEventHandlers -= OnShapeBoundRectChange;
-                        _shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers -= OnViewOrZoomChange;
-                    }
-                    //_shape.FillTransparence = (short)(oFillTransparence);
-                    //_shape.LineTransparence = oLineTransparence;
-                    //_shape.FillColor = oFillColor;
-                    //_shape.LineColor = oLineColor;
-                }
                 blinkStateOn = false;
                 brailleDomFocusHighlightMode = false;
                 BrailleDomFocusRenderer.DoRenderBoundingBox = false;
@@ -140,9 +129,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 blinkFocusActive = false;
 
                 PauseFocusHighlightModes();
-
             }
-
         }
 
         #region Pause Focus Highlighting
@@ -225,69 +212,28 @@ namespace tud.mci.tangram.TangramLector.OO
             return (0xFF - r << 16) + (0xFF - g << 8) + (0xFF - b);
         }
 
-        volatile bool _render = false;
         void blinkTimer_Tick(object sender, EventArgs e)
         {
             // bring is some delay to not interfere with the rendering itself
-            System.Threading.Thread.Sleep(95);
+            System.Threading.Thread.Sleep(20);
 
             // change blink state
             blinkStateOn = !blinkStateOn;
 
-            if (brailleDomFocusHighlightMode && shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.LastSelectedShape != null)
+            if (brailleDomFocusHighlightMode && shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected/*.LastSelectedShape != null*/)
             {
-                _render = true;
                 // blink rendered bounding box
                 BrailleDomFocusRenderer.DoRenderBoundingBox = blinkStateOn;
-
-                //doFocusHighlighting(blinkStateOn);
-                // BrailleIOMediator.Instance.RefreshDisplay(true);
             }
-            else
-                if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
-                {
-                    _render = true;
-                    DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
-                    // BrailleIOMediator.Instance.RefreshDisplay(true);
-                }
-                else
-                {
-                    DrawSelectFocusHighlightMode = false;
-                    DrawSelectFocusRenderer.DoRenderBoundingBox = false;
 
-                    if (_render)
-                    {
-                        _render = false;
-                        // BrailleIOMediator.Instance.RefreshDisplay(true);
-                    }
-                }
-        }
-
-        /// <summary>
-        /// Highlights the focused element by realizing a blinking of the shape.
-        /// </summary>
-        /// <param name="blinkStateOn"></param>
-        private void doFocusHighlightingByOsmColorManipulation(bool blinkStateOn)
-        {
-            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.LastSelectedShape != null)
+            if (DrawSelectFocusHighlightMode && WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
             {
-                // blink dom object (color inversion + transparency inversion)
-                if (blinkStateOn)
-                {
-                    // original
-                    shapeManipulatorFunctionProxy.LastSelectedShape.FillTransparence = (short)(oFillTransparence);
-                    shapeManipulatorFunctionProxy.LastSelectedShape.LineTransparence = oLineTransparence;
-                    shapeManipulatorFunctionProxy.LastSelectedShape.FillColor = oFillColor;
-                    shapeManipulatorFunctionProxy.LastSelectedShape.LineColor = oLineColor;
-                }
-                else
-                {
-                    // inverted
-                    shapeManipulatorFunctionProxy.LastSelectedShape.FillTransparence = (short)(100 - oFillTransparence);
-                    shapeManipulatorFunctionProxy.LastSelectedShape.LineTransparence = 100 - oLineTransparence;
-                    shapeManipulatorFunctionProxy.LastSelectedShape.FillColor = invertRGBColor(oFillColor);
-                    shapeManipulatorFunctionProxy.LastSelectedShape.LineColor = invertRGBColor(oLineColor);
-                }
+                DrawSelectFocusRenderer.DoRenderBoundingBox = blinkStateOn;
+            }
+            else if (DrawSelectFocusHighlightMode)
+            {
+                DrawSelectFocusHighlightMode = false;
+                DrawSelectFocusRenderer.DoRenderBoundingBox = false;
             }
         }
 
@@ -297,7 +243,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <returns></returns>
         private bool jumpToDomFocus()
         {
-            if (shapeManipulatorFunctionProxy == null || shapeManipulatorFunctionProxy.LastSelectedShape == null)
+            if (shapeManipulatorFunctionProxy == null || !shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
             {
                 playError();
                 return false;
@@ -318,9 +264,9 @@ namespace tud.mci.tangram.TangramLector.OO
                         // jump to element position
                         // try to get the accessible view to the element - it's the
                         // only way to get pixel positions on screen
-                        if (shapeManipulatorFunctionProxy.LastSelectedShape.IsVisible())
+                        if (shapeManipulatorFunctionProxy.IsSelectedShapeVisible /*.LastSelectedShape.IsVisible()*/)
                         {
-                            var bounds = shapeManipulatorFunctionProxy.LastSelectedShape.GetRelativeScreenBoundsByDom();
+                            var bounds = shapeManipulatorFunctionProxy.SelectedShapeRelScreenBounds; //.LastSelectedShape.GetRelativeScreenBoundsByDom();
                             if (!bounds.IsEmpty && bounds.Height > 0 && bounds.Width > 0)
                             {
                                 wm.MoveToObject(bounds);
@@ -330,13 +276,13 @@ namespace tud.mci.tangram.TangramLector.OO
                             else
                             {
                                 playError();
-                                Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find a valid accessible counterpart for the dom focused element: " + shapeManipulatorFunctionProxy.LastSelectedShape);
+                                Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find a valid accessible counterpart for the dom focused element: " /*+ shapeManipulatorFunctionProxy.LastSelectedShape*/);
                             }
                         }
                         else
                         {
                             playError();
-                            Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find the accessible counterpart to the dom focused element: " + shapeManipulatorFunctionProxy.LastSelectedShape);
+                            Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] can't find the accessible counterpart to the dom focused element: " /*+ shapeManipulatorFunctionProxy.LastSelectedShape*/);
                         }
                     }
                 }
@@ -354,13 +300,13 @@ namespace tud.mci.tangram.TangramLector.OO
 
         void ShapeBoundRectChangeHandler()
         {
-            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.LastSelectedShape != null)
+            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape != null*/)
             {
-                byte[] pngData;
-                shapeManipulatorFunctionProxy.LastSelectedShape.GetShapeAsPng(out pngData);
+
+                byte[] pngData = shapeManipulatorFunctionProxy.ShapePng; //.LastSelectedShape.GetShapeAsPng(out pngData);
                 if (pngData != null && pngData.Length > 0)
                 {
-                    Rectangle newBBox = shapeManipulatorFunctionProxy.LastSelectedShape.GetAbsoluteScreenBoundsByDom();
+                    Rectangle newBBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds; // .LastSelectedShape.GetAbsoluteScreenBoundsByDom();
                     DesktopOverlayWindow.Instance.refreshBounds(newBBox, ref pngData);
                     BrailleDomFocusRenderer.CurrentBoundingBox = newBBox;
 

@@ -40,7 +40,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
                 else if (e.ReleasedGenericKeys.Count == 2 && e.ReleasedGenericKeys.Contains("l") && e.ReleasedGenericKeys.Contains("lr"))
                 {
-                    if (shapeManipulatorFunctionProxy.LastSelectedShape == null)
+                    if (!shapeManipulatorFunctionProxy.IsShapeSelected/* .LastSelectedShape == null*/)
                     {
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.focus.no_element"));
                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] mark Braille focus in GUI - no element focused");

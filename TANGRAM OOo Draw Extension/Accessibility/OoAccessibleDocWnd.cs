@@ -858,7 +858,10 @@ namespace tud.mci.tangram.Accessibility
                 return _lastPageObs;
             }
             else if (!refresh && _lastPageObs != null && DateTime.Now - _lastPageObsObserving < _maxCachePageTime)
+            {
                 return _lastPageObs;
+
+            }
 
             _runing = true;
             OoDrawPageObserver pageObs = null;
@@ -879,8 +882,10 @@ namespace tud.mci.tangram.Accessibility
                         // find the OoDrawPageObserver for the correct page number
                         if (pid > 0)
                         {
+                            int i = 0;
                             foreach (var page in dps)
                             {
+                                i++;
                                 if (page != null && page.DrawPage != null)
                                 {
                                     int pNum = util.OoUtils.GetIntProperty(page.DrawPage, "Number");
@@ -888,6 +893,10 @@ namespace tud.mci.tangram.Accessibility
                                     {
                                         pageObs = page;
                                         break;
+                                    }
+                                    else if(pNum == 0 && i == pid)
+                                    {
+                                        pageObs = page;
                                     }
                                 }
                             }
@@ -916,8 +925,8 @@ namespace tud.mci.tangram.Accessibility
         /// the <see cref="GetCurrentActivePageId"/> function. 
         /// Use this for getting access to the property without stressing the API.
         /// </summary>
-        internal int CachedCurrentPid = -1;
-        private bool _gettingPageID = false;
+        internal volatile int CachedCurrentPid = -1;
+        private volatile bool _gettingPageID = false;
         /// <summary>
         /// Try to get the page number of the current active page
         /// </summary>
@@ -932,11 +941,12 @@ namespace tud.mci.tangram.Accessibility
             int pid = -1;
             try
             {
+               
                 _gettingPageID = true;
 
-                //lock (SynchLock)
-                //{
-                bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
+                lock (SynchLock)
+                {
+                    bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
                          () =>
                          {
                              try
@@ -962,7 +972,7 @@ namespace tud.mci.tangram.Accessibility
                          , "useControllerOfModel"
                          );
                 if (!success) return CachedCurrentPid;
-                //}
+                }
                 CachedCurrentPid = pid;
                 return pid;
             }

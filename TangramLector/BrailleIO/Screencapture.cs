@@ -605,7 +605,20 @@ namespace tud.mci.tangram.TangramLector
                     if (Debug) System.Console.WriteLine(Marshal.GetLastWin32Error());
                     //TODO: how to handle this
                     if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
-                    return img;
+
+                    // force getting new device context. Helps sometimes to unlock the hanging mechanism.
+                    hdcDest = getCompatibleDeviceContext(IntPtr.Zero);
+                    hdcSrc = getDeviceContext(User32.GetDesktopWindow());
+
+                    success = GDI32.BitBlt(hdcDest, nXDest, nYDest, width, height, hdcSrc, nXSrc, nYSrc,
+                    (int)(System.Drawing.CopyPixelOperation.SourceCopy /*System.Drawing.CopyPixelOperation.CaptureBlt*/)
+                    // GDI32.SRCCOPY
+                    );
+                    if (!success)
+                    {
+
+                        return img;
+                    }
                 }
                 // restore selection
                 GDI32.SelectObject(hdcDest, hOld);

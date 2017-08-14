@@ -876,13 +876,15 @@ namespace tud.mci.tangram.controller.observer
                 {
                     Logger.Instance.Log(LogPriority.MIDDLE, this, "[DELETE] shape: " + this.Name);
 
+                    // FIXME: dont know why but sometimes the page is deleted as well with the object
+
                     if (this.Page != null)
                     {
                         var pObs = this.Page.PagesObserver;
                         if (pObs != null)
                         {
                             var contrl = pObs.Controller;
-                            if (contrl != null)
+                            if (contrl != null && contrl is XDispatchProvider && contrl is unoidl.com.sun.star.view.XSelectionSupplier)
                             {
                                 OoDispatchHelper.ActionWithChangeAndResetSelection(
                                                     new Action(() =>

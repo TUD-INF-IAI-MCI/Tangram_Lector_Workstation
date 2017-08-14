@@ -95,7 +95,7 @@ namespace tud.mci.tangram.util
         /// if no special TargetFrameName was used.</param>
         /// <param name="args">Optional arguments for this request They depend on 
         /// the real implementation of the dispatch object.</param>
-        /// <remarks>This function is time limited to 20 ms.</remarks>
+        /// <remarks>This function is time limited to 200 ms.</remarks>
         internal static bool CallDispatch(string commandUrl, XDispatchProvider docViewContrl, String _frame = "", int _sFlag = 0, PropertyValue[] args = null)
         {
             bool successs = false;
@@ -189,12 +189,13 @@ namespace tud.mci.tangram.util
         /// </summary>
         /// <param name="selectProv">The selection provider - commonly this is the document.</param>
         /// <param name="selection">The selection. Use <c>null</c> to reset the selection.</param>
-        internal static void SetSelection(XSelectionSupplier selectProv, Object selection = null)
+        internal static bool SetSelection(XSelectionSupplier selectProv, Object selection = null)
         {
             if (selectProv != null)
             {
-                selectProv.select(Any.Get(selection));
+                return selectProv.select(Any.Get(selection));
             }
+            return false;
         }
 
         /// <summary>
@@ -206,8 +207,8 @@ namespace tud.mci.tangram.util
         internal static void ActionWithChangeAndResetSelection(Action act, XSelectionSupplier selectProv, Object selection = null)
         {
             var oldSel = GetSelection(selectProv);
-            SetSelection(selectProv, selection);
-            if (act != null) { act.Invoke(); }
+            var succ = SetSelection(selectProv, selection);
+            if (succ && act != null) { act.Invoke(); }
             SetSelection(selectProv, oldSel);
         }
 

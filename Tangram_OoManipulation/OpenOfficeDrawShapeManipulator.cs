@@ -5,6 +5,8 @@ using tud.mci.tangram.controller.observer;
 using tud.mci.LanguageLocalization;
 using tud.mci.tangram.audio;
 using System.Threading.Tasks;
+using System.Drawing;
+using System.Threading;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
@@ -58,10 +60,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 {
                     if (_shape != null && !_shape.IsValid(false))
                     {
+                        unregisterFromEvents(_shape);
                         _shape = null;
                         _points = null;
                         Mode = ModificationMode.Unknown;
                         fire = true;
+                        _shapeSelected = false;
+
                     }
                     if (fire) fire_SelectedShapeChanged();
                     return _shape;
@@ -71,7 +76,17 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 lock (_shapeLock)
                 {
+                    if (value == null)
+                    {
+                        _shapeSelected = false;
+                        unregisterFromEvents(_shape);
+                    }
+                    else
+                    {
+                        _shapeSelected = true;
+                    }
                     _shape = value;
+                    registerForEvents(_shape);
                     _points = null;
                     fire_PolygonPointSelected_Reset();
                     Mode = ModificationMode.Unknown;
@@ -79,6 +94,139 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 fire_SelectedShapeChanged();
             }
         }
+
+        #region selected shape propertie handlers
+
+        private void unregisterFromEvents(OoShapeObserver shape)
+        {
+            resetSelectedShapeProperties();
+            if (shape != null)
+            {
+                try
+                {
+                    shape.BoundRectChangeEventHandlers -= onViewOrZoomChange;
+                    shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers -= onViewOrZoomChange;
+                }
+                catch { }
+            }
+        }
+
+        private void registerForEvents(OoShapeObserver shape)
+        {
+            if (shape != null)
+            {
+                try
+                {
+                    unregisterFromEvents(shape);
+                    shape.BoundRectChangeEventHandlers += onViewOrZoomChange;
+                    shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers += onViewOrZoomChange;
+                }
+                catch { }
+            }
+        }
+
+
+        Object _selectedShapeAbsScreenBounds = null;
+        /// <summary>
+        /// Gets the absolute screen bounds of the selected shape in pixels.
+        /// </summary>
+        public Rectangle SelectedShapeAbsScreenBounds
+        {
+            get {
+                if (IsShapeSelected) {
+                    if((_selectedShapeAbsScreenBounds == null || !(_selectedShapeAbsScreenBounds is Rectangle) || ((Rectangle)_selectedShapeAbsScreenBounds).IsEmpty) && LastSelectedShape != null)
+                    {
+                        _selectedShapeAbsScreenBounds = LastSelectedShape.GetAbsoluteScreenBoundsByDom();
+                    }
+                    return (Rectangle)_selectedShapeAbsScreenBounds;
+                }
+                return new Rectangle();
+            }
+            private set { _selectedShapeAbsScreenBounds = value; }
+        }
+
+        Object _selectedShapeRelScreenBounds = null;
+        /// <summary>
+        /// Gets the relative screen bounds of the selected shape in pixels.
+        /// </summary>
+        public Rectangle SelectedShapeRelScreenBounds
+        {
+            get
+            {
+                if (IsShapeSelected)
+                {
+                    if ((_selectedShapeRelScreenBounds == null || !(_selectedShapeRelScreenBounds is Rectangle) || ((Rectangle)_selectedShapeRelScreenBounds).IsEmpty) && LastSelectedShape != null)
+                    {
+                        _selectedShapeRelScreenBounds = LastSelectedShape.GetRelativeScreenBoundsByDom();
+                    }
+                    return (Rectangle)_selectedShapeRelScreenBounds;
+                }
+                return new Rectangle();
+            }
+            private set { _selectedShapeRelScreenBounds = value; }
+        }
+
+        byte[] _pngData = null;
+        /// <summary>
+        /// gets the slected shapes visual representation as png image
+        /// </summary>
+        public byte[] ShapePng
+        {
+            get {
+                if (IsShapeSelected )
+                {
+                    if (_pngData == null && LastSelectedShape != null)
+                    {
+                        if (!(LastSelectedShape.GetShapeAsPng(out _pngData) > 0))
+                        {
+                            _pngData = null;
+                        }
+                        return _pngData;
+                    }
+                }
+                return null;
+            }
+            private set { _pngData = value; }
+        }
+
+        bool _isSelcetedShapeVisible = false;
+        /// <summary>
+        /// Check if the currently selected shape is visible or not.
+        /// </summary>
+        public bool IsSelectedShapeVisible
+        {
+            get
+            {
+                if (IsShapeSelected)
+                {
+                    if (!_isSelcetedShapeVisible && LastSelectedShape != null)
+                        _isSelcetedShapeVisible = LastSelectedShape.IsVisible();
+                    return _isSelcetedShapeVisible;
+                }
+                return false;
+            }
+        }
+
+        private void onViewOrZoomChange()
+        {
+            resetSelectedShapeProperties();
+        }
+
+        private void resetSelectedShapeProperties()
+        {
+            _selectedShapeAbsScreenBounds = null;
+            _selectedShapeRelScreenBounds = null;
+            _pngData = null;
+            _isSelcetedShapeVisible = false;
+        }
+
+        bool _shapeSelected = false;
+        /// <summary>
+        /// Checked if a shape is selected for mainupulation.
+        /// </summary>
+        public bool IsShapeSelected { get => _shapeSelected; private set => _shapeSelected = value; }
+
+        #endregion
 
         OoPolygonPointsObserver _points = null;
         /// <summary>
@@ -277,6 +425,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             if (SelectedShapeChanged != null)
             {
                 Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, null); } catch { } }));
+                Thread.Sleep(10);
                 t.Start();
             }
         }

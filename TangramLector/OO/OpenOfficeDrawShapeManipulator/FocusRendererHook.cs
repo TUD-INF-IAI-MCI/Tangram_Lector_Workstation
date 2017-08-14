@@ -20,7 +20,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         }
 
 
-        private OoShapeObserver _lastSelection = null;
         /// <summary>
         /// The current bounding box to display
         /// </summary>
@@ -202,8 +201,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             bool[,] target = result;
 
                             // draw horizontal lines
-                            Parallel.For(x1, x2,
-                                (x) =>
+                            //Parallel.For(x1, x2,
+                            //    (x) =>
+                                for (int x = x1; x < x2; x++)
                                 {
                                     if (x >= 0 && x <= result_x_max)
                                     {
@@ -224,11 +224,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                         }
                                     }
                                 }
-                               );
+                               //);
 
                             // draw vertical lines
-                            Parallel.For(y1, y2 + 1,
-                                (y) =>
+                            //Parallel.For(y1, y2 + 1,
+                            //    (y) =>
+                                for (int y = y1; y < y2 +1; y++)
                                 {
                                     if (y >= 0 && y <= result_y_max)
                                     {
@@ -248,7 +249,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                         }
                                     }
                                 }
-                                );
+                                //);
 
                             result = target;
                         }
