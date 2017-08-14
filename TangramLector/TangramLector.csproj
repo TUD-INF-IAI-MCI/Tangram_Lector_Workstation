@@ -206,10 +206,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BrailleIOPrivate\BrailleIO_Dialog\BrailleIO_Dialog.csproj">
-      <Project>{C3B946F4-E4D9-4683-A15E-7ED7905EB5E1}</Project>
-      <Name>BrailleIO_Dialog</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognition\GestureRecognition.csproj">
       <Project>{ad929d1d-1054-43e8-af88-78bdbc7a2bea}</Project>
       <Name>GestureRecognition</Name>
@@ -225,10 +221,6 @@
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\BrailleRenderer\BrailleRenderer.csproj">
       <Project>{fc472e01-7c5a-4982-9825-59589aaadccb}</Project>
       <Name>BrailleRenderer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\GestureRecognizer\GestureRecognizer.csproj">
-      <Project>{73bd1f41-ce19-40de-a0ec-a70a9f003dec}</Project>
-      <Name>GestureRecognizer</Name>
     </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
       <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
@@ -270,12 +262,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(ProjectDir)\..\EXT"
-XCOPY "$(ProjectDir)\..\EXT" "$(TargetDir)Extensions" /H /S /Y /C /I /Q /R
-
-if exist "$(DevEnvDir)..\tools\vsvars32.bat" (
-    call "$(DevEnvDir)..\tools\vsvars32.bat"
-    editbin /largeaddressaware "$(TargetPath)"
-)</PostBuildEvent>
+XCOPY "$(ProjectDir)\..\EXT" "$(TargetDir)Extensions" /H /S /Y /C /I /Q /R</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -343,10 +343,11 @@ namespace tud.mci.tangram.TangramLector
         /// </value>
         public static bool Debug
         {
-            get {
+            get
+            {
                 if (!configLoaded)
                     loadConfiguration();
-                return debug; 
+                return debug;
             }
             set { debug = value; }
         }
@@ -522,7 +523,7 @@ namespace tud.mci.tangram.TangramLector
             // create a device context we can copy to
             // IntPtr hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
             if (_hdcDest == IntPtr.Zero)
-                _hdcDest = GDI32.CreateCompatibleDC(IntPtr.Zero);
+                _hdcDest = GDI32.CreateCompatibleDC(hdcSrc);
             return _hdcDest;
         }
 
@@ -550,7 +551,7 @@ namespace tud.mci.tangram.TangramLector
 
             if (!ScreenCapture.User32.IsWindow(handle))
             {
-                if(Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture (" + handle + ") is not a window!");
+                if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Given handle to capture (" + handle + ") is not a window!");
                 //TODO: how to handle this
                 return img;
             }
@@ -580,18 +581,15 @@ namespace tud.mci.tangram.TangramLector
                 // IntPtr hBitmap = GDI32.CreateCompatibleBitmap(scrDC, width, height);
                 if (hBitmap == IntPtr.Zero)
                 {
-                    IntPtr hDest = GDI32.CreateCompatibleDC(hdcSrc);
+                    IntPtr hDest = GDI32.CreateCompatibleDC(IntPtr.Zero);
                     hBitmap = GDI32.CreateCompatibleBitmap(hDest, width, height);
 
                     if (hBitmap == IntPtr.Zero)
                     {
-
                         if (Debug) System.Console.WriteLine(Marshal.GetLastWin32Error());
                         //FIXME: how to handle this? Stackoverflow exception ?
                         if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't create an image from the given DC: " + hdcSrc + " !!!");
-                        getDeviceContext(IntPtr.Zero);
                         return img;
-                        //return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
                     }
                 }
 
@@ -608,9 +606,6 @@ namespace tud.mci.tangram.TangramLector
                     //TODO: how to handle this
                     if (Debug) Logger.Instance.Log(LogPriority.DEBUG, "Screencapture", "[ERROR] Fatal error in Screen capturer: Can't copy data to hbitmap!!!");
                     return img;
-                    //getDeviceContext(IntPtr.Zero);
-                    // return CaptureWindow(handle, height, width, nXSrc, nYSrc, nXDest, nYDest);// new Bitmap(1, 1);
-                    
                 }
                 // restore selection
                 GDI32.SelectObject(hdcDest, hOld);
@@ -619,7 +614,6 @@ namespace tud.mci.tangram.TangramLector
                 // clean up
                 // User32.ReleaseDC(handle, hdcSrc);
                 // GDI32.DeleteDC(hdcDest);
-
 
                 if (hBitmap != null && hBitmap != IntPtr.Zero)
                 {
