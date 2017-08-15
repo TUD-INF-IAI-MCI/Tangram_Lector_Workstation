@@ -222,9 +222,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         bool _shapeSelected = false;
         /// <summary>
-        /// Checked if a shape is selected for mainupulation.
+        /// Checked if a shape is selected for manipulation.
         /// </summary>
-        public bool IsShapeSelected { get => _shapeSelected; private set => _shapeSelected = value; }
+        public bool IsShapeSelected { get { return _shapeSelected; } private set { _shapeSelected = value; } }
 
         #endregion
 
