@@ -491,7 +491,7 @@ namespace tud.mci.tangram.Accessibility
         }
 
         /// <summary>
-        /// Gets the childs.
+        /// Gets the children.
         /// </summary>
         /// <returns>List of accessible child elements</returns>
         public List<XAccessible> GetChilds()
@@ -517,7 +517,7 @@ namespace tud.mci.tangram.Accessibility
         /// Gets the child of this element at the given index.
         /// </summary>
         /// <param name="index">The index.</param>
-        /// <returns>The child as wrapt object or <c>null</c></returns>
+        /// <returns>The child as wrapped object or <c>null</c></returns>
         public OoAccComponent GetChild(int index)
         {
             lock (_accLock)

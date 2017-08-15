@@ -61,7 +61,7 @@ namespace ShowOffAdapterMediator
                 _run = false;
                 renderingThread = new Thread(renderText);
                 renderingThread.Name = "DebugMonitorTextRendering";
-                renderingThread.Priority = ThreadPriority.BelowNormal;
+                renderingThread.Priority = ThreadPriority.Normal;
                 renderingThread.IsBackground = true;
                 _run = true;
                 renderingThread.Start();
@@ -130,7 +130,7 @@ namespace ShowOffAdapterMediator
                 }
                 finally
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(200);
                 }
             }
 
