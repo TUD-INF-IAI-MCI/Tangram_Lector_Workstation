@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using tud.mci.tangram.audio;
@@ -23,7 +24,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// Rotates through shape manipulation modes.
         /// </summary>
         /// <param name="shapeRecentlyCreated">Set true if function is called because of shape creation.</param>
-        public void RotateThroughModes(bool shapeRecentlyCreated=false)
+        public void RotateThroughModes(bool shapeRecentlyCreated = false)
         {
             if (!IsShapeSelected /*LastSelectedShape == null*/)
             {
@@ -60,12 +61,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             comunicateModeSwitch(Mode, shapeRecentlyCreated);
         }
 
-        private void comunicateModeSwitch(ModificationMode mode, bool noAudio=false)
+        private void comunicateModeSwitch(ModificationMode mode, bool noAudio = false)
         {
             String audio = getAudioFeedback(mode);
             String detail = getDetailRegionFeedback(mode);
 
-            if(!noAudio) AudioRenderer.Instance.PlaySoundImmediately(audio);
+            if (!noAudio) AudioRenderer.Instance.PlaySoundImmediately(audio);
             sentTextFeedback(detail);
         }
 
@@ -596,7 +597,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void moveShape(int horizontalSteps, int verticalSteps)
         {
-            bool success = false; 
+            bool success = false;
             if (LastSelectedShapePolygonPoints != null)
             {
                 success = movePolygonPoint(horizontalSteps, verticalSteps);
@@ -635,14 +636,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 else if (point.Value is int) // point is radius
                 {
                     int rad = (int)point.Value;
-                    int change = (horizontalSteps == 0 ? getLargeDegree() : getSmallDegree() ) / 100;
+                    int change = (horizontalSteps == 0 ? getLargeDegree() : getSmallDegree()) / 100;
 
                     bool invert = horizontalSteps < 0 || verticalSteps > 0;
 
-                    int newRad = rad + (invert ? -change: change);
+                    int newRad = rad + (invert ? -change : change);
                     point.Value = newRad;
                 }
-                
+
             }
 
             point.X += horizontalSteps;
@@ -670,7 +671,32 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #region Scaling
 
-        private const int minSize = 600;
+        private static int _minSize = 100;
+        /// <summary>
+        /// Gets the minimum length size of a shape.
+        /// This value can be set by the app.config key "Tangram_MinimumShapeSize".
+        /// </summary>
+        /// <value>
+        /// The minimum size of the shape in 100th/mm.
+        /// </value>
+        public static int MinimumShapeSize
+        {
+            get { return _minSize; }
+            private set { _minSize = Math.Max(1, value); }
+        }
+
+        private static double _squareLockDistFactor = 0.5;
+        /// <summary>
+        /// Gets the factor of the applied step size for changing to identify the intention to make both dimensions equal (square).
+        /// </summary>
+        /// <value>
+        /// The square lock distance factor.
+        /// </value>
+        public static double SquareLockDistanceFactor
+        {
+            get { return OpenOfficeDrawShapeManipulator._squareLockDistFactor; }
+            private set { OpenOfficeDrawShapeManipulator._squareLockDistFactor = value; }
+        }
 
         private void scaleWidth(int steps) { scale(steps, 0); }
 
@@ -678,38 +704,106 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void scale(int widthSteps, int heightSteps)
         {
-            //TODO: resolve the problem, when shape is rotated - then you have to switch width and height?!
-
             if (LastSelectedShape != null)
             {
+                // switch width and height if shape is rotated
+                var rotation = LastSelectedShape.Rotation;
+                if ((rotation >= 4500 && rotation <= 13500) ||
+                    (rotation >= 22500 && rotation <= 31500))
+                {
+                    int tmp = widthSteps;
+                    widthSteps = heightSteps;
+                    heightSteps = tmp;
+                }
+
                 bool error = false;
+                // old Bounds
+                var bounds = LastSelectedShape.Bounds;
                 var size = LastSelectedShape.Size;
+
+
+                bool wdch = Math.Abs(widthSteps) > Math.Abs(heightSteps) ? true : false; // hint if width or height was changed
+                int step = wdch ? widthSteps : heightSteps;
+                int squarTolerence = (int)(step * SquareLockDistanceFactor);
+
 
                 size.Width += widthSteps;
                 size.Height += heightSteps;
 
-                if (size.Height < minSize)
+                // check if new size square like or not
+                if (step != 0 && Math.Abs(size.Width - size.Height) <= Math.Abs(squarTolerence)) // difference between both dimensions is less then tolerance 
                 {
-                    size.Height = minSize;
-                    heightSteps = minSize - LastSelectedShape.Size.Height;
+                    // check which part should be adapted
+                    if (wdch) // with was changed so adapt
+                    {
+                        size.Width = size.Height;
+                    }
+                    else // height was changed
+                    {
+                        size.Height = size.Width;
+                    }
+                }
+
+                if (size.Height < MinimumShapeSize)
+                {
+                    size.Height = MinimumShapeSize;
+                    heightSteps = MinimumShapeSize - LastSelectedShape.Size.Height;
                     error = true;
                 }
 
-                if (size.Width < minSize)
+                if (size.Width < MinimumShapeSize)
                 {
-                    size.Width = minSize;
-                    widthSteps = minSize - LastSelectedShape.Size.Width;
+                    size.Width = MinimumShapeSize;
+                    widthSteps = MinimumShapeSize - LastSelectedShape.Size.Width;
                     error = true;
                 }
-                var pos = LastSelectedShape.Position;
-                pos.X -= (widthSteps / 2);
-                pos.Y -= (heightSteps / 2);
 
-                if (pos.X < 0) pos.X = 0;
-                if (pos.Y < 0) pos.Y = 0;
+                // reposition
+                Point pos = new Point();
+                if (bounds.IsEmpty)
+                {
+                    pos = LastSelectedShape.Position;
 
-                LastSelectedShape.Size = size;
-                LastSelectedShape.Position = pos;
+                    pos.X -= (widthSteps / 2);
+                    pos.Y -= (heightSteps / 2);
+
+                    if (pos.X < 0) pos.X = 0;
+                    if (pos.Y < 0) pos.Y = 0;
+
+                    LastSelectedShape.Size = size;
+                    LastSelectedShape.Position = pos;
+                }
+                else
+                {
+                    pos.X = bounds.Left;
+                    pos.Y = bounds.Top;
+
+                    Point oldCenter = new Point(
+                        (int)(bounds.Left + bounds.Width / 2.0),
+                        (int)(bounds.Top + bounds.Height / 2.0)
+                        );
+
+                    LastSelectedShape.Size = size; // change size to new one
+
+                    int relX = 0, relY = 0;
+                    var newBounds = LastSelectedShape.Bounds;
+
+                    if (newBounds.IsEmpty)
+                    {
+                        // TODO: should not happen
+                    }
+                    else
+                    {
+                        relX = (int)(oldCenter.X - (newBounds.Left + newBounds.Width * 0.5));
+                        relY = (int)(oldCenter.Y - (newBounds.Top + newBounds.Height * 0.5));
+                    }
+
+                    Point p = LastSelectedShape.Position;
+                    p.X += relX;
+                    p.Y += relY;
+                    LastSelectedShape.Position = p;
+
+                }
 
                 if (error) playError();
                 else playEdit();
@@ -877,7 +971,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // control
                         success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // control
                         success = LastSelectedShapePolygonPoints.RemovePolygonPoints(i - 2, false); // point
-                        
+
                         // prepare the new start point!
                         var point = LastSelectedShapePolygonPoints.Last();
                         success = LastSelectedShapePolygonPoints.UpdatePolyPointDescriptor(point, 0, false);

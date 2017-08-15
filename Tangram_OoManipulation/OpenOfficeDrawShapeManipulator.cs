@@ -132,9 +132,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public Rectangle SelectedShapeAbsScreenBounds
         {
-            get {
-                if (IsShapeSelected) {
-                    if((_selectedShapeAbsScreenBounds == null || !(_selectedShapeAbsScreenBounds is Rectangle) || ((Rectangle)_selectedShapeAbsScreenBounds).IsEmpty) && LastSelectedShape != null)
+            get
+            {
+                if (IsShapeSelected)
+                {
+                    if ((_selectedShapeAbsScreenBounds == null || !(_selectedShapeAbsScreenBounds is Rectangle) || ((Rectangle)_selectedShapeAbsScreenBounds).IsEmpty) && LastSelectedShape != null)
                     {
                         _selectedShapeAbsScreenBounds = LastSelectedShape.GetAbsoluteScreenBoundsByDom();
                     }
@@ -172,8 +174,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public byte[] ShapePng
         {
-            get {
-                if (IsShapeSelected )
+            get
+            {
+                if (IsShapeSelected)
                 {
                     if (_pngData == null && LastSelectedShape != null)
                     {
@@ -303,6 +306,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         public OpenOfficeDrawShapeManipulator(IOoDrawConnection drawConnection, IZoomProvider zommable, IFeedbackReceiver fbReciever = null)
             : base(10)
         {
+
             feedbackReciever = fbReciever;
             Zoomable = zommable;
             if (drawConnection == null)
@@ -310,8 +314,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 throw new ArgumentNullException("drawConnection", "Without any connection to the Draw application no Manipulation is possible.");
             }
             OoConnection = drawConnection;
-
             initializePatters();
+            loadConfiguration();
         }
 
         #endregion
@@ -455,6 +459,58 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         }
 
         #endregion
+
+
+        #region Configuration
+
+        /// <summary>
+        /// Loads the app config configurations if set.
+        /// </summary>
+        internal void loadConfiguration()
+        {
+            try
+            {
+                var config = System.Configuration.ConfigurationManager.AppSettings;
+                if (config != null && config.Count > 0)
+                {
+                    setMinimumShapeSizeFromConfig(config);
+                }
+            }
+            catch { }
+        }
+
+        #region MinimumShapeSize
+
+        /// <summary>
+        /// The sound volume configuration key to search for in the app.config file.
+        /// </summary>
+        internal const String SHAPE_SIZE_FACTOR_CONFIG_KEY = "Tangram_MinimumShapeSize";
+        /// <summary>
+        /// Sets the MinimumShapeSize if the corresponding key <see cref="SHAPE_SIZE_FACTOR_CONFIG_KEY"/> 
+        /// was set in the app.config of the current running application.
+        /// </summary>
+        /// <param name="config">The loaded configuration app settings.</param>
+        internal void setMinimumShapeSizeFromConfig(System.Collections.Specialized.NameValueCollection config)
+        {
+            try
+            {
+                if (config != null && config.Count > 0)
+                {
+                    var value = config[SHAPE_SIZE_FACTOR_CONFIG_KEY];
+                    if (value != null)
+                    {
+                        int shapesize = Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
+                        MinimumShapeSize = shapesize;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #endregion
+
     }
 
     #region Enums

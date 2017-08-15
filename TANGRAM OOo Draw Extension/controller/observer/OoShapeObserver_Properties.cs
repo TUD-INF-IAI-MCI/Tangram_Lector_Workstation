@@ -475,7 +475,7 @@ namespace tud.mci.tangram.controller.observer
             get
             {
                 if (DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
-                
+
                 XTextRange xTextRange = Shape as XTextRange;
                 TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
                 {
@@ -655,6 +655,24 @@ namespace tud.mci.tangram.controller.observer
                         catch { }
             }
         }
+
+        /// <summary>
+        /// Gets the bounds (position and size) of the shape on the DRAW page ind 100th/mm.
+        /// </summary>
+        /// <value>
+        /// The bounds.
+        /// </value>
+        virtual public System.Drawing.Rectangle Bounds
+        {
+            get
+            {
+                if (Shape != null)
+                    return OoDrawUtils.GetBounds(Shape);
+                return new System.Drawing.Rectangle();
+            }
+        }
+
+
 
         /// <summary>
         /// This is the angle for rotation of this shape in 1/100th of a degree. 

@@ -70,6 +70,7 @@
       <HintPath>..\TANGRAM OOo Draw Extension\lib\DebugLibre 4\cli_uretypes.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
