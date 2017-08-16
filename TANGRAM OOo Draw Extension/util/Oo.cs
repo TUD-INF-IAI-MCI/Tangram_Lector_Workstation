@@ -739,6 +739,11 @@ namespace tud.mci.tangram.util
             /// </summary>
             public const String UI_MOD_UI_CONF_MGR_SUPPLIER = "com.sun.star.ui.ModuleUIConfigurationManagerSupplier";
 
+
+            /// <summary>
+            /// This service is for a group of Shapes.
+            /// </summary>
+            public const String DRAW_SHAPE_GROUP = "com.sun.star.drawing.GroupShape";
             /// <summary>
             /// This abstract service specifies the general characteristics of all Shapes.
             /// </summary>

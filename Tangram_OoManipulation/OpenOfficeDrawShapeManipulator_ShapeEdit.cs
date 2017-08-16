@@ -443,7 +443,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #endregion
 
-        #region line styles
+        #region Line Styles
 
         private void changeLineStyle(int p)
         {
@@ -994,6 +994,41 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
             }
             return success;
+        }
+
+        #endregion
+
+        #region Order / Z-Index
+
+        /// <summary>
+        /// Brings the modifying shape one step higher.
+        /// </summary>
+        /// <returns><c>true</c> if the shape could brought one level higher; otherwise <c>false</c>.</returns>
+        private bool bringToFront()
+        {
+            if (LastSelectedShape != null)
+            {
+                int currZIndex = LastSelectedShape.ZOrder;
+                LastSelectedShape.ZOrder = currZIndex + 1;
+                return LastSelectedShape.ZOrder > currZIndex;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sent the modifying shape one step deeper.
+        /// </summary>
+        /// <returns><c>true</c> if the shape could sent one level deeper; otherwise <c>false</c>.</returns>
+        private bool sentToBackground()
+        {
+            if (LastSelectedShape != null)
+            {
+                int currZIndex = LastSelectedShape.ZOrder;
+                LastSelectedShape.ZOrder = currZIndex - 1;
+                return LastSelectedShape.ZOrder < currZIndex;
+            }
+            return false;
         }
 
         #endregion
