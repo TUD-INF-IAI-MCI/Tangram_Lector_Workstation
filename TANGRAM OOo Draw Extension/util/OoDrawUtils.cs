@@ -599,6 +599,22 @@ namespace tud.mci.tangram.util
         public static Object CreateTextShape_anonymous(Object drawDoc, int x, int y, int width, int height)
         { return CreateTextShape(drawDoc, x, y, width, height); }
 
+        /// <summary>
+        /// Creates a group shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <returns>The resulting group shape [XShapes].</returns>
+        public static Object CreateGroupShape_anonymous(Object drawDoc) { return CreateGroupShape(drawDoc); }
+        /// <summary>
+        /// Creates a group shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw document.</param>
+        /// <returns>The resulting group shape [XShapes].</returns>
+        internal static XShapes CreateGroupShape(Object drawDoc)
+        {
+            return CreateShape(drawDoc, OO.Services.DRAW_SHAPE_GROUP) as XShapes;
+        }
+
         #region Freeforms
 
         /// <summary>
@@ -908,6 +924,144 @@ namespace tud.mci.tangram.util
         /// <param name="drawDoc">The draw doc [XDrawPagesSupplier].</param>
         /// <returns>the currently active draw page [XDrawPage]</returns>
         public static Object GetCurrentPage_anonymous(Object drawDoc) { return GetCurrentPage(drawDoc as XDrawPagesSupplier); }
+        #endregion
+
+        #region Shape to Group Relation
+
+        /// <summary>
+        /// Adds the shape to a certain group.
+        /// </summary>
+        /// <param name="group">The group to add to [XShapes].</param>
+        /// <param name="shape">The shape to add [XShape].</param>
+        /// <returns><c>true</c> if the number of children is higher after adding; otherwise, <c>false</c>.</returns>
+        public static bool AddShapeToGroup(Object group, Object shape)
+        {
+            return AddShapeToGroup(group as XShapes, shape as XShape);
+        }
+
+        /// <summary>
+        /// Adds the shape to a certain group.
+        /// </summary>
+        /// <param name="group">The group to add to [XShapes].</param>
+        /// <param name="shape">The shape to add [XShape].</param>
+        /// <returns><c>true</c> if the number of children is higher after adding; otherwise, <c>false</c>.</returns>
+        internal static bool AddShapeToGroup(XShapes group, XShape shape)
+        {
+            if (group != null && shape != null)
+            {
+                int ccount = group.getCount();
+                group.add(shape);
+                return group.getCount() > ccount;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Removes the shape from a certain group.
+        /// </summary>
+        /// <param name="group">The group to remove from [XShapes].</param>
+        /// <param name="shape">The shape to remove [XShape].</param>
+        /// <returns><c>true</c> if the number of children is smaller after removing; otherwise, <c>false</c>.</returns>
+        public static bool RemoveShapeFromGroup(Object group, Object shape)
+        {
+            return RemoveShapeFromGroup(group as XShapes, shape as XShape);
+        }
+
+        /// <summary>
+        /// Removes the shape from a certain group.
+        /// </summary>
+        /// <param name="group">The group to remove from [XShapes].</param>
+        /// <param name="shape">The shape to remove [XShape].</param>
+        /// <returns><c>true</c> if the number of children is smaller after removing; otherwise, <c>false</c>.</returns>
+        internal static bool RemoveShapeFromGroup(XShapes group, XShape shape)
+        {
+            if (group != null && shape != null)
+            {
+                int ccount = group.getCount();
+                group.remove(shape);
+                return group.getCount() < ccount;
+            }
+            return false;
+        }
+
+        #region undoable
+
+        /// <summary>
+        /// Adds the shape to a group and make this undo/redoable.
+        /// </summary>
+        /// <param name="group">The group to add to [XShapes].</param>
+        /// <param name="shape">The shape to add [XShape].</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        /// <returns><c>true</c> if the number of children is higher after adding; otherwise, <c>false</c>.</returns>
+        public static bool AddShapeToGroupUndoable(Object group, Object shape, Object undoManager, String title = "")
+        {
+            return AddShapeToGroupUndoable(group as XShapes, shape as XShape, undoManager as XUndoManagerSupplier, title);
+        }
+        /// <summary>
+        /// Adds the shape to a group and make this undo/redoable.
+        /// </summary>
+        /// <param name="group">The group to add to [XShapes].</param>
+        /// <param name="shape">The shape to add [XShape].</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        /// <returns><c>true</c> if the number of children is higher after adding; otherwise, <c>false</c>.</returns>
+        internal static bool AddShapeToGroupUndoable( XShapes group, XShape shape, XUndoManagerSupplier undoManager, String title = "")
+        {
+            if (shape != null && group != null)
+            {
+                if (undoManager != null)
+                {
+                    var undoAction = new ActionUndo(
+                        String.IsNullOrWhiteSpace(title) ? "Group Element" : title,
+                        () => { RemoveShapeFromGroup(group, shape); }, // undo
+                        () => { AddShapeToGroup(group, shape); }  // redo
+                        );
+                    OoUtils.AddActionToUndoManager(undoManager, undoAction);
+                }
+            }
+            return AddShapeToGroup(group, shape);
+        }
+
+        /// <summary>
+        /// removes the shape from a group and make this undo/redoable.
+        /// </summary>
+        /// <param name="group">The group to remove from [XShapes].</param>
+        /// <param name="shape">The shape to remove [XShape].</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        /// <returns><c>true</c> if the number of children is smaller after removing; otherwise, <c>false</c>.</returns>
+        public static bool RemoveShapeFromGroup(Object group, Object shape, Object undoManager, String title = "")
+        {
+            return RemoveShapeFromGroup(group as XShapes, shape as XShape, undoManager as XUndoManagerSupplier, title);
+        }
+        /// <summary>
+        /// removes the shape from a group and make this undo/redoable.
+        /// </summary>
+        /// <param name="group">The group to remove from [XShapes].</param>
+        /// <param name="shape">The shape to remove [XShape].</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        /// <returns><c>true</c> if the number of children is smaller after removing; otherwise, <c>false</c>.</returns>
+        internal static bool RemoveShapeFromGroup(XShapes group, XShape shape, XUndoManagerSupplier undoManager, String title = "")
+        {
+            if (shape != null && group != null)
+            {
+                if (undoManager != null)
+                {
+                    var undoAction = new ActionUndo(
+                        String.IsNullOrWhiteSpace(title) ? "Ungroup Element" : title,
+                        () => { AddShapeToGroup(group, shape); }, // undo
+                        () => { RemoveShapeFromGroup(group, shape); }  // redo
+                        );
+                    OoUtils.AddActionToUndoManager(undoManager, undoAction);
+                }
+            }
+            return RemoveShapeFromGroup(group, shape);
+        }
+
+        #endregion 
+
         #endregion
 
         #region Shape Size and Position
