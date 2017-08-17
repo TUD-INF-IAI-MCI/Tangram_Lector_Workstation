@@ -27,6 +27,10 @@ namespace tud.mci.tangram.controller.observer
         /// The corresponding XShaoe DOM-Object
         /// </summary>
         internal XShape Shape { get; private set; }
+        /// <summary>
+        /// returns the annonymouse XShape object from the DOM.
+        /// </summary>
+        public Object DomShape { get { return Shape as Object; } }
 
         private XAccessible _acccessibleCounterpart;
         /// <summary>

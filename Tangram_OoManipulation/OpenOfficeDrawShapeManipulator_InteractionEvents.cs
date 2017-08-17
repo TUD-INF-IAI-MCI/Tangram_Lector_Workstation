@@ -109,7 +109,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k3", "k6" }).ToList().Count == 2)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] send element to background");
-                            if (sentToBackground()) { playEdit(); }
+                            if (sentToBackground()) { sentAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toBackground")); }
                             else { playError(); }
                             e.Cancel = true;
                         }
@@ -185,7 +185,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k2", "k3", "k5" }).ToList().Count == 3)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] bring element to front");
-                            if (bringToFront()) { playEdit(); }
+                            if (bringToFront()) { sentAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toFront")); }
                             else { playError(); }
                             e.Cancel = true;
                         }

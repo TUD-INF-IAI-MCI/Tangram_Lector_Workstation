@@ -24,11 +24,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         IZoomProvider Zoomable;
 
         readonly InteractionManager interactionManager = InteractionManager.Instance;
-        private Dictionary<string, string> PatterDic = new Dictionary<string, string>();
+        private SortedDictionary<string, string> PatterDic = new SortedDictionary<string, string>();
 
         private IFeedbackReceiver feedbackReciever; // a receiver to output text messages or audio messages
 
-        private int fillStyleNum = 0; //save selected style name num
+        private int fillStyleNum = -1; //save selected style name num
 
         private int lineStyleNum = 0; //save selected style name iterator
         private string[] linestyleNames = new string[] { "solid", "dashed_line", "dotted_line" };
