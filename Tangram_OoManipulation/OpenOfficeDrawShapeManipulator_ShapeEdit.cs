@@ -405,7 +405,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void changeFillStyle(int p)
         {
-            if (LastSelectedShape != null && LastSelectedShape.IsValid() && PatterDic.Count > 0)
+            if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.IsValid() && PatterDic.Count > 0)
             {
                 try
                 {
@@ -512,7 +512,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private string getCurrentLineStyle()
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected && LastSelectedShape != null)
             {
                 string lineStyle = LastSelectedShape.GetLineStyleName();
                 switch (lineStyle)
@@ -620,7 +620,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 success = movePolygonPoint(horizontalSteps, verticalSteps);
             }
-            else if (LastSelectedShape != null)
+            else if (IsShapeSelected && LastSelectedShape != null)
             {
                 var pos = LastSelectedShape.Position;
                 if (!pos.IsEmpty)
@@ -722,16 +722,19 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void scale(int widthSteps, int heightSteps)
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected && LastSelectedShape != null)
             {
                 // switch width and height if shape is rotated
                 var rotation = LastSelectedShape.Rotation;
                 if ((rotation >= 4500 && rotation <= 13500) ||
                     (rotation >= 22500 && rotation <= 31500))
                 {
-                    int tmp = widthSteps;
-                    widthSteps = heightSteps;
-                    heightSteps = tmp;
+                    if (!PolygonHelper.IsFreeform(LastSelectedShape.DomShape))
+                    {
+                        int tmp = widthSteps;
+                        widthSteps = heightSteps;
+                        heightSteps = tmp;
+                    }
                 }
 
                 bool error = false;
@@ -838,7 +841,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void rotate(int degres)
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected && LastSelectedShape != null)
             {
                 int rotation = LastSelectedShape.Rotation;
                 LastSelectedShape.Rotation = (rotation + degres) - (rotation % 100);
@@ -1024,7 +1027,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <returns><c>true</c> if the shape could brought one level higher; otherwise <c>false</c>.</returns>
         private bool bringToFront()
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected && LastSelectedShape != null)
             {
                 int currZIndex = LastSelectedShape.ZOrder;
                 LastSelectedShape.ZOrder = currZIndex + 1;
@@ -1040,7 +1043,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <returns><c>true</c> if the shape could sent one level deeper; otherwise <c>false</c>.</returns>
         private bool sentToBackground()
         {
-            if (LastSelectedShape != null)
+            if (IsShapeSelected && LastSelectedShape != null)
             {
                 int currZIndex = LastSelectedShape.ZOrder;
                 LastSelectedShape.ZOrder = currZIndex - 1;
@@ -1065,7 +1068,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Move:
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.move");
-                    if (LastSelectedShape != null && LastSelectedShape.Position != null)
+                    if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.Position != null)
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.move.status.audio"
@@ -1075,7 +1078,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Scale:
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.scale");
-                    if (LastSelectedShape != null && LastSelectedShape.Size != null)
+                    if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.Size != null)
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.scale.status.audio"
@@ -1085,7 +1088,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Rotate:
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.rotate");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.rotate.status.audio"
@@ -1094,7 +1097,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Fill:
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.filling.audio");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         if (LastSelectedShape.GetProperty("FillBitmap") == null) audio += ", " + LL.GetTrans("tangram.oomanipulation.manipulation.filling.status.none");
                         else
@@ -1107,7 +1110,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Line:
                     audio += LL.GetTrans("tangram.oomanipulation.manipulation.line.audio");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.line.status.audio"
@@ -1134,7 +1137,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (LastSelectedShapePolygonPoints != null) { return GetPointText(LastSelectedShapePolygonPoints); }
 
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.move");
-                    if (LastSelectedShape != null && LastSelectedShape.Position != null)
+                    if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.Position != null)
                     {
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.manipulation.move.status"
                             , ((float)((float)LastSelectedShape.Position.X / 1000)).ToString("0.#")
@@ -1143,7 +1146,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Scale:
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.scale");
-                    if (LastSelectedShape != null && LastSelectedShape.Size != null)
+                    if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.Size != null)
                     {
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.manipulation.scale.status"
                             , ((float)((float)LastSelectedShape.Size.Height / 1000)).ToString("0.#")
@@ -1152,14 +1155,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Rotate:
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.rotate");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.degrees", (LastSelectedShape.Rotation / 100).ToString("0."));
                     }
                     break;
                 case ModificationMode.Fill:
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.filling");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         if (LastSelectedShape.GetProperty("FillBitmap") != null)
                         {
@@ -1169,7 +1172,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     break;
                 case ModificationMode.Line:
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.line");
-                    if (LastSelectedShape != null)
+                    if (IsShapeSelected && LastSelectedShape != null)
                     {
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.manipulation.line.status"
                             , ((float)((float)LastSelectedShape.LineWidth / 100)).ToString("0.#")
