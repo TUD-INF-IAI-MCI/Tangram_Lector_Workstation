@@ -463,7 +463,7 @@ namespace tud.mci.tangram.Accessibility
                 if (_dpsSerach)
                 {
                     int tries = 0;
-                    while (_dpsSerach && tries++ < 100 ) { Thread.Sleep(10); }
+                    while (_dpsSerach && tries++ < 100) { Thread.Sleep(10); }
                     return tries < 100;
                 }
             }
@@ -779,7 +779,7 @@ namespace tud.mci.tangram.Accessibility
             {
                 if (shape is OoAccComponent) return GetRegisteredShapeObserver(shape as OoAccComponent);
                 else if (shape is XAccessibleComponent) return GetRegisteredShapeObserver(shape as XAccessibleComponent);
-                else if (shape is XShape && page != null) return GetRegisteredShapeObserver(shape as XShape, page); 
+                else if (shape is XShape && page != null) return GetRegisteredShapeObserver(shape as XShape, page);
             }
             return null;
         }
@@ -804,10 +804,10 @@ namespace tud.mci.tangram.Accessibility
             //if (!_runing)
             //{
             OoDrawPageObserver pObs = getActivePageObserver(forecRefresh);
-                if (pObs != null)
-                {
-                    return pObs;
-                }
+            if (pObs != null)
+            {
+                return pObs;
+            }
             //}
             return null;
         }
@@ -820,14 +820,18 @@ namespace tud.mci.tangram.Accessibility
         public int GetPageCount()
         {
             int pageCount = _cachedPageCount;
-            var success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
+            try
             {
-                if (DrawPageSupplier != null && DrawPageSupplier is XDrawPagesSupplier)
-                {
-                    var pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
-                    if (pages != null) pageCount = pages.getCount();
-                }
-            }, "GetPageCount");
+                var success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
+                    {
+                        if (DrawPageSupplier != null && DrawPageSupplier is XDrawPagesSupplier)
+                        {
+                            var pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
+                            if (pages != null) pageCount = pages.getCount();
+                        }
+                    }, "GetPageCount");
+            }
+            catch (Exception){ }
 
             _cachedPageCount = pageCount;
             return pageCount;
@@ -894,7 +898,7 @@ namespace tud.mci.tangram.Accessibility
                                         pageObs = page;
                                         break;
                                     }
-                                    else if(pNum == 0 && i == pid)
+                                    else if (pNum == 0 && i == pid)
                                     {
                                         pageObs = page;
                                     }
@@ -941,7 +945,7 @@ namespace tud.mci.tangram.Accessibility
             int pid = -1;
             try
             {
-               
+
                 _gettingPageID = true;
 
                 lock (SynchLock)
@@ -971,7 +975,7 @@ namespace tud.mci.tangram.Accessibility
                          }
                          , "useControllerOfModel"
                          );
-                if (!success) return CachedCurrentPid;
+                    if (!success) return CachedCurrentPid;
                 }
                 CachedCurrentPid = pid;
                 return pid;
