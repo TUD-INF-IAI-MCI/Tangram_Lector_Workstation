@@ -356,9 +356,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             string[] arrPatterns;
             try
             {
-                string name = "";
-                PatterDic.Add("no_pattern", "no_pattern");
-                PatterDic.Add("white_pattern", "white_pattern");
+                string patternName = "";
+                PatterDic.Add(LL.GetTrans("tangram.oomanipulation.current_fill_pattern.no_pattern"), "no_pattern");
+                PatterDic.Add(LL.GetTrans("tangram.oomanipulation.current_fill_pattern.white_pattern"), "white_pattern");
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "Application folder: " + appData);
 #if LIBRE
@@ -379,7 +379,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         if (!pattern.ToLower().EndsWith("_ts.png"))  // only files without _ts.png
                         {
                             //add entry
-                            name = Path.GetFileName(pattern).Replace(".png", "");
+                            patternName = Path.GetFileNameWithoutExtension(pattern);
+                            string name = LL.GetTrans("tangram.oomanipulation.current_fill_pattern." + patternName);
+                            if (String.IsNullOrWhiteSpace(name)) name = pattern;
+                            while (PatterDic.ContainsKey(name))
+                            {
+                                name += "*";
+                            }
                             PatterDic.Add(name, pattern);
                             Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "add pattern " + name);
                         }
@@ -401,39 +407,51 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (LastSelectedShape != null && LastSelectedShape.IsValid() && PatterDic.Count > 0)
             {
-                string bitmapName = LastSelectedShape.GetBackgroundBitmapName();
-
-                if (fillStyleNum <= PatterDic.Count - 1 && fillStyleNum >= 0)
+                try
                 {
+                    string bitmapName = LastSelectedShape.GetBackgroundBitmapName();
+
                     fillStyleNum += p;
-                }
-                if (fillStyleNum < 0)
-                {
-                    fillStyleNum = PatterDic.Count - 1;
-                }
-                if (fillStyleNum > PatterDic.Count - 1)
-                {
-                    fillStyleNum = 0;
-                }
 
-                bitmapName = PatterDic.Keys.ElementAt(fillStyleNum);
-                if (bitmapName == "no_pattern")
-                {
-                    LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.NONE;
+                    if (fillStyleNum < 0)
+                    {
+                        fillStyleNum = PatterDic.Count - 1;
+                    }
+                    if (fillStyleNum > PatterDic.Count - 1)
+                    {
+                        fillStyleNum = 0;
+                    }
+
+                    string pattern = PatterDic.Keys.ElementAt(fillStyleNum); //LL.GetTrans("tangram.oomanipulation.current_fill_pattern." + bitmapName);
+                    bitmapName = PatterDic.Values.ElementAt(fillStyleNum);
+                    if (bitmapName == "no_pattern")
+                    {
+                        LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.NONE;
+                    }
+                    else if (bitmapName == "white_pattern")
+                    {
+                        LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.SOLID;
+                        LastSelectedShape.FillColor = OoUtils.ConvertToColorInt(System.Drawing.Color.White);
+                    }
+                    else
+                    {
+                        LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.BITMAP;
+                        LastSelectedShape.SetBackgroundBitmap(PatterDic[pattern], tud.mci.tangram.util.BitmapMode.REPEAT, bitmapName);
+                    }
+
+                    if (pattern.Contains("_"))
+                    {
+                        string[] patternSplit = pattern.Split(new Char[] { '_' });
+                        pattern = patternSplit[1];
+                    }
+                    if (String.IsNullOrWhiteSpace(pattern)) pattern = Path.GetFileNameWithoutExtension(bitmapName);
+                    AudioRenderer.Instance.PlaySoundImmediately(pattern);
+                    sentTextFeedback(LL.GetTrans("tangram.oomanipulation.current_fill_pattern", pattern));
                 }
-                else if (bitmapName == "white_pattern")
+                catch (Exception ex)
                 {
-                    LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.SOLID;
-                    LastSelectedShape.FillColor = OoUtils.ConvertToColorInt(System.Drawing.Color.White);
+
                 }
-                else
-                {
-                    LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.BITMAP;
-                }
-                LastSelectedShape.SetBackgroundBitmap(PatterDic[bitmapName], tud.mci.tangram.util.BitmapMode.REPEAT, bitmapName);
-                string pattern = bitmapName.Replace("_", " ");
-                AudioRenderer.Instance.PlaySoundImmediately(pattern);
-                sentTextFeedback(LL.GetTrans("tangram.oomanipulation.current_fill_pattern", pattern));
             }
             else
             {
