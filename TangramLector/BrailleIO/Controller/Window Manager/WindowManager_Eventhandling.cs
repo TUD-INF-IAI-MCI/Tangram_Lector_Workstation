@@ -448,33 +448,33 @@ namespace tud.mci.tangram.TangramLector
 
                     else if (e.ReleasedGenericKeys.Count == 8)
                     {
-                        // Ansichtswechsel
-                        if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8" }).ToList().Count == 8)
-                        {
-                            string message = "";
-                            if (currentView.Equals(LectorView.Braille))
-                            {
-                                if (ChangeLectorView(LectorView.Drawing))
-                                {
-                                    changeActiveCenterView(vs, VR_CENTER_NAME);
-                                    message = LL.GetTrans("tangram.lector.wm.views.draw_activated");
-                                }
-                            }
-                            else if (currentView.Equals(LectorView.Drawing))
-                            {
-                                if (ChangeLectorView(LectorView.Braille))
-                                {
-                                    changeActiveCenterView(vs, VR_CENTER_2_NAME);
-                                    message = LL.GetTrans("tangram.lector.wm.views.braille_activated");
-                                }
-                            }
-                            audioRenderer.PlaySoundImmediately(message);
-                            ShowTemporaryMessageInDetailRegion(message);
-                            fillMainCenterContent();
-                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] " + message);
-                            e.Cancel = true;
-                            return;
-                        }
+                        //// Ansichtswechsel
+                        //if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8" }).ToList().Count == 8)
+                        //{
+                        //    string message = "";
+                        //    if (currentView.Equals(LectorView.Braille))
+                        //    {
+                        //        if (ChangeLectorView(LectorView.Drawing))
+                        //        {
+                        //            changeActiveCenterView(vs, VR_CENTER_NAME);
+                        //            message = LL.GetTrans("tangram.lector.wm.views.draw_activated");
+                        //        }
+                        //    }
+                        //    else if (currentView.Equals(LectorView.Drawing))
+                        //    {
+                        //        if (ChangeLectorView(LectorView.Braille))
+                        //        {
+                        //            changeActiveCenterView(vs, VR_CENTER_2_NAME);
+                        //            message = LL.GetTrans("tangram.lector.wm.views.braille_activated");
+                        //        }
+                        //    }
+                        //    audioRenderer.PlaySoundImmediately(message);
+                        //    ShowTemporaryMessageInDetailRegion(message);
+                        //    fillMainCenterContent();
+                        //    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] " + message);
+                        //    e.Cancel = true;
+                        //    return;
+                        //}
                     }
                 }
                 #endregion
