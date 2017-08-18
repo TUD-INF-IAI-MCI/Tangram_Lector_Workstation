@@ -33,7 +33,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             if (LastSelectedShapePolygonPoints != null)
             {
                 Mode = ModificationMode.Move;
-                //playError();
+                playError();
                 return;
             }
 
