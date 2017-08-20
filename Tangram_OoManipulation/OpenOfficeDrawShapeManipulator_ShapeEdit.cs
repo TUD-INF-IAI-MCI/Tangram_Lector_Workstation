@@ -902,7 +902,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
                     success = _shape.Delete();
 
-                    if (success)
+                    if (success || !_shape.IsValid(true) || !_shape.IsVisible() || _shape.Disposed)
                     {
                         LastSelectedShape = null;
 
@@ -910,6 +910,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         var audio = LL.GetTrans("tangram.oomanipulation.element_speaker.delete.element", n);
                         sendDetailInfo(name);
                         sentAudioFeedback(audio);
+
+                        _shape.Dispose();
                     }
                     else
                     {

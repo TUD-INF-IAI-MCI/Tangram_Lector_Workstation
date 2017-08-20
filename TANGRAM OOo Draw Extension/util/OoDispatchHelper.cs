@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using tud.mci.tangram.models;
 using tud.mci.tangram.models.dialogs;
 using unoidl.com.sun.star.beans;
@@ -99,12 +100,13 @@ namespace tud.mci.tangram.util
         internal static bool CallDispatch(string commandUrl, XDispatchProvider docViewContrl, String _frame = "", int _sFlag = 0, PropertyValue[] args = null)
         {
             bool successs = false;
-            
+
             if (!String.IsNullOrWhiteSpace(commandUrl))
             {
                 bool abort = TimeLimitExecutor.WaitForExecuteWithTimeLimit(
                     200,
-                    new Action(() => {
+                    new Action(() =>
+                    {
                         var disp = GetDispatcher(OO.GetMultiServiceFactory());
                         if (disp != null)
                         {
@@ -120,7 +122,7 @@ namespace tud.mci.tangram.util
                                     successs = true;
                                 }
                             }
-                        }                    
+                        }
                     }),
                     "Dispatch Call");
                 successs &= abort;
@@ -206,10 +208,33 @@ namespace tud.mci.tangram.util
         /// <param name="selection">The selection. Use <c>null</c> to reset the selection.</param>
         internal static void ActionWithChangeAndResetSelection(Action act, XSelectionSupplier selectProv, Object selection = null)
         {
-            var oldSel = GetSelection(selectProv);
-            var succ = SetSelection(selectProv, selection);
-            if (succ && act != null) { act.Invoke(); }
-            SetSelection(selectProv, oldSel);
+
+            try
+            {
+                TimeLimitExecutor.ExecuteWithTimeLimit(400, () =>
+                {
+                    var oldSel = GetSelection(selectProv);
+                    //Thread.Sleep(10);
+                    var succ = SetSelection(selectProv, selection);
+                    Thread.Sleep(10);
+                    if (succ && act != null)
+                    {
+                        act.Invoke();
+                        if (Thread.CurrentThread.IsAlive)
+                            Thread.Sleep(100);
+                    }
+                    //Thread.Sleep(10);
+                    SetSelection(selectProv, oldSel);
+                }, "Delete Object");
+            }
+            catch (ThreadInterruptedException ex)
+            {
+                Logger.Instance.Log(LogPriority.ALWAYS, "OoDispatchHelper", "[FATAL ERROR] Can't call dispatch command with selection - THread interrupted:", ex);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Log(LogPriority.ALWAYS, "OoDispatchHelper", "[FATAL ERROR] Can't call dispatch command with selection:", ex);
+            }
         }
 
         #endregion
@@ -251,7 +276,7 @@ namespace tud.mci.tangram.util
         /// <summary>
         /// indicates: result isn't defined
         /// </summary>
-         DONTKNOW = 2
+        DONTKNOW = 2
     }
 
     #endregion 

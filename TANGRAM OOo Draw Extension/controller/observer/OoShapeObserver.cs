@@ -893,14 +893,19 @@ namespace tud.mci.tangram.controller.observer
                                 OoDispatchHelper.ActionWithChangeAndResetSelection(
                                                     new Action(() =>
                                                     {
-                                                        success = OoDispatchHelper.CallDispatch(
-                                                            DispatchURLs.SID_DELETE,
-                                                            contrl as XDispatchProvider
-                                                            );
+                                                        try
+                                                        {
+                                                            success = OoDispatchHelper.CallDispatch(
+                                                                DispatchURLs.SID_DELETE,
+                                                                contrl as XDispatchProvider
+                                                                );
+                                                        }
+                                                        catch (Exception ex) { Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't finish DELET dispatch:", ex); }
                                                     }),
                                                     contrl as unoidl.com.sun.star.view.XSelectionSupplier,
                                                     Shape
                                                 );
+                                Thread.Sleep(10);
                                 success = !IsValid();
                             }
                         }
@@ -910,7 +915,7 @@ namespace tud.mci.tangram.controller.observer
             }
             finally
             {
-                Dispose();
+                // Dispose();
             }
         }
 
