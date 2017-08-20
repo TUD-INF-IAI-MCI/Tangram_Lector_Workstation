@@ -64,7 +64,15 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 break;
                             case "crc":
                                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
-                                RotateThroughModes();
+
+                                if (_group != null)
+                                {
+                                    grouping();
+                                }
+                                else
+                                {
+                                    RotateThroughModes();
+                                }
                                 e.Cancel = true;
                                 //TODO: open element manipulation dialog
                                 break;
@@ -101,15 +109,15 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             string desc = OoElementSpeaker.GetElementDescriptionText(LastSelectedShape);
                             if (!String.IsNullOrEmpty(desc))
                             {
-                                sentTextNotification(desc);
-                                sentAudioFeedback(desc);
+                                sendTextNotification(desc);
+                                sendAudioFeedback(desc);
                             }
                             e.Cancel = true;
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k3", "k6" }).ToList().Count == 2)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] send element to background");
-                            if (sentToBackground()) { sentAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toBackground")); }
+                            if (sentToBackground()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toBackground")); }
                             else { playError(); }
                             e.Cancel = true;
                         }
@@ -185,7 +193,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "k2", "k3", "k5" }).ToList().Count == 3)
                         {
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] bring element to front");
-                            if (bringToFront()) { sentAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toFront")); }
+                            if (bringToFront()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toFront")); }
                             else { playError(); }
                             e.Cancel = true;
                         }
@@ -210,6 +218,34 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
                     #endregion
 
+                    #region 5 Keys
+                    case 5:
+
+                        string command = String.Join(",", e.ReleasedGenericKeys);
+
+                        switch (command)
+                        {
+                            case "k1,k2,k4,k5,k7":
+                                if (_group == null)
+                                {
+                                    play(LL.GetTrans("tangram.oomanipulation.group.start"));
+                                    if (!grouping()) { 
+                                        playError();
+                                    }
+                                }
+                                else
+                                {
+                                    stopGrouing();
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+
+                        break;
+                    #endregion
+
                     default:
                         break;
                 }
@@ -218,6 +254,126 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             #endregion
 
             return e != null ? e.Cancel : false;
+        }
+
+        /// <summary>
+        /// The internal grouping object
+        /// </summary>
+        OoShapeObserver _group = null;
+
+        /// <summary>
+        /// Groups the current selected obejct into a group
+        /// </summary>
+        /// <returns><c>true</c> if the shape was added to a group successfully; otherwise, <c>false</c>.</returns>
+        private bool grouping()
+        {
+            if (IsShapeSelected && LastSelectedShape != null)
+            {
+                OoAccessibleDocWnd draw = null;
+                OoDrawPagesObserver doc = null;
+                OoDrawPageObserver page = null;
+                page = LastSelectedShape.Page;
+                if (page != null)
+                {
+                    doc = page.PagesObserver;
+                    if (doc != null)
+                    {
+                        draw = doc.DocWnd;
+                        if (draw != null && draw.DrawPageSupplier != null)
+                        {
+                            var undoManager = draw.DrawPageSupplier;
+
+                            if (_group == null) // start grouping
+                            {
+                                _group = createGroup();
+                            }
+
+                            if (_group != null && _group.IsGroup)
+                            {
+                                // set Title bar 
+
+                                // size & position
+                                var size = LastSelectedShape.Size;
+                                var pos = LastSelectedShape.Position;
+
+                                // TODO: check if this is a group
+                                if (OoDrawUtils.AddShapeToGroupUndoable(_group.DomShape, LastSelectedShape.DomShape, undoManager, "Add shape to group"))
+                                {
+                                    LastSelectedShape.Size = size;
+                                    LastSelectedShape.Position = pos;
+
+                                    var b = _group.Bounds;
+                                    _group.Position = b.Location;
+
+                                    play(LL.GetTrans("tangram.oomanipulation.group.added", OoElementSpeaker.GetElementAudioText(LastSelectedShape)), false);
+
+                                    LastSelectedShape = _group;
+                                    // sayLastSelectedShape(false);
+                                    return true;
+                                }
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Stops the grouping mode
+        /// </summary>
+        private void stopGrouing()
+        {
+            if (_group != null)
+            {
+                var b = _group.Bounds;
+                _group.Position = b.Location;
+
+                play(LL.GetTrans("tangram.oomanipulation.group.end"));
+
+                LastSelectedShape = _group;
+                this.sayLastSelectedShape(false);
+                _group = null;
+            }
+        }
+
+        /// <summary>
+        /// Creats a group object
+        /// </summary>
+        /// <returns>The Shape observer for the newly created group or <c>null</c>.</returns>
+        private OoShapeObserver createGroup()
+        {
+            OoShapeObserver group = null;
+
+            OoAccessibleDocWnd draw = null;
+            OoDrawPagesObserver doc = null;
+            OoDrawPageObserver page = null;
+
+            if (IsShapeSelected && LastSelectedShape != null)
+            {
+                page = LastSelectedShape.Page;
+                doc = page.PagesObserver;
+                draw = doc.DocWnd;
+            }
+            else
+            {
+                // TODO: how to get those things
+            }
+
+            if (doc != null && draw != null && draw.DrawPageSupplier != null)
+            {
+                var grpShape = OoDrawUtils.CreateGroupShape_anonymous(draw.DrawPageSupplier);
+                OoUtils.SetStringProperty(grpShape, "Name", LL.GetTrans("tangram.oomanipulation.shape.group"));
+                if (page != null && page.DrawPage_anonymouse != null)
+                {
+                    var pageObj = page.DrawPage_anonymouse;
+                    OoDrawUtils.AddShapeToDrawPageUndoable(grpShape, pageObj, draw.DrawPageSupplier);
+                    group = doc.RegisterNewShape(grpShape);
+                }
+            }
+
+            return group;
         }
 
         #endregion
@@ -600,7 +756,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 String audio = GetPointAudio(pointsObs);
                 String text = GetPointText(pointsObs);
 
-                sentAudioFeedback(audio);
+                sendAudioFeedback(audio);
                 sentTextFeedback(text);
             }
         }

@@ -7,13 +7,14 @@ using tud.mci.tangram.audio;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Threading;
+using tud.mci.tangram.TangramLector.Extension;
 
 namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
     /// <summary>
     /// Class for manipulating OpenOffice Draw document elements 
     /// </summary>
-    public partial class OpenOfficeDrawShapeManipulator : AbstractSpecializedFunctionProxyBase, ILocalizable
+    public partial class OpenOfficeDrawShapeManipulator : AbstractSpecializedFunctionProxyBase, ILocalizable //, IInitializable, IInitialObjectReceiver
     {
 
         #region Members
@@ -352,7 +353,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         /// <param name="text">the textual feedback to send.</param>
         /// <returns><c>true</c> if the feedback could be sent, otherwise <c>false</c>.</returns>
-        private bool sentTextNotification(string text)
+        private bool sendTextNotification(string text)
         {
             if (feedbackReciever != null)
             {
@@ -367,7 +368,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         /// <param name="text">the text to send and interpret as audio feedback.</param>
         /// <returns><c>true</c> if the feedback could be sent, otherwise <c>false</c>.</returns>
-        private bool sentAudioFeedback(string audio)
+        private bool sendAudioFeedback(string audio)
         {
             if (feedbackReciever != null)
             {
@@ -377,39 +378,62 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             return false;
         }
 
+        /// <summary>
+        /// Send a text to the detail area of the display.
+        /// </summary>
+        /// <param name="text">The text to sent.</param>
         void sendDetailInfo(string text)
         {
-            sentTextNotification(text);
+            sendTextNotification(text);
         }
 
         #region Audio
 
         /// <summary>
         /// Plays a sound indication an edit.
+        /// <param name="immediately">determine if the text should played immediately or delayed.</param>
         /// </summary>
-        private static void playEdit() { AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Info); }
+        private static void playEdit(bool immediately = true)
+        {
+            if (immediately) AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Info);
+            else AudioRenderer.Instance.PlayWave(StandardSounds.Info);
+        }
+
         /// <summary>
         /// Plays a sound indicating an error has occurred.
+        /// <param name="immediately">determine if the text should played immediately or delayed.</param>
         /// </summary>
-        private static void playError() { AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error); }
+        private static void playError(bool immediately = true)
+        {
+            if (immediately) AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
+            else AudioRenderer.Instance.PlayWave(StandardSounds.Error);
+        }
+
         /// <summary>
         /// Plays a specified text string.
         /// </summary>
         /// <param name="text">The text to play as text to speach.</param>
-        private static void play(String text) { AudioRenderer.Instance.PlaySoundImmediately(text); }
+        /// <param name="immediately">determine if the text should played immediately or delayed.</param>
+        private static void play(String text, bool immediately = true)
+        {
+            if (immediately) AudioRenderer.Instance.PlaySoundImmediately(text);
+            else AudioRenderer.Instance.PlaySound(text);
+        }
 
         /// <summary>
         /// Brings the last selected shape to the audio output.
+        /// <param name="immediately">determine if the text should palyed immediately or not.</param>
         /// </summary>
-        private void sayLastSelectedShape()
+        private void sayLastSelectedShape(bool immediately = true)
         {
             if (LastSelectedShape != null)
             {
-                OoElementSpeaker.PlayElementImmediately(LastSelectedShape, LL.GetTrans("tangram.oomanipulation.selected"));
+                if (immediately) OoElementSpeaker.PlayElementImmediately(LastSelectedShape, LL.GetTrans("tangram.oomanipulation.selected"));
+                else OoElementSpeaker.PlayElement(LastSelectedShape, LL.GetTrans("tangram.oomanipulation.selected"));
             }
             else
             {
-                play(LL.GetTrans("tangram.oomanipulation.no_element_selected"));
+                play(LL.GetTrans("tangram.oomanipulation.no_element_selected"), immediately);
             }
         }
 
@@ -514,6 +538,33 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         #endregion
 
+        //#region IInitializable
+
+        //bool IInitializable.Initialize() { return true; }
+
+        //bool IInitialObjectReceiver.InitializeObjects(params object[] objs)
+        //{
+        //    bool success = false;
+        //    if (objs != null && objs.Length > 0)
+        //    {
+        //        foreach (var item in objs)
+        //        {
+        //            if (item != null)
+        //            {
+        //                if (item is OoConnector)
+        //                {
+        //                    ooc = item as OoConnector;
+        //                }
+        //            }
+        //        }
+        //        success = true;
+        //    }
+
+        //    return success;
+        //}
+
+        //#endregion
+
     }
 
     #region Enums
@@ -591,5 +642,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     }
 
     #endregion
+
 
 }

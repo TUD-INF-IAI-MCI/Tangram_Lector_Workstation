@@ -909,7 +909,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         var name = LL.GetTrans("tangram.oomanipulation.delete.element", n + " " + t);
                         var audio = LL.GetTrans("tangram.oomanipulation.element_speaker.delete.element", n);
                         sendDetailInfo(name);
-                        sentAudioFeedback(audio);
+                        sendAudioFeedback(audio);
 
                         _shape.Dispose();
                     }
@@ -922,7 +922,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Critical);
                             AudioRenderer.Instance.PlaySound(msg);
                         }
-                        sentTextNotification(msg);
+                        sendTextNotification(msg);
                     }
                 }
             }
