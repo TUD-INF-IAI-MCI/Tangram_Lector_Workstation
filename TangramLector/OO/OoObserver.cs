@@ -40,6 +40,8 @@ namespace tud.mci.tangram.TangramLector.OO
         public OpenOfficeDrawShapeManipulator OoManipulator { get { return shapeManipulatorFunctionProxy; } }
         #endregion
 
+        #region Constructor
+
         /// <summary>
         /// Initializes a new instance of the <see cref="OoObserver"/> class.
         /// Listen to an OoDrawAccessibilityObserver and handles the events.
@@ -101,6 +103,8 @@ namespace tud.mci.tangram.TangramLector.OO
             #endregion
         }
 
+        #endregion
+
         #region ILocalizable
 
         void ILocalizable.SetLocalizationCulture(System.Globalization.CultureInfo culture)
@@ -109,6 +113,8 @@ namespace tud.mci.tangram.TangramLector.OO
         }
 
         #endregion
+
+        #region Function Proxy Events
 
         private void initFunctionProxy()
         {
@@ -176,8 +182,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 //}
             }
         }
-
-
+        
         void shapeManipulatorFunctionProxy_PolygonPointSelected(object sender, PolygonPointSelectedEventArgs e)
         {
 
@@ -201,16 +206,22 @@ namespace tud.mci.tangram.TangramLector.OO
                     // BrailleDomFocusRenderer.CurrentPoint = p;
                     // System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
                 }
-                else
+                else if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected && shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints != null)
                 {
                     // BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
                     //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
+                    BrailleDomFocusRenderer.CurrentPolyPoint = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
+                }
+                else
+                {
                     BrailleDomFocusRenderer.CurrentPolyPoint = null;
                 }
             }
 
 
         }
+
+        #endregion
 
         #region Renderer Hook Registration and Update
 
@@ -262,7 +273,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
         #endregion
 
-        #region Events
+        #region Own Events
 
         #region Public Events
 
@@ -630,8 +641,11 @@ namespace tud.mci.tangram.TangramLector.OO
 
         #endregion
 
-        #region Functions
+        #region Public Functions
 
+        /// <summary>
+        /// Resets this instance.
+        /// </summary>
         public void Reset()
         {
             OoSelectionObserver.Instance.Reset();
@@ -657,20 +671,26 @@ namespace tud.mci.tangram.TangramLector.OO
             return null;
         }
 
-
         /// <summary>
         /// Sets the shape for modification to the given observer.
         /// </summary>
         /// <param name="shape">The shape.</param>
-        /// <param name="observed">The observed.</param>
-        /// <returns>the currently selected Shape observer</returns>
-        public bool SetShapeForModification(OoShapeObserver shape)
+        /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
+        /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
+        /// <returns>
+        /// the currently selected Shape observer
+        /// </returns>
+        public bool SetShapeForModification(OoShapeObserver shape, bool silent = false, bool immediately = true)
         {
             if (shape != null)
             {
                 if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
                 {
-                    OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                    if (!silent)
+                    {
+                        if(immediately) OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                        else OoElementSpeaker.PlayElement(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                    }
                     //audioRenderer.PlaySound("Form kann manipuliert werden");
                     shapeManipulatorFunctionProxy.LastSelectedShape = shape;
                     return shapeManipulatorFunctionProxy.LastSelectedShape == shape;
@@ -683,7 +703,6 @@ namespace tud.mci.tangram.TangramLector.OO
 
             return false;
         }
-
 
         /// <summary>
         /// Sets the shape for modification to the given observer.
@@ -715,24 +734,23 @@ namespace tud.mci.tangram.TangramLector.OO
             return false;
         }
 
-
-
-
         /// <summary>
         /// Gets the shape for modification from the given Draw page child object.
         /// </summary>
         /// <param name="c">The component to search its shape observer for [<see cref="OoAccComponent"/>], [<see cref="OoShapeObserver"/>], [XShape].</param>
         /// <param name="observed">The observed window / draw document.</param>
+        /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
+        /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
         /// <returns>The corresponding registered shape observer</returns>
-        public OoShapeObserver GetShapeForModification(Object c, OoAccessibleDocWnd observed, OoDrawPageObserver page = null)
+        public OoShapeObserver GetShapeForModification(Object c, OoAccessibleDocWnd observed, OoDrawPageObserver page = null, bool silent = false, bool immediately = true)
         {
             if (c is OoAccComponent)
             {
-                return GetShapeForModification(c as OoAccComponent, observed);
+                return GetShapeForModification(c as OoAccComponent, observed, silent, immediately);
             }
             else if (c is OoShapeObserver)
             {
-                return GetShapeForModification(c as OoShapeObserver, observed);
+                return GetShapeForModification(c as OoShapeObserver, observed, silent, immediately);
             }
             else if (observed != null)
             {
@@ -748,10 +766,12 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="observed">The observed.</param>
+        /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
+        /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
         /// <returns>the currently selected Shape observer</returns>
-        public OoShapeObserver GetShapeForModification(OoShapeObserver shape, OoAccessibleDocWnd observed = null)
+        public OoShapeObserver GetShapeForModification(OoShapeObserver shape, OoAccessibleDocWnd observed = null, bool silent = false, bool immediately = true)
         {
-            return SetShapeForModification(shape) ? shape : null;
+            return SetShapeForModification(shape, silent, immediately) ? shape : null;
         }
 
         /// <summary>
@@ -759,8 +779,10 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         /// <param name="c">The component to get the corresponding observer to.</param>
         /// <param name="observed">The observed window / draw document.</param>
+        /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
+        /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
         /// <returns>The corresponding observer to the shape in the given Draw document.</returns>
-        public OoShapeObserver GetShapeForModification(OoAccComponent c, OoAccessibleDocWnd observed)
+        public OoShapeObserver GetShapeForModification(OoAccComponent c, OoAccessibleDocWnd observed, bool silent = false, bool immediately = true)
         {
             if (observed != null && c.Role != AccessibleRole.INVALID)
             {
@@ -769,7 +791,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 OoShapeObserver shape = observed.GetRegisteredShapeObserver(c);
                 if (shape != null)
                 {
-                    return GetShapeForModification(shape, observed);
+                    return GetShapeForModification(shape, observed, silent, immediately);
 
                     //if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
                     //{
@@ -802,7 +824,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <summary>
         /// Check if a shape is selected for manipulation (DOM / Braille focus).
         /// </summary>
-        /// <returns><c>true</c> if a shape was selected for mainipulation.</returns>
+        /// <returns><c>true</c> if a shape was selected for manipulation.</returns>
         public bool IsShapeSelected()
         {
             return shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected;
@@ -810,7 +832,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
         /// <summary>
         /// Gets the last selected shape (DOM / Braille focus).
-        /// You shoul call <see cref="IsShapeSelected"/> if you only want to know if a shape is selected.
+        /// You should call <see cref="IsShapeSelected"/> if you only want to know if a shape is selected.
         /// </summary>
         /// <returns>The OoShapeObserever for the DRAW-object or <c>null</c></returns>
         public OoShapeObserver GetLastSelectedShape()
@@ -828,11 +850,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <returns></returns>
         public OoShapeObserver GetCurrentSelection()
         {
-            if (OoDrawAccessibilityObserver.Instance != null
-                //&& OoDrawAccessibilityObserver.Instance.LastSelection != null 
-                //&& OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems != null 
-                //&& OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems.Count > 0
-                )
+            if (OoDrawAccessibilityObserver.Instance != null)
             {
                 OoAccessibilitySelection selection = null;
                 bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(GetActiveDocument(), out selection);
@@ -841,11 +859,6 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     return selection.SelectedItems[0];
                 }
-
-                //TODO: store this staff?!
-                //this.SelectedItem = OoDrawAccessibilityObserver.Instance.LastSelection.SelectedItems[0];
-                //this.SelectedBoundingBox = OoDrawAccessibilityObserver.Instance.LastSelection.SelectionBounds;
-                //return this.SelectedItem;
             }
             return null;
         }
