@@ -44,7 +44,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             // mode switch
             // should not rotate to UNKOWN = 0
-            if (timestamp - lastRequest > doubleKlickTolerance)
+            if (true) //timestamp - lastRequest > doubleKlickTolerance)
             {
                 m = Math.Max(1, (++m) % (_maxMode + 1));
             }
@@ -139,7 +139,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     scaleHeight(getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
-                    rotateLeft(-getSmallDegree());
+                    rotateLeft(getSmallDegree());
                     break;
                 case ModificationMode.Fill:
                     changeFillStyle(-1);
@@ -172,7 +172,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     scaleHeight(-getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
-                    rotateLeft(getSmallDegree());
+                    rotateLeft(-getSmallDegree());
                     break;
                 case ModificationMode.Fill:
                     changeFillStyle(1);
@@ -431,7 +431,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     else if (bitmapName == "white_pattern")
                     {
                         LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.SOLID;
-                        LastSelectedShape.FillColor = OoUtils.ConvertToColorInt(System.Drawing.Color.White);
+                        LastSelectedShape.FillColor = _whiteColorInt;
                     }
                     else
                     {
@@ -504,6 +504,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         dottedStyle();
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.dotted"));
                         break;
+                    case "white_line":
+                        whiteLineStyle();
+                        AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.white"));
+                        break;
                     default:
                         break;
                 }
@@ -518,11 +522,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 switch (lineStyle)
                 {
                     case "solid":
+                        int color = LastSelectedShape.LineColor;
+                        if(color == _whiteColorInt)
+                            return LL.GetTrans("tangram.oomanipulation.linestyle.white");
                         return LL.GetTrans("tangram.oomanipulation.linestyle.solid");
                     case "dashed_line":
                         return LL.GetTrans("tangram.oomanipulation.linestyle.dashed");
                     case "dotted_line":
-                        return LL.GetTrans("tangram.oomanipulation.linestyle.dotted");
+                        return LL.GetTrans("tangram.oomanipulation.linestyle.dotted");    
                 }
             }
             return "";
@@ -577,6 +584,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             if (LastSelectedShape != null)
             {
                 LastSelectedShape.LineStyle = tud.mci.tangram.util.LineStyle.SOLID;
+                LastSelectedShape.LineColor = _blackColorInt;
             }
         }
 
@@ -586,6 +594,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 LastSelectedShape.LineStyle = tud.mci.tangram.util.LineStyle.DASH;
                 LastSelectedShape.SetLineDash(tud.mci.tangram.util.DashStyle.ROUND, 0, 0, 1, 1000, 500);
+                LastSelectedShape.LineColor = _blackColorInt;
             }
         }
 
@@ -596,6 +605,16 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 LastSelectedShape.LineStyle = tud.mci.tangram.util.LineStyle.DASH;
                 int linewidth = LastSelectedShape.LineWidth;
                 LastSelectedShape.SetLineDash(tud.mci.tangram.util.DashStyle.ROUND, 1, linewidth, 0, 0, 500);
+                LastSelectedShape.LineColor = _blackColorInt;
+            }
+        }
+
+        private void whiteLineStyle()
+        {
+            if (LastSelectedShape != null)
+            {
+                LastSelectedShape.LineStyle = tud.mci.tangram.util.LineStyle.SOLID;
+                LastSelectedShape.LineColor = _whiteColorInt;
             }
         }
 
@@ -1174,9 +1193,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     detail += LL.GetTrans("tangram.oomanipulation.manipulation.line");
                     if (IsShapeSelected && LastSelectedShape != null)
                     {
+                        string lineStyle = getCurrentLineStyle();
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.manipulation.line.status"
                             , ((float)((float)LastSelectedShape.LineWidth / 100)).ToString("0.#")
-                            , getCurrentLineStyle());
+                            , lineStyle);
                     }
                     break;
                 default:

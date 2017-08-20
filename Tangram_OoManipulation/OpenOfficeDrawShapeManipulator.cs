@@ -31,7 +31,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         private int fillStyleNum = -1; //save selected style name num
 
         private int lineStyleNum = 0; //save selected style name iterator
-        private string[] linestyleNames = new string[] { "solid", "dashed_line", "dotted_line" };
+        private string[] linestyleNames = new string[] { "solid", "dashed_line", "dotted_line", "white_line" };
+
+        static int _whiteColorInt = tud.mci.tangram.util.OoUtils.ConvertToColorInt(System.Drawing.Color.White);
+        static int _blackColorInt = tud.mci.tangram.util.OoUtils.ConvertToColorInt(System.Drawing.Color.Black);
 
         /// <summary>
         /// translation to use for localization
