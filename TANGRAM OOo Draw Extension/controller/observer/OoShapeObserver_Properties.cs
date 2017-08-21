@@ -462,6 +462,7 @@ namespace tud.mci.tangram.controller.observer
         String _cachedText = String.Empty;
         DateTime _lastTextGetting = DateTime.Now;
         static readonly TimeSpan _textGettingSpan = new TimeSpan(0, 0, 2);
+        volatile bool _textgetting = false;
         /// <summary>
         /// if the Shape is XTextRange (containing some text)
         /// returns the string that is included in this text range.
@@ -474,16 +475,24 @@ namespace tud.mci.tangram.controller.observer
         {
             get
             {
-                if (DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
+                if (_textgetting || DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
 
-                XTextRange xTextRange = Shape as XTextRange;
-                TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
+                _textgetting = true;
+                try
                 {
-                    if (xTextRange != null) _cachedText = xTextRange.getString();
-                }, "GetShapeText");
+                    XTextRange xTextRange = Shape as XTextRange;
+                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
+                    {
+                        if (xTextRange != null) _cachedText = xTextRange.getString();
+                    }, "GetShapeText");
 
-                _lastTextGetting = DateTime.Now;
-                return _cachedText;
+                    _lastTextGetting = DateTime.Now;
+                    return _cachedText;
+                }
+                finally
+                {
+                    _textgetting = false;
+                }
             }
             set
             {

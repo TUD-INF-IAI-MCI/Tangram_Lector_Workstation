@@ -208,28 +208,33 @@ namespace tud.mci.tangram.util
         /// <param name="selection">The selection. Use <c>null</c> to reset the selection.</param>
         internal static void ActionWithChangeAndResetSelection(Action act, XSelectionSupplier selectProv, Object selection = null)
         {
-
             try
             {
                 TimeLimitExecutor.ExecuteWithTimeLimit(400, () =>
                 {
-                    var oldSel = GetSelection(selectProv);
-                    //Thread.Sleep(10);
-                    var succ = SetSelection(selectProv, selection);
-                    Thread.Sleep(10);
-                    if (succ && act != null)
+                    try
                     {
-                        act.Invoke();
-                        if (Thread.CurrentThread.IsAlive)
-                            Thread.Sleep(100);
+                        var oldSel = GetSelection(selectProv);
+                        Thread.Sleep(10);
+                        var succ = SetSelection(selectProv, selection);
+                        Thread.Sleep(10);
+                        if (succ && act != null)
+                        {
+                            act.Invoke();
+                            if (Thread.CurrentThread.IsAlive)
+                                Thread.Sleep(100);
+                        }
+                        Thread.Sleep(10);
+                        SetSelection(selectProv, oldSel);
                     }
-                    //Thread.Sleep(10);
-                    SetSelection(selectProv, oldSel);
+                    catch (Exception ex){
+                        Logger.Instance.Log(LogPriority.ALWAYS, "OoDispatchHelper", "[FATAL ERROR] Can't call dispatch command with selection - Thread interrupted:", ex);
+                    }
                 }, "Delete Object");
             }
             catch (ThreadInterruptedException ex)
             {
-                Logger.Instance.Log(LogPriority.ALWAYS, "OoDispatchHelper", "[FATAL ERROR] Can't call dispatch command with selection - THread interrupted:", ex);
+                Logger.Instance.Log(LogPriority.ALWAYS, "OoDispatchHelper", "[FATAL ERROR] Can't call dispatch command with selection - Thread interrupted:", ex);
             }
             catch (Exception ex)
             {
