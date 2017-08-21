@@ -108,8 +108,8 @@ namespace tud.mci.tangram.Accessibility
             bool success = false;
             if (DrawPageSupplier != null && DrawPageSupplier is XModifiable && !IsReadonly)
             {
-                //TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
-                //{
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(2000, () =>
+                {
                     try
                     {
                         if (((XStorable)DrawPageSupplier).hasLocation())
@@ -122,7 +122,7 @@ namespace tud.mci.tangram.Accessibility
                     {
                         Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
                     }
-                // }, "Store file");
+                }, "Store file");
             }
             return success;
         }
@@ -149,8 +149,8 @@ namespace tud.mci.tangram.Accessibility
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                     if (Directory.Exists(dir) && !String.IsNullOrWhiteSpace(Path.GetFileName(path)))
                     {
-                        // TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
-                        //{
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(2000, () =>
+                        {
                             try
                             {
                                 var overwrite = new PropertyValue();
@@ -174,7 +174,7 @@ namespace tud.mci.tangram.Accessibility
                             {
                                 Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
                             }
-                        // }, "Store file");
+                        }, "Store file");
                     }
                 }
             }
@@ -202,8 +202,8 @@ namespace tud.mci.tangram.Accessibility
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                     if (Directory.Exists(dir) && !String.IsNullOrWhiteSpace(Path.GetFileName(path)))
                     {
-                        // TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
-                        //{
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(2000, () =>
+                        {
                             try
                             {
                                 var overwrite = new PropertyValue();
@@ -227,7 +227,7 @@ namespace tud.mci.tangram.Accessibility
                             {
                                 Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
                             }
-                       // }, "Store file");
+                       }, "Store file");
                     }
                 }
             }
