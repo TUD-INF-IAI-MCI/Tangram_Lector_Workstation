@@ -63,14 +63,15 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 e.Cancel = handleLEFT();
                                 break;
                             case "crc":
-                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
 
                                 if (_group != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "start grouping");
                                     grouping();
                                 }
                                 else
                                 {
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
                                     RotateThroughModes();
                                 }
                                 e.Cancel = true;
@@ -327,6 +328,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (_group != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "quit grouping");
+
                 var b = _group.Bounds;
                 _group.Position = b.Location;
 
@@ -363,6 +366,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             if (doc != null && draw != null && draw.DrawPageSupplier != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[DRAWING]\t[CREATE]\t" + "build group shape");
                 var grpShape = OoDrawUtils.CreateGroupShape_anonymous(draw.DrawPageSupplier);
                 OoUtils.SetStringProperty(grpShape, "Name", LL.GetTrans("tangram.oomanipulation.shape.group"));
                 if (page != null && page.DrawPage_anonymouse != null)
@@ -385,6 +389,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public void ChooseNextElement()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "next element");
             if (LastSelectedShapePolygonPoints != null
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
@@ -426,6 +431,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         public void ChoosePreviousElement()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "previous element");
             if (LastSelectedShapePolygonPoints != null
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
@@ -467,6 +473,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         public void ChooseFirstChildOfElement()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "first child");
             if (LastSelectedShape == null)
             {
                 //try to get the first shape of the current page
@@ -504,6 +511,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         public void ChooseParentOfElement()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "parent");
             if (LastSelectedShapePolygonPoints != null)
             {
                 LastSelectedShapePolygonPoints = null;
@@ -558,8 +566,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 OoShapeObserver shape = OoConnection.GetCurrentDrawSelection() as OoShapeObserver;
                 if (shape != null && shape.IsValid())
                 {
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "synchronize with GUI focus");
                     LastSelectedShape = shape;
-                    //AudioRenderer.Instance.PlaySoundImmediately("Braille-Fokus auf " + LastSelectedShape.Name + " gesetzt.");
                     AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.set_braille_focus", LastSelectedShape.Name));
                     return;
                 }
@@ -576,6 +584,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public void SelectPolygonPoint()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "select poly point");
+
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
                 LastSelectedShapePolygonPoints = LastSelectedShape.GetPolygonPointsObserver();
@@ -600,6 +610,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// because it's the same as the first point..</param>
         public void SelectNextPolygonPoint(bool ignoreLastDuplicate = true)
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "next poly point");
+
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
                 LastSelectedShapePolygonPoints = LastSelectedShape.GetPolygonPointsObserver();
@@ -635,6 +647,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public void SelectPreviousPolygonPoint(bool ignoreLastDuplicate = true)
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "previous poly point");
+
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
                 var pObs = LastSelectedShape.GetPolygonPointsObserver();
@@ -673,6 +687,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         public void SelectLastPolygonPoint()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "last poly point");
+
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
                 var pObs = LastSelectedShape.GetPolygonPointsObserver();
@@ -705,6 +721,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         public void SelectFirstPolygonPoint()
         {
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "first poly point");
+
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
             {
                 var pObs = LastSelectedShape.GetPolygonPointsObserver();

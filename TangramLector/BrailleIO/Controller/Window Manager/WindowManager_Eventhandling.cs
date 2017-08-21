@@ -82,6 +82,8 @@ namespace tud.mci.tangram.TangramLector
                         switch (e.ReleasedGenericKeys[0])
                         {
                             case "l": // abort speech output
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "stop audio");
+
                                 AbortAudio();
                                 e.Cancel = true;
                                 return;
@@ -97,6 +99,7 @@ namespace tud.mci.tangram.TangramLector
                             // calibrate BrailleDis //
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "hbr" }).ToList().Count == 3)
                             {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "recalibrate devices");
                                 if (io != null)
                                 {
                                     this.ScreenObserver.Stop();
@@ -117,6 +120,7 @@ namespace tud.mci.tangram.TangramLector
                         // follow GUI focus mode //
                         if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k4", "k7" }).ToList().Count == 4)
                         {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "start follow GUI focus mode");
                             bool communicateSelection = false;
                             if (this.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
                             {
@@ -214,6 +218,7 @@ namespace tud.mci.tangram.TangramLector
                         {
                             #region panning operations
                             case "nsll":// links blättern
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning left");
                                 if (vs != null && center != null)
                                     if (moveHorizontal(vs.Name, center.Name, center.ContentBox.Width))
                                     {
@@ -223,6 +228,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsl":// links verschieben
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning left");
                                 if (vs != null && center != null)
                                     if (moveHorizontal(vs.Name, center.Name, 5))
                                     {
@@ -232,6 +238,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsr":// rechts verschieben
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning right");
                                 if (vs != null && center != null)
                                     if (moveHorizontal(vs.Name, center.Name, -5))
                                     {
@@ -241,6 +248,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsrr":// rechts blättern
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning right");
                                 if (vs != null && center != null)
                                     if (moveHorizontal(vs.Name, center.Name, -center.ContentBox.Width))
                                     {
@@ -250,6 +258,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsuu":// hoch blättern
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
                                     {
@@ -259,6 +268,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsu":// hoch verschieben
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning up");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, 5))
                                     {
@@ -268,6 +278,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsd":// runter verschieben
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning down");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, -5))
                                     {
@@ -277,6 +288,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsdd":// runter blättern
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning down");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, -center.ContentBox.Height))
                                     {
@@ -286,18 +298,22 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "clu":// Sprung nach oben
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to top");
                                 jumpToTopBorder(center);
                                 e.Cancel = true;
                                 return;
                             case "cll":// Sprung nach links
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to left");
                                 jumpToLeftBorder(center);
                                 e.Cancel = true;
                                 return;
                             case "clr":// Sprung nach rechts
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to right");
                                 jumpToRightBorder(center);
                                 e.Cancel = true;
                                 return;
                             case "cld":// Sprung nach unten
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to bottom");
                                 jumpToBottomBorder(center);
                                 e.Cancel = true;
                                 return;
@@ -308,6 +324,7 @@ namespace tud.mci.tangram.TangramLector
                             case "rslu": // kleiner Zoom in
                                 if (vs != null && center != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom in");
                                     if (zoomWithFactor(vs.Name, center.Name, 1.5))
                                     {
                                         audioRenderer.PlaySoundImmediately(
@@ -322,6 +339,7 @@ namespace tud.mci.tangram.TangramLector
                             case "rsld": // kleiner Zoom out
                                 if (vs != null && center != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom out");
                                     if (zoomWithFactor(vs.Name, center.Name, 1 / 1.5))
                                     {
                                         audioRenderer.PlaySoundImmediately(
@@ -336,6 +354,7 @@ namespace tud.mci.tangram.TangramLector
                             case "rsru": // großer Zoom in
                                 if (vs != null && center != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom in");
                                     if (zoomWithFactor(vs.Name, center.Name, 3))
                                     {
                                         audioRenderer.PlaySoundImmediately(
@@ -350,6 +369,7 @@ namespace tud.mci.tangram.TangramLector
                             case "rsrd": // großer Zoom out
                                 if (vs != null && center != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom out");
                                     if (zoomWithFactor(vs.Name, center.Name, (double)1 / 3))
                                     {
                                         audioRenderer.PlaySoundImmediately(
@@ -368,6 +388,7 @@ namespace tud.mci.tangram.TangramLector
                             case "cru": // scroll detail region up
                                 if (detail != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning up");
                                     if (scrollViewRange(detail, 5))
                                     {
                                         e.Cancel = true;
@@ -388,6 +409,7 @@ namespace tud.mci.tangram.TangramLector
                             case "crd": // scroll detail region down
                                 if (detail != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning down");
                                     if (scrollViewRange(detail, -5))
                                     {
                                         e.Cancel = true;
@@ -409,6 +431,7 @@ namespace tud.mci.tangram.TangramLector
                         #region panning operations
                         if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsdd", "nsd" }).ToList().Count == 2)
                         {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning down");
                             if (vs != null && center != null)
                                 if (moveVertical(vs.Name, center.Name, -center.ContentBox.Height))
                                 {
@@ -418,6 +441,7 @@ namespace tud.mci.tangram.TangramLector
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsuu", "nsu" }).ToList().Count == 2)
                         {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
                             if (vs != null && center != null)
                                 if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
                                 {
@@ -427,6 +451,7 @@ namespace tud.mci.tangram.TangramLector
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsll", "nsl" }).ToList().Count == 2)
                         {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning left");
                             if (vs != null && center != null)
                                 if (moveHorizontal(vs.Name, center.Name, center.ContentBox.Width))
                                 {
@@ -436,6 +461,7 @@ namespace tud.mci.tangram.TangramLector
                         }
                         else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsrr", "nsr" }).ToList().Count == 2)
                         {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning right");
                             if (vs != null && center != null)
                                 if (moveHorizontal(vs.Name, center.Name, -center.ContentBox.Width))
                                 {
@@ -496,6 +522,7 @@ namespace tud.mci.tangram.TangramLector
 
                                     if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to print zoom");
                                         if (ZoomTo(vs.Name, VR_CENTER_NAME, GetPrintZoomLevel()))
                                         {
                                             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.to_print"));
@@ -507,6 +534,7 @@ namespace tud.mci.tangram.TangramLector
                                     return;
 
                                 case "k2": // Minimap
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "toggle minimap");
                                     toggleMinimap();
                                     BrailleIOScreen nvs = GetVisibleScreen();
                                     if (nvs != null && nvs.Name.Equals(BS_MINIMAP_NAME))
@@ -525,6 +553,7 @@ namespace tud.mci.tangram.TangramLector
                                 case "k3": // Breite/Höhe einpassen
                                     if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to fit");
                                         if (ZoomTo(vs.Name, VR_CENTER_NAME, -1))
                                         {
                                             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.fit_height"));
@@ -538,6 +567,7 @@ namespace tud.mci.tangram.TangramLector
                                 case "k7": // 1-zu-1 Zoom
                                     if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to 1:1");
                                         if (ZoomTo(vs.Name, VR_CENTER_NAME, 1))
                                         {
                                             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.1-1"));
@@ -551,6 +581,7 @@ namespace tud.mci.tangram.TangramLector
                                 case "lr": // Invertieren
                                     if (vs != null)
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "invert view");
                                         invertImage(vs.Name, VR_CENTER_NAME);
                                         BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
                                         if (vr != null && !vr.InvertImage)
@@ -570,6 +601,7 @@ namespace tud.mci.tangram.TangramLector
                                 case "rl": // Schwellwert minus
                                     if (vs != null)
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "decrease threshold");
                                         if (updateContrast(vs.Name, VR_CENTER_NAME, -THRESHOLD_STEP))
                                         {
                                             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_down"));
@@ -587,6 +619,7 @@ namespace tud.mci.tangram.TangramLector
                                 case "r": // Schwellwert plus
                                     if (vs != null)
                                     {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "increase threshold");
                                         if (updateContrast(vs.Name, VR_CENTER_NAME, THRESHOLD_STEP))
                                         {
                                             audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_up"));
@@ -616,6 +649,7 @@ namespace tud.mci.tangram.TangramLector
                             {
                                 if (vs != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "reset threshold");
                                     setContrast(vs.Name, VR_CENTER_NAME, STANDARD_CONTRAST_THRESHOLD);
                                     audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_reset"));
                                     Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] reset threshold");
@@ -634,8 +668,9 @@ namespace tud.mci.tangram.TangramLector
                             {
                                 if (vs != null && vs.GetViewRange(VR_TOP_NAME) != null)
                                 {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle header region");
                                     if (vs.GetViewRange(VR_TOP_NAME).IsVisible())
-                                    {
+                                    {                                        
                                         if (changeViewVisibility(vs.Name, VR_TOP_NAME, false))
                                         {
                                             changeViewVisibility(vs.Name, VR_STATUS_NAME, false);
@@ -685,6 +720,7 @@ namespace tud.mci.tangram.TangramLector
                             // Detailbereich ein/aus
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k4", "k5", "k8" }).ToList().Count == 4)
                             {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle detail region");
                                 if (vs != null && vs.GetViewRange(VR_DETAIL_NAME) != null)
                                 {
                                     if (vs.GetViewRange(VR_DETAIL_NAME).IsVisible())
@@ -738,6 +774,7 @@ namespace tud.mci.tangram.TangramLector
                             // Vollbildmodus
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "k4", "k6", "k8" }).ToList().Count == 5)
                             {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle full screen");
                                 toggleFullscreen();
                                 BrailleIOScreen nvs = GetVisibleScreen();
                                 if (nvs != null && nvs.Name.Equals(BS_FULLSCREEN_NAME))
@@ -763,6 +800,7 @@ namespace tud.mci.tangram.TangramLector
                             // Zoomstufe abfragen
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "k5", "k6", "k7", "k8" }).ToList().Count == 6)
                             {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "request current zoom level");
                                 if (vs != null)
                                 {
                                     BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
@@ -815,6 +853,9 @@ namespace tud.mci.tangram.TangramLector
             {
                 if (e.Gesture != null && e.Gesture.Name.Equals("tap"))
                 {
+
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[GESTURE]\t" + "tap");
+
                     BrailleIOScreen vs = GetVisibleScreen();
                     if (vs != null)
                     {

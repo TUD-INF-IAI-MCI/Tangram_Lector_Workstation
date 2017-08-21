@@ -26,7 +26,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <param name="shapeRecentlyCreated">Set true if function is called because of shape creation.</param>
         public void RotateThroughModes(bool shapeRecentlyCreated = false)
         {
-            if (!IsShapeSelected /*LastSelectedShape == null*/)
+            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "Mode switch");
+
+            if (!IsShapeSelected)
             {
                 return;
             }
@@ -133,19 +135,24 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     //moveShapeVertical(-getStep());
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move up");
                     moveShapeVertical(-getStep());
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale height up");
                     scaleHeight(getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "rotate left");
                     rotateLeft(getSmallDegree());
                     break;
                 case ModificationMode.Fill:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose previous fill style ");
                     changeFillStyle(-1);
                     return true;
                 // FIXME: getDetailregionFeedback is not correct --> detail region content is set in changeFillStyle function
                 case ModificationMode.Line:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "increase line with.");
                     changeLineWidth(50);
                     break;
                 default:
@@ -166,18 +173,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     //moveShapeVertical(getStep());
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move down");
                     moveShapeVertical(getStep());
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale height down");
                     scaleHeight(-getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "rotate right");
                     rotateLeft(-getSmallDegree());
                     break;
                 case ModificationMode.Fill:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose next fill style");
                     changeFillStyle(1);
                     return true; // getDetailregionFeedback is not correct --> detail region content is set in changeFillStyle function
                 case ModificationMode.Line:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "decrease line width");
                     changeLineWidth(-50);
                     break;
                 default:
@@ -198,18 +210,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     //moveShapeHorizontal(-getStep());
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move left");
                     moveShapeHorizontal(-getStep());
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale width down");
                     scaleWidth(-getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "rotate large left");
                     rotateLeft(getLargeDegree());
                     break;
                 case ModificationMode.Fill:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose previous fill style");
                     changeFillStyle(-1);
                     return true; // getDetailregionFeedback is not correct --> detail region content is set in changeFillStyle function
                 case ModificationMode.Line:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose previous line style");
                     changeLineStyle(-1);
                     break;
                 default:
@@ -230,18 +247,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     //moveShapeHorizontal(getStep());
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move right");
                     moveShapeHorizontal(getStep());
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale width up");
                     scaleWidth(getSizeSteps());
                     break;
                 case ModificationMode.Rotate:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "rotate large right");
                     rotateRight(getLargeDegree());
                     break;
                 case ModificationMode.Fill:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose next fill style");
                     changeFillStyle(1);
                     return true; // getDetailregionFeedback is not correct --> detail region content is set in changeFillStyle function
                 case ModificationMode.Line:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "choose next line style");
                     changeLineStyle(1);
                     break;
                 default:
@@ -260,10 +282,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 case ModificationMode.Unknown:
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move up - right");
                     int step = getStep();
                     moveShape(step, -step);
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale width and height up");
+                    int sizeStep = getSizeSteps();
+                    scale(sizeStep, sizeStep);
                     break;
                 case ModificationMode.Rotate:
                     break;
@@ -283,6 +309,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 case ModificationMode.Unknown:
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move up - left");
                     int step = getStep();
                     moveShape(-step, -step);
                     break;
@@ -306,6 +333,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 case ModificationMode.Unknown:
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move down - right");
                     int step = getStep();
                     moveShape(step, step);
                     break;
@@ -329,10 +357,14 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 case ModificationMode.Unknown:
                     return false;
                 case ModificationMode.Move:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "move down - left");
                     int step = getStep();
                     moveShape(-step, step);
                     break;
                 case ModificationMode.Scale:
+                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "scale width and height down");
+                    int sizeStep = getSizeSteps();
+                    scale(-sizeStep, -sizeStep);
                     break;
                 case ModificationMode.Rotate:
                     break;
@@ -426,15 +458,18 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     bitmapName = PatterDic.Values.ElementAt(fillStyleNum);
                     if (bitmapName == "no_pattern")
                     {
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "Change fill style to NONE");
                         LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.NONE;
                     }
                     else if (bitmapName == "white_pattern")
                     {
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "Change fill style to WHITE");
                         LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.SOLID;
                         LastSelectedShape.FillColor = _whiteColorInt;
                     }
                     else
                     {
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "Change fill style to " + bitmapName);
                         LastSelectedShape.FillStyle = tud.mci.tangram.util.FillStyle.BITMAP;
                         LastSelectedShape.SetBackgroundBitmap(PatterDic[pattern], tud.mci.tangram.util.BitmapMode.REPEAT, bitmapName);
                     }
@@ -455,6 +490,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
             else
             {
+                Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] " + "fill style change not possible because some values are Null or empty");
                 System.Diagnostics.Debug.WriteLine("changeFillStyle cannot changed some value are null or empty");
             }
         }
@@ -493,18 +529,22 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 switch (lineStyleName)
                 {
                     case "solid":
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "change line style to solid black");
                         solidStyle();
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.solid"));
                         break;
                     case "dashed_line":
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "change line style to dashed line");
                         dashedStyle();
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.dashed"));
                         break;
                     case "dotted_line":
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "change line style to dotted line");
                         dottedStyle();
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.dotted"));
                         break;
                     case "white_line":
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "change line style to solid white");
                         whiteLineStyle();
                         AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.linestyle.white"));
                         break;
@@ -566,6 +606,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
 
                 float lineWidth = (float)LastSelectedShape.LineWidth;
+
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "change line width to " + lineWidth);
+
                 string message = LL.GetTrans("tangram.oomanipulation.mm", ((float)(lineWidth / 100)).ToString());
                 if (error)
                 {
@@ -892,6 +935,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             var _shape = LastSelectedShape;
             if (_shape != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "delete shape " + _shape);
+
                 String n = String.Empty;
                 String t = n;
 
@@ -936,6 +981,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             if (LastSelectedShapePolygonPoints != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "delete poly point");
+
                 success = LastSelectedShapePolygonPoints.IsBezier() ? deleteBezierPoint() : deletePolygonPoint();
 
                 if (success) playEdit();
@@ -1050,6 +1097,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (IsShapeSelected && LastSelectedShape != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "bring element to front");
+
                 int currZIndex = LastSelectedShape.ZOrder;
                 LastSelectedShape.ZOrder = currZIndex + 1;
                 return LastSelectedShape.ZOrder > currZIndex;
@@ -1066,6 +1115,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (IsShapeSelected && LastSelectedShape != null)
             {
+                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "sent element back");
+
                 int currZIndex = LastSelectedShape.ZOrder;
                 LastSelectedShape.ZOrder = currZIndex - 1;
                 return LastSelectedShape.ZOrder < currZIndex;
