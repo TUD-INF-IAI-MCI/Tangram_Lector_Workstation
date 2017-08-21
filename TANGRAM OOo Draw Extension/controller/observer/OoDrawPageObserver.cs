@@ -128,9 +128,9 @@ namespace tud.mci.tangram.controller.observer
 
         ~OoDrawPageObserver()
         {
-            refreshPagePropertiesTimer.Stop();
             try
             {
+                if(refreshPagePropertiesTimer != null) refreshPagePropertiesTimer.Stop();
                 if (DrawPage != null)
                 {
                     XPropertySet pageProperties = (XPropertySet)DrawPage;
@@ -373,7 +373,7 @@ namespace tud.mci.tangram.controller.observer
                                     active = true;
                                 }
                                 _requestAmount = 0;
-                            } 
+                            }
                         }
                     }
                     else
