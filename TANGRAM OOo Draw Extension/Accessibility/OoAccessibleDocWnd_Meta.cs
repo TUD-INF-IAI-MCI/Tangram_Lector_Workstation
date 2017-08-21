@@ -6,6 +6,10 @@ using tud.mci.tangram.models.Interfaces;
 using unoidl.com.sun.star.document;
 using unoidl.com.sun.star.beans;
 using tud.mci.tangram.models;
+using unoidl.com.sun.star.util;
+using unoidl.com.sun.star.frame;
+using tud.mci.tangram.util;
+using System.IO;
 
 namespace tud.mci.tangram.Accessibility
 {
@@ -23,8 +27,216 @@ namespace tud.mci.tangram.Accessibility
 
         #endregion
 
+        #region File Access
+
+        /// <summary>
+        /// Gets the store location of the document if it is already stored.
+        /// </summary>
+        /// <value>
+        /// The store location; otherwise <c>null</c>.
+        /// </value>
+        public String StoreLocation
+        {
+            get
+            {
+
+                if (this.DrawPageSupplier != null && DrawPageSupplier is XStorable)
+                {
+                    if (((XStorable)DrawPageSupplier).hasLocation())
+                    {
+                        return ((XStorable)DrawPageSupplier).getLocation();
+                    }
+                }
+                return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is read only.        /// 
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the data store is read only or opened read only; <c>false</c> otherwise.
+        /// </value>
+        /// <remarks>It is not possible to call store() successfully when the data store is read-only.</remarks>
+        public bool IsReadonly
+        {
+            get
+            {
+                if (this.DrawPageSupplier != null && DrawPageSupplier is XStorable)
+                {
+                    return ((XStorable)DrawPageSupplier).isReadonly();
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this document was modified since the last saving.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this document is modified; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsModified
+        {
+            get
+            {
+                if (DrawPageSupplier != null && DrawPageSupplier is XModifiable)
+                {
+                    return ((XModifiable)DrawPageSupplier).isModified();
+                }
+                return false;
+            }
+            set
+            {
+                if (DrawPageSupplier != null && DrawPageSupplier is XModifiable)
+                {
+                    ((XModifiable)DrawPageSupplier).setModified(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves this instance.
+        /// 
+        /// Stores the data to the URL from which it was loaded. 
+        /// Only objects which know their locations can be stored.
+        /// </summary>
+        /// <returns><c>true if the save call was sent without errors.</c></returns>
+        /// <remarks>a <c>true</c> as return value does not mean, that the file was saved successfully.</remarks>
+        public bool Save()
+        {
+            bool success = false;
+            if (DrawPageSupplier != null && DrawPageSupplier is XModifiable && !IsReadonly)
+            {
+                //TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
+                //{
+                    try
+                    {
+                        if (((XStorable)DrawPageSupplier).hasLocation())
+                        {
+                            ((XStorable)DrawPageSupplier).store();
+                            success = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
+                    }
+                // }, "Store file");
+            }
+            return success;
+        }
+
+
+        /// <summary>
+        /// Saves this instance to the given file path and name.
+        /// 
+        /// stores the object's persistent data to a URL and makes this 
+        /// URL the new location of the object. This is the normal 
+        /// behavior for UI's "save-as" feature.
+        /// </summary>
+        /// <returns><c>true if the save call was sent without errors.</c></returns>
+        /// <remarks>a <c>true</c> as return value does not mean, that the file was saved successfully.</remarks>
+        public bool SaveAs(String path, string fileType = "draw8")
+        {
+            bool success = false;
+            if (DrawPageSupplier != null && DrawPageSupplier is XModifiable
+                && !IsReadonly && !String.IsNullOrWhiteSpace(path))
+            {
+                var dir = Path.GetDirectoryName(path);
+                if (!String.IsNullOrWhiteSpace(dir))
+                {
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    if (Directory.Exists(dir) && !String.IsNullOrWhiteSpace(Path.GetFileName(path)))
+                    {
+                        // TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
+                        //{
+                            try
+                            {
+                                var overwrite = new PropertyValue();
+                                overwrite.Name = "Overwrite";
+                                overwrite.Value = Any.Get(true);
+
+                                var filter = new PropertyValue();
+                                filter.Name = "FilterName";
+                                filter.Value = Any.Get(fileType);
+
+                                PropertyValue[] arguments = new PropertyValue[2]{
+                                    overwrite,
+                                    filter
+                                };
+
+                                path = path.Replace("\\", "/");
+                                ((XStorable)DrawPageSupplier).storeAsURL(@"file:///" + path, arguments);
+                                success = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
+                            }
+                        // }, "Store file");
+                    }
+                }
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Saves this instance to the given file path and name.
+        /// 
+        /// Behavior for UI's export feature. This method accepts all kinds of export filters, 
+        /// not only combined import/export filters because it implements an exporting capability, 
+        /// not a persistence capability.
+        /// </summary>
+        /// <returns><c>true if the save call was sent without errors.</c></returns>
+        /// <remarks>a <c>true</c> as return value does not mean, that the file was saved successfully.</remarks>
+        public bool SaveTo(String path, string fileType = "draw8")
+        {
+            bool success = false;
+            if (DrawPageSupplier != null && DrawPageSupplier is XModifiable
+                && !IsReadonly && !String.IsNullOrWhiteSpace(path))
+            {
+                var dir = Path.GetDirectoryName(path);
+                if (!String.IsNullOrWhiteSpace(dir))
+                {
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    if (Directory.Exists(dir) && !String.IsNullOrWhiteSpace(Path.GetFileName(path)))
+                    {
+                        // TimeLimitExecutor.WaitForExecuteWithTimeLimit(1000, () =>
+                        //{
+                            try
+                            {
+                                var overwrite = new PropertyValue();
+                                overwrite.Name = "Overwrite";
+                                overwrite.Value = Any.Get(true);
+
+                                var filter = new PropertyValue();
+                                filter.Name = "FilterName";
+                                filter.Value = Any.Get(fileType);
+
+                                PropertyValue[] arguments = new PropertyValue[2]{
+                                    overwrite,
+                                    filter
+                                };
+
+                                path = path.Replace("\\", "/");
+                                ((XStorable)DrawPageSupplier).storeToURL(@"file:///" +path, arguments);
+                                success = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
+                            }
+                       // }, "Store file");
+                    }
+                }
+            }
+            return success;
+        }
+
+        #endregion
     }
-    
+
     /// <summary>
     /// A structure to get access to meta data information
     /// </summary>
@@ -75,7 +287,7 @@ namespace tud.mci.tangram.Accessibility
         /// The date and time when the document was created. 
         /// </summary>
         /// <value>The date of creation .</value>
-        public DateTime CreationDate
+        public System.DateTime CreationDate
         {
             get
             {
@@ -85,12 +297,12 @@ namespace tud.mci.tangram.Accessibility
                     {
 
                         var date = xDocumentProperties.CreationDate;
-                        return new DateTime(date.Year, date.Month, date.Day, date.Hours, date.Minutes, date.Seconds, (int)date.NanoSeconds / 1000000);
+                        return new System.DateTime(date.Year, date.Month, date.Day, date.Hours, date.Minutes, date.Seconds, (int)date.NanoSeconds / 1000000);
 
                     }
                     catch (Exception) { }
                 }
-                return new DateTime();
+                return new System.DateTime();
             }
             set
             {
