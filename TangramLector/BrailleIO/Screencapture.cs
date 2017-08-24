@@ -210,6 +210,8 @@ namespace tud.mci.tangram.TangramLector
             if (refreshTimer != null)
             {
                 refreshTimer.Interval = interval;
+                refreshTimer.Stop();
+                refreshTimer.Start();
                 return true;
             }
             return false;
