@@ -104,19 +104,19 @@ namespace tud.mci.tangram.TangramLector.OO
                                     e.Cancel = true;
                                     break;
                                 case "cru":
-                                    if(shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
+                                    if(shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) PauseFocusHighlightModes();
                                     break;
                                 case "crr":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) PauseFocusHighlightModes();
                                     break;
                                 case "crd":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) PauseFocusHighlightModes();
                                     break;
                                 case "crl":
-                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) StopFocusHighlightModes();
+                                    if (shapeManipulatorFunctionProxy.Mode != ModificationMode.Unknown) PauseFocusHighlightModes();
                                     break;
                                 case "crc":
-                                    StopFocusHighlightModes();
+                                    // PauseFocusHighlightModes();
                                     break;
                                 default:
                                     break;
@@ -133,7 +133,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
                             if (e.ReleasedGenericKeys.Contains("crc"))
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                             }
 
                             #endregion
@@ -142,19 +142,19 @@ namespace tud.mci.tangram.TangramLector.OO
 
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crr" }).ToList().Count == 2)
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "cru", "crl" }).ToList().Count == 2)
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "crd", "crr" }).ToList().Count == 2)
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                             }
                             else if (e.ReleasedGenericKeys.Intersect(new List<String>(2) { "crd", "crl" }).ToList().Count == 2)
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                             }
 
                             #endregion
@@ -195,7 +195,7 @@ namespace tud.mci.tangram.TangramLector.OO
                             // open title/description dialog
                             if (e.ReleasedGenericKeys.Intersect(new List<String> { "k2", "k3", "k4", "k5" }).ToList().Count == 4)
                             {
-                                StopFocusHighlightModes();
+                                PauseFocusHighlightModes();
                                 openTitleDescDialog();
                                 Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] open title and description dialog");
                                 e.Cancel = true;

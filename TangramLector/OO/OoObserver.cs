@@ -155,7 +155,7 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
-                StopFocusHighlightModes();
+                PauseFocusHighlightModes();
                 try
                 {
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
@@ -189,7 +189,7 @@ namespace tud.mci.tangram.TangramLector.OO
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
                 //OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
-                StopFocusHighlightModes();
+                PauseFocusHighlightModes();
 
                 // memorize original properties to be restored after blinking
                 if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected/*LastSelectedShape != null*/)

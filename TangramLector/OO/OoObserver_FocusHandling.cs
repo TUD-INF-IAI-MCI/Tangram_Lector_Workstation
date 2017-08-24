@@ -110,25 +110,14 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         internal void StopFocusHighlightModes()
         {
-
             if (shapeManipulatorFunctionProxy != null)
             {
-                //var point = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
-
-                //if (point != null && !point.IsEmpty)
-                //{
-                //    // make a timeout ;-) and start again
-                //    pausePointHighligting();
-                //}
-
                 blinkStateOn = false;
                 brailleDomFocusHighlightMode = false;
                 BrailleDomFocusRenderer.DoRenderBoundingBox = false;
                 DrawSelectFocusHighlightMode = false;
                 DrawSelectFocusRenderer.DoRenderBoundingBox = false;
                 blinkFocusActive = false;
-
-                PauseFocusHighlightModes();
             }
         }
 
@@ -184,6 +173,8 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (shapeManipulatorFunctionProxy != null)
             {
+                StopFocusHighlightModes();
+
                 if (BrailleDomFocusRenderer != null)
                 {
                     if (BrailleDomFocusRenderer.DoRenderBoundingBox == false)
