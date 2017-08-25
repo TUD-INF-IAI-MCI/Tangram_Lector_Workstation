@@ -14,9 +14,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     /// </summary>
     public partial class OpenOfficeDrawShapeManipulator
     {
-
-
-        #region last Shape
+        #region Last Selected Shape
 
         private OoShapeObserver _shape = null;
         private readonly Object _shapeLock = new Object();
@@ -42,7 +40,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         _shapeSelected = false;
 
                     }
-                    if (fire) fire_SelectedShapeChanged();
+                    if (fire) fire_SelectedShapeChanged(ChangeReson.Object);
                     return _shape;
                 }
             }
@@ -67,7 +65,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         _points = null;
                         fire_PolygonPointSelected_Reset();
                         Mode = ModificationMode.Unknown;
-                    fire_SelectedShapeChanged();
+                    fire_SelectedShapeChanged(ChangeReson.Object);
                     }
                 }
             }
@@ -220,7 +218,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             _selectedShapeRelScreenBounds = null;
             _pngData = null;
             _isSelcetedShapeVisible = false;
-            if (IsShapeSelected && !silent) fire_SelectedShapeChanged();
+            if (IsShapeSelected && !silent) fire_SelectedShapeChanged(ChangeReson.Property);
         }
 
         bool _shapeSelected = false;

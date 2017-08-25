@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using BrailleIO;
+﻿using BrailleIO;
+using System;
 using System.Drawing;
-using tud.mci.tangram.TangramLector.SpecializedFunctionProxies;
-using tud.mci.tangram.controller.observer;
-using tud.mci.tangram.audio;
 using System.Threading;
+using tud.mci.tangram.audio;
+using tud.mci.tangram.controller.observer;
 
 namespace tud.mci.tangram.TangramLector.OO
 {
@@ -44,7 +40,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <summary>
         /// Sets the shape or point to blink and starts the blinking frame around the last selected shape.
         /// </summary>
-        internal void InitBrailleDomFocusHighlightMode(OoShapeObserver _shape = null)
+        internal void InitBrailleDomFocusHighlightMode(OoShapeObserver _shape = null, bool visualize = true)
         {
             if (shapeManipulatorFunctionProxy != null)
             {
@@ -55,21 +51,24 @@ namespace tud.mci.tangram.TangramLector.OO
                     StartFocusHighlightModes();
 
                     // inform sighted user 
-                    byte[] pngData;
-                    if (_shape.GetShapeAsPng(out pngData) > 0)
+                    if (visualize)
                     {
-                        DesktopOverlayWindow.Instance.initBlinking(
-                            ref pngData,                    // png as byte array
-                            _shape.GetAbsoluteScreenBoundsByDom(),   // bounding box
-                            0.75,                           // opacity (0.0 (transparent) .. 1.0)
-                            1500,                           // The total blinking time in ms until blinking stops and the window is hidden again
-                                                            //The pattern of milliseconds to be on|off|..., 
-                                                            // e.g. [250,150,250,150,250,150,800,1000] for three short flashes (on for 250ms) 
-                                                            // with gaps (of 150ms) and one long on time (800ms) followed by a pause(1s).
-                                                            // The pattern is repeated until the total blinking time is over.
-                                                            // If less than 2 values are given, the default of [500, 500] is used!
-                            new int[8] { 250, 150, 250, 150, 250, 150, 500, 150 }
-                            );
+                        byte[] pngData;
+                        if (_shape.GetShapeAsPng(out pngData) > 0)
+                        {
+                            DesktopOverlayWindow.Instance.initBlinking(
+                                ref pngData,                    // png as byte array
+                                _shape.GetAbsoluteScreenBoundsByDom(),   // bounding box
+                                0.75,                           // opacity (0.0 (transparent) .. 1.0)
+                                1500,                           // The total blinking time in ms until blinking stops and the window is hidden again
+                                //The pattern of milliseconds to be on|off|..., 
+                                // e.g. [250,150,250,150,250,150,800,1000] for three short flashes (on for 250ms) 
+                                // with gaps (of 150ms) and one long on time (800ms) followed by a pause(1s).
+                                // The pattern is repeated until the total blinking time is over.
+                                // If less than 2 values are given, the default of [500, 500] is used!
+                                new int[8] { 250, 150, 250, 150, 250, 150, 500, 150 }
+                                );
+                        } 
                     }
                 }
             }
@@ -84,19 +83,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
             if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
             {
-                // OoShapeObserver _shape = shapeManipulatorFunctionProxy.LastSelectedShape;
-
-
-                //if (_shape != null)
                 {
-
-
-                    //_shape.BoundRectChangeEventHandlers += OnShapeBoundRectChange;
-                    //_shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers += OnViewOrZoomChange;
-
-
-
-                    //BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
                     BrailleDomFocusRenderer.CurrentBoundingBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds;
 
                     brailleDomFocusHighlightMode = true;
@@ -150,9 +137,6 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             get
             {
-                //if (fhpt == null) {
-                //    fhpt = new Timer(focusHighlightPausTimerCB, null, 0, Timeout.Infinite);
-                //}
                 return fhpt;
             }
             set
@@ -206,12 +190,12 @@ namespace tud.mci.tangram.TangramLector.OO
         void blinkTimer_Tick(object sender, EventArgs e)
         {
             // bring is some delay to not interfere with the rendering itself
-            System.Threading.Thread.Sleep(20);
+            System.Threading.Thread.Sleep(10);
 
             // change blink state
             blinkStateOn = !blinkStateOn;
 
-            if (brailleDomFocusHighlightMode && shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected/*.LastSelectedShape != null*/)
+            if (brailleDomFocusHighlightMode && shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
             {
                 // blink rendered bounding box
                 BrailleDomFocusRenderer.DoRenderBoundingBox = blinkStateOn;
@@ -234,7 +218,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <returns></returns>
         private bool jumpToDomFocus()
         {
-            if (shapeManipulatorFunctionProxy == null || !shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
+            if (shapeManipulatorFunctionProxy == null || !shapeManipulatorFunctionProxy.IsShapeSelected)
             {
                 playError();
                 return false;
@@ -255,9 +239,9 @@ namespace tud.mci.tangram.TangramLector.OO
                         // jump to element position
                         // try to get the accessible view to the element - it's the
                         // only way to get pixel positions on screen
-                        if (shapeManipulatorFunctionProxy.IsSelectedShapeVisible /*.LastSelectedShape.IsVisible()*/)
+                        if (shapeManipulatorFunctionProxy.IsSelectedShapeVisible)
                         {
-                            var bounds = shapeManipulatorFunctionProxy.SelectedShapeRelScreenBounds; //.LastSelectedShape.GetRelativeScreenBoundsByDom();
+                            var bounds = shapeManipulatorFunctionProxy.SelectedShapeRelScreenBounds;
                             if (!bounds.IsEmpty && bounds.Height > 0 && bounds.Width > 0)
                             {
                                 wm.MoveToObject(bounds);
@@ -291,13 +275,13 @@ namespace tud.mci.tangram.TangramLector.OO
 
         void ShapeBoundRectChangeHandler()
         {
-            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape != null*/)
+            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
             {
 
-                byte[] pngData = shapeManipulatorFunctionProxy.ShapePng; //.LastSelectedShape.GetShapeAsPng(out pngData);
+                byte[] pngData = shapeManipulatorFunctionProxy.ShapePng;
                 if (pngData != null && pngData.Length > 0)
                 {
-                    Rectangle newBBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds; // .LastSelectedShape.GetAbsoluteScreenBoundsByDom();
+                    Rectangle newBBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds;
                     DesktopOverlayWindow.Instance.refreshBounds(newBBox, ref pngData);
                     BrailleDomFocusRenderer.CurrentBoundingBox = newBBox;
 

@@ -130,16 +130,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         static int boundingBoxPadding = 2;
 
-        virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] result)
+        virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] target)
         {
             if (view is IZoomable && view is IPannable)
             {
                 double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
                 int xOffset = ((IPannable)view).GetXOffset();
                 int yOffset = ((IPannable)view).GetYOffset();
-
-                //if (WindowManager.Instance != null && WindowManager.Instance.ScreenObserver != null && WindowManager.Instance.ScreenObserver.ScreenPos is System.Drawing.Rectangle)
-                //{
 
                 Rectangle pageBounds = getPageBounds();
 
@@ -174,16 +171,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
                     if (out_bBox.Width > 0 && out_bBox.Height > 0)
                     {
-                        int result_x_max = result.GetLength(1) - 1;
-                        int result_y_max = result.GetLength(0) - 1;
+                        int result_x_max = target.GetLength(1) - 1;
+                        int result_y_max = target.GetLength(0) - 1;
                         // rectangle coords within matrix:
                         int x1 = Math.Max(0, out_bBox.X);                                // from bBox x (or 0)
                         int x2 = Math.Min(out_bBox.X + out_bBox.Width, result_x_max);    // to bBox x + w (or x rightmost of matrix)
                         int y1 = Math.Max(0, out_bBox.Y);                                // from bBox y (or 0)
                         int y2 = Math.Min(out_bBox.Y + out_bBox.Height, result_y_max);   // to bBox y + h (or y bottom of matrix)
-
-                        // TODO capture on blink one frame, one blink out frame of matrix withing bounding box to let the content blink after capturing without having to modify dom any more
-                        // TODO: check if shape is in visible view port --> if shape is not visible, do not blink
 
                         if (y2 >= y1 && x2 >= x1)
                         {
@@ -200,11 +194,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                 *   ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ 
                             */
 
-                            bool[,] target = result;
-
                             // draw horizontal lines
-                            //Parallel.For(x1, x2,
-                            //    (x) =>
                             for (int x = x1; x < x2; x++)
                             {
                                 if (x >= 0 && x <= result_x_max)
@@ -226,11 +216,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                     }
                                 }
                             }
-                            //);
 
                             // draw vertical lines
-                            //Parallel.For(y1, y2 + 1,
-                            //    (y) =>
                             for (int y = y1; y < y2 + 1; y++)
                             {
                                 if (y >= 0 && y <= result_y_max)
@@ -251,15 +238,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                                     }
                                 }
                             }
-                            //);
-
-                            result = target;
                         }
                     }
                 }
-                //}
             }
-            return result;
+            return target;
         }
 
         virtual protected bool[,] paintPolygonPointMarker(IViewBoxModel view, bool[,] result)

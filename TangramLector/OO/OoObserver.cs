@@ -67,7 +67,7 @@ namespace tud.mci.tangram.TangramLector.OO
             OoDrawAccessibilityObserver.Instance.DrawWindowActivated += new EventHandler<OoWindowEventArgs>(OoDrawAccessibilityObserver_DrawWindowActivated);
             OoDrawAccessibilityObserver.Instance.DrawSelectionChanged += new EventHandler<OoAccessibilitySelectionChangedEventArgs>(Instance_DrawSelectionChanged);
 
-            shapeManipulatorFunctionProxy.SelectedShapeChanged += new EventHandler<EventArgs>(shapeManipulatorFunctionProxy_SelectedShapeChanged);
+            shapeManipulatorFunctionProxy.SelectedShapeChanged += new EventHandler<SelectedShapeChangedEventArgs>(shapeManipulatorFunctionProxy_SelectedShapeChanged);
             shapeManipulatorFunctionProxy.PolygonPointSelected += shapeManipulatorFunctionProxy_PolygonPointSelected;
 
             // make the observes aware of the currently open DRAW docs (still opened before started this instance)
@@ -151,14 +151,14 @@ namespace tud.mci.tangram.TangramLector.OO
             }
         }
 
-        void shapeManipulatorFunctionProxy_SelectedShapeChanged(object sender, EventArgs e)
+        void shapeManipulatorFunctionProxy_SelectedShapeChanged(object sender, SelectedShapeChangedEventArgs e)
         {
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
                 StopFocusHighlightModes();
                 try
                 {
-                    ((OpenOfficeDrawShapeManipulator)sender).SayLastSelectedShape(false);
+                   if(e.Reason != ChangeReson.Property) ((OpenOfficeDrawShapeManipulator)sender).SayLastSelectedShape(false);
 
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
                     {
@@ -166,7 +166,7 @@ namespace tud.mci.tangram.TangramLector.OO
                         if (_shape != null)
                         {
                             // memorize original properties to be restored after blinking
-                            InitBrailleDomFocusHighlightMode();
+                            InitBrailleDomFocusHighlightMode(null, e.Reason != ChangeReson.Property);
 
                             WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
                             if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) jumpToDomFocus();
@@ -175,7 +175,6 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
                     else
                     {
-
                         WindowManager.Instance.SetDetailRegionContent(LL.GetTrans("tangram.lector.oo_observer.selected_no"));
                     }
                 }

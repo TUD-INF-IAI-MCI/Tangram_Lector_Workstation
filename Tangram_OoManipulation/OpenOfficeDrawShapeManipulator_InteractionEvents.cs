@@ -525,7 +525,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (LastSelectedShape != null)
                 {
                     AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
-                    LastSelectedShape = LastSelectedShape;
+                    // LastSelectedShape = LastSelectedShape;
+                    fire_SelectedShapeChanged(ChangeReson.Object);
                     //sayLastSelectedShape();
                     return;
                 }

@@ -225,19 +225,19 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>
         /// Occurs when the selected shape changed.
         /// </summary>
-        public event EventHandler<EventArgs> SelectedShapeChanged;
+        public event EventHandler<SelectedShapeChangedEventArgs> SelectedShapeChanged;
         /// <summary>
         /// Occurs when a polygon point was selected.
         /// </summary>
         public event EventHandler<PolygonPointSelectedEventArgs> PolygonPointSelected;
 
 
-        private void fire_SelectedShapeChanged()
+        private void fire_SelectedShapeChanged(ChangeReson reason = ChangeReson.Unknown)
         {
             // sayLastSelectedShape(false);
             if (SelectedShapeChanged != null)
             {
-                Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, null); } catch { } }));
+                Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, new SelectedShapeChangedEventArgs(reason)); } catch { } }));
                 Thread.Sleep(10);
                 t.Start();
             }
@@ -268,8 +268,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         }
 
         #endregion
-
-
+        
         #region Configuration
 
         /// <summary>
@@ -454,7 +453,41 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         }
     }
 
+    /// <summary>
+    /// Event arguments for changed event args giving some more information about what happend.
+    /// </summary>
+    /// <seealso cref="System.EventArgs" />
+    public class SelectedShapeChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The reason for throwing this even
+        /// </summary>
+        public readonly ChangeReson Reason = ChangeReson.Unknown;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SelectedShapeChangedEventArgs"/> class.
+        /// </summary>
+        /// <param name="_reason">The reason for throwing this event.</param>
+        public SelectedShapeChangedEventArgs(ChangeReson _reason = ChangeReson.Unknown)
+        {
+            Reason = _reason;
+        }
+    }
+
     #endregion
 
+#region Enums
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [Flags]
+    public enum ChangeReson : int
+    {
+        Unknown = 0,
+        Object = 1,
+        Property = 2
+    }
+
+#endregion
 
 }
