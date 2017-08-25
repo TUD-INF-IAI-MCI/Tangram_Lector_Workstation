@@ -1186,7 +1186,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.line.status.audio"
-                            , ((float)((float)LastSelectedShape.LineWidth / 100)).ToString("0.#")
+                            , ((float)((float)LastSelectedShape.LineWidth / 100)).ToString("F1")
                             , getCurrentLineStyle());
                     }
                     break;

@@ -330,6 +330,7 @@ namespace tud.mci.tangram.controller.observer
             }
             set
             {
+                value = Math.Max(0, value);
                 int count = this.ChildCount;
                 if (count > 0) // group object
                 {
