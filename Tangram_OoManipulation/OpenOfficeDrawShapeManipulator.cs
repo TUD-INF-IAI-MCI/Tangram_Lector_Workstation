@@ -16,7 +16,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
     /// </summary>
     public partial class OpenOfficeDrawShapeManipulator : AbstractSpecializedFunctionProxyBase, ILocalizable //, IInitializable, IInitialObjectReceiver
     {
-
         #region Members
 
         #region private Member
@@ -42,233 +41,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// </summary>
         private static LL LL = new LL(Properties.Resources.Language);
 
+        bool _run = true;
         #endregion
 
         #region public Member
-
-        #region last Shape
-
-        private OoShapeObserver _shape = null;
-        private readonly Object _shapeLock = new Object();
-        private readonly Object _shapePointLock = new Object();
-        /// <summary>
-        /// Gets or sets the last selected shape, which is should be modified.
-        /// </summary>
-        /// <value>The shape to modify.</value>
-        public OoShapeObserver LastSelectedShape
-        {
-            get
-            {
-                bool fire = false;
-                lock (_shapeLock)
-                {
-                    if (_shape != null && !_shape.IsValid(false))
-                    {
-                        unregisterFromEvents(_shape);
-                        _shape = null;
-                        _points = null;
-                        Mode = ModificationMode.Unknown;
-                        fire = true;
-                        _shapeSelected = false;
-
-                    }
-                    if (fire) fire_SelectedShapeChanged();
-                    return _shape;
-                }
-            }
-            set
-            {
-                lock (_shapeLock)
-                {
-                    if (value == null)
-                    {
-                        _shapeSelected = false;
-                        unregisterFromEvents(_shape);
-                    }
-                    else
-                    {
-                        _shapeSelected = true;
-                    }
-                    _shape = value;
-                    registerForEvents(_shape);
-                    _points = null;
-                    fire_PolygonPointSelected_Reset();
-                    Mode = ModificationMode.Unknown;
-                }
-                fire_SelectedShapeChanged();
-            }
-        }
-
-        #region selected shape propertie handlers
-
-        private void unregisterFromEvents(OoShapeObserver shape)
-        {
-            resetSelectedShapeProperties();
-            if (shape != null)
-            {
-                try
-                {
-                    shape.BoundRectChangeEventHandlers -= onViewOrZoomChange;
-                    shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers -= onViewOrZoomChange;
-                }
-                catch { }
-            }
-        }
-
-        private void registerForEvents(OoShapeObserver shape)
-        {
-            if (shape != null)
-            {
-                try
-                {
-                    unregisterFromEvents(shape);
-                    shape.BoundRectChangeEventHandlers += onViewOrZoomChange;
-                    shape.Page.PagesObserver.ViewOrZoomChangeEventHandlers += onViewOrZoomChange;
-                }
-                catch { }
-            }
-        }
-
-
-        Object _selectedShapeAbsScreenBounds = null;
-        /// <summary>
-        /// Gets the absolute screen bounds of the selected shape in pixels.
-        /// </summary>
-        public Rectangle SelectedShapeAbsScreenBounds
-        {
-            get
-            {
-                if (IsShapeSelected)
-                {
-                    if ((_selectedShapeAbsScreenBounds == null || !(_selectedShapeAbsScreenBounds is Rectangle) || ((Rectangle)_selectedShapeAbsScreenBounds).IsEmpty) && LastSelectedShape != null)
-                    {
-                        _selectedShapeAbsScreenBounds = LastSelectedShape.GetAbsoluteScreenBoundsByDom();
-                    }
-                    return (Rectangle)_selectedShapeAbsScreenBounds;
-                }
-                return new Rectangle();
-            }
-            private set { _selectedShapeAbsScreenBounds = value; }
-        }
-
-        Object _selectedShapeRelScreenBounds = null;
-        /// <summary>
-        /// Gets the relative screen bounds of the selected shape in pixels.
-        /// </summary>
-        public Rectangle SelectedShapeRelScreenBounds
-        {
-            get
-            {
-                if (IsShapeSelected)
-                {
-                    if ((_selectedShapeRelScreenBounds == null || !(_selectedShapeRelScreenBounds is Rectangle) || ((Rectangle)_selectedShapeRelScreenBounds).IsEmpty) && LastSelectedShape != null)
-                    {
-                        _selectedShapeRelScreenBounds = LastSelectedShape.GetRelativeScreenBoundsByDom();
-                    }
-                    return (Rectangle)_selectedShapeRelScreenBounds;
-                }
-                return new Rectangle();
-            }
-            private set { _selectedShapeRelScreenBounds = value; }
-        }
-
-        byte[] _pngData = null;
-        /// <summary>
-        /// gets the slected shapes visual representation as png image
-        /// </summary>
-        public byte[] ShapePng
-        {
-            get
-            {
-                if (IsShapeSelected)
-                {
-                    if (_pngData == null && LastSelectedShape != null)
-                    {
-                        if (!(LastSelectedShape.GetShapeAsPng(out _pngData) > 0))
-                        {
-                            _pngData = null;
-                        }
-                        return _pngData;
-                    }
-                }
-                return null;
-            }
-            private set { _pngData = value; }
-        }
-
-        bool _isSelcetedShapeVisible = false;
-        /// <summary>
-        /// Check if the currently selected shape is visible or not.
-        /// </summary>
-        public bool IsSelectedShapeVisible
-        {
-            get
-            {
-                if (IsShapeSelected)
-                {
-                    if (!_isSelcetedShapeVisible && LastSelectedShape != null)
-                        _isSelcetedShapeVisible = LastSelectedShape.IsVisible();
-                    return _isSelcetedShapeVisible;
-                }
-                return false;
-            }
-        }
-
-        private void onViewOrZoomChange()
-        {
-            resetSelectedShapeProperties();
-        }
-
-        private void resetSelectedShapeProperties()
-        {
-            _selectedShapeAbsScreenBounds = null;
-            _selectedShapeRelScreenBounds = null;
-            _pngData = null;
-            _isSelcetedShapeVisible = false;
-        }
-
-        bool _shapeSelected = false;
-        /// <summary>
-        /// Checked if a shape is selected for manipulation.
-        /// </summary>
-        public bool IsShapeSelected { get { return _shapeSelected; } private set { _shapeSelected = value; } }
-
-        #endregion
-
-        OoPolygonPointsObserver _points = null;
-        /// <summary>
-        /// Gets the  polygon points of the last selected shape.
-        /// </summary>
-        /// <value>
-        /// The shape polygon point observer of the last selected shape if it is a freeform; otherwise <c>null</c>.
-        /// </value>
-        public OoPolygonPointsObserver LastSelectedShapePolygonPoints
-        {
-            get
-            {
-                lock (_shapePointLock)
-                {
-                    //if (_shape != null && (_points == null || _points.Shape != _shape || !_points.IsValid()))
-                    //{
-                    //    _points = _shape.GetPolygonPointsObserver();
-                    //}
-                    return _points;
-                }
-            }
-            set
-            {
-                lock (_shapePointLock)
-                {
-                    _points = value;
-                    if (_points != null)
-                    {
-                        Mode = ModificationMode.Move;
-                    }
-                }
-            }
-        }
-
-        #endregion
 
         private bool _active = false;
         /// <summary>
@@ -320,6 +96,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             OoConnection = drawConnection;
             initializePatters();
             loadConfiguration();
+        }
+
+        ~OpenOfficeDrawShapeManipulator()
+        {
+            _run = false;
         }
 
         #endregion
@@ -501,6 +282,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (config != null && config.Count > 0)
                 {
                     setMinimumShapeSizeFromConfig(config);
+                    setValidationIntervalFromConfig(config);
                 }
             }
             catch { }
@@ -528,6 +310,36 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         int shapesize = Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
                         MinimumShapeSize = shapesize;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #region ValidationInterval
+
+        /// <summary>
+        /// The sound volume configuration key to search for in the app.config file.
+        /// </summary>
+        internal const String SHAPE_VALIDATION_INTERVAL_CONFIG_KEY = "Tangram_ShapeValidationInterval";
+        /// <summary>
+        /// Sets the MinimumShapeSize if the corresponding key <see cref="SHAPE_VALIDATION_INTERVAL_CONFIG_KEY"/> 
+        /// was set in the app.config of the current running application.
+        /// </summary>
+        /// <param name="config">The loaded configuration app settings.</param>
+        internal void setValidationIntervalFromConfig(System.Collections.Specialized.NameValueCollection config)
+        {
+            try
+            {
+                if (config != null && config.Count > 0)
+                {
+                    var value = config[SHAPE_VALIDATION_INTERVAL_CONFIG_KEY];
+                    if (value != null)
+                    {
+                        int interval = Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
+                        ValidationInterval = interval;
                     }
                 }
             }

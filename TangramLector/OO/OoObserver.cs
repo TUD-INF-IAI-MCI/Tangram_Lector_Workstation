@@ -155,7 +155,7 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
-                PauseFocusHighlightModes();
+                StopFocusHighlightModes();
                 try
                 {
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)

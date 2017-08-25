@@ -397,7 +397,7 @@ namespace tud.mci.tangram.controller.observer
                 //case tud.mci.tangram.Accessibility.AccessibleEventId.CARET_CHANGED:
                 //    break;
                 case tud.mci.tangram.Accessibility.AccessibleEventId.CHILD:
-                    //handleAccessibleChildEvent(doc, aEvent.Source, aEvent.NewValue, aEvent.OldValue);
+                    handleAccessibleChildEvent(doc, aEvent.Source, aEvent.NewValue, aEvent.OldValue);
                     break;
                 //case tud.mci.tangram.Accessibility.AccessibleEventId.COLUMN_CHANGED:
                 //    break;
@@ -476,6 +476,37 @@ namespace tud.mci.tangram.controller.observer
                 default:
                     break;
             }
+        }
+
+        private void handleAccessibleChildEvent(OoAccessibleDocWnd doc, object p, uno.Any newValue, uno.Any oldValue)
+        {
+            Task t = new Task(() =>
+            {
+                util.Debug.GetAllInterfacesOfObject(p);
+                if (doc != null && !newValue.hasValue() && oldValue.hasValue())
+                {
+                    // shape was deleted!
+
+                    var oldShapeAcc = oldValue.Value;
+
+                    util.Debug.GetAllInterfacesOfObject(oldShapeAcc);
+
+
+                    if (p != null && p is XAccessibleComponent)
+                    {
+                        var shapeObs = doc.GetRegisteredShapeObserver(p as XAccessibleComponent);
+                        if (shapeObs != null && !shapeObs.IsValid(true))
+                        {
+                            shapeObs.Dispose();
+                        }
+                        else
+                        {
+                            doc.Update();
+                        }
+                    }
+                }
+            });
+            t.Start();
         }
 
         private void stateChanged(OoAccessibleDocWnd doc, AccessibleEventObject aEvent)

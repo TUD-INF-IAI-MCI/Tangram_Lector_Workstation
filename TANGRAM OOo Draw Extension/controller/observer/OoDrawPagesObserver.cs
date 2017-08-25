@@ -275,6 +275,16 @@ namespace tud.mci.tangram.controller.observer
         public void Update() { Update(PagesSupplier); }
         private void Update(XDrawPagesSupplier dps)
         {
+
+            var shapeList = new List<OoShapeObserver>(this.domshapes.Values);
+            if (shapeList != null && shapeList.Count > 0)
+            {
+                foreach (var shapeObs in shapeList)
+                {
+                    if (shapeObs != null) shapeObs.Update();
+                }
+            }
+
             List<XDrawPage> dpL = OoDrawUtils.DrawDocGetXDrawPageList(dps);
 
             Parallel.ForEach(dpL, (drawPage) =>

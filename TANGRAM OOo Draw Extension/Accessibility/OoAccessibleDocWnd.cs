@@ -216,8 +216,11 @@ namespace tud.mci.tangram.Accessibility
 
         /// <summary>
         /// NOT IMPLEMENTED YET
+        /// Only registered shapes are checked
         /// </summary>
-        public void Update() { }
+        public void Update() {
+            this.DrawPagesObs.Update();
+        }
 
         #endregion
 
