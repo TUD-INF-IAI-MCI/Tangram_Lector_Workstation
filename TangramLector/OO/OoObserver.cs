@@ -158,6 +158,8 @@ namespace tud.mci.tangram.TangramLector.OO
                 StopFocusHighlightModes();
                 try
                 {
+                    ((OpenOfficeDrawShapeManipulator)sender).SayLastSelectedShape(false);
+
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
                     {
                         OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
@@ -173,6 +175,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
                     else
                     {
+
                         WindowManager.Instance.SetDetailRegionContent(LL.GetTrans("tangram.lector.oo_observer.selected_no"));
                     }
                 }
@@ -684,7 +687,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <returns>
         /// the currently selected Shape observer
         /// </returns>
-        public bool SetShapeForModification(OoShapeObserver shape, bool silent = false, bool immediately = true)
+        public bool SetShapeForModification(OoShapeObserver shape, bool silent = true, bool immediately = true)
         {
             if (shape != null)
             {
@@ -773,7 +776,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
         /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
         /// <returns>the currently selected Shape observer</returns>
-        public OoShapeObserver GetShapeForModification(OoShapeObserver shape, OoAccessibleDocWnd observed = null, bool silent = false, bool immediately = true)
+        public OoShapeObserver GetShapeForModification(OoShapeObserver shape, OoAccessibleDocWnd observed = null, bool silent = true, bool immediately = true)
         {
             return SetShapeForModification(shape, silent, immediately) ? shape : null;
         }
@@ -786,7 +789,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <param name="silent">if set to <c>true</c> no audio feedback about the selection is given.</param>
         /// <param name="immediatly">if set to <c>true</c> the audio feedback is immediately given and all other audio feedback is aborted.</param>
         /// <returns>The corresponding observer to the shape in the given Draw document.</returns>
-        public OoShapeObserver GetShapeForModification(OoAccComponent c, OoAccessibleDocWnd observed, bool silent = false, bool immediately = true)
+        public OoShapeObserver GetShapeForModification(OoAccComponent c, OoAccessibleDocWnd observed, bool silent = true, bool immediately = true)
         {
             if (observed != null && c.Role != AccessibleRole.INVALID)
             {

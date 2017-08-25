@@ -382,7 +382,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>        
         /// Initializes the patters for filling forms.
         /// Patters are contained in OpenOffice extension TangramToolbar.oxt.
-        /// Path C:\Users\voegler\AppData\Roaming\OpenOffice\4\user\uno_packages\cache\uno_packages\xxx\TangramToolbar.oxt\bitmap-pattern
+        /// Path C:\[...]\AppData\Roaming\OpenOffice\4\user\uno_packages\cache\uno_packages\xxx\TangramToolbar.oxt\bitmap-pattern
         private void initializePatters()
         {
             string[] arrPatterns;
@@ -437,7 +437,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void changeFillStyle(int p)
         {
-            if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.IsValid() && PatterDic.Count > 0)
+            if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.IsValid() && PatterDic.Count > 0 && !PolygonHelper.IsLine(LastSelectedShape.DomShape))
             {
                 try
                 {
@@ -492,6 +492,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] " + "fill style change not possible because some values are Null or empty");
                 System.Diagnostics.Debug.WriteLine("changeFillStyle cannot changed some value are null or empty");
+                playError();
             }
         }
 

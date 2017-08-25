@@ -405,6 +405,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     OoShapeObserver first = AccDomWalker.GetFirstShapeOfDocument(activeDoc);
                     if (first != null)
                     {
+                        AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                         LastSelectedShape = first;
                         //sayLastSelectedShape();
                     }
@@ -419,6 +420,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 OoShapeObserver next = AccDomWalker.MoveToNext(LastSelectedShape);
                 if (next != null)
                 {
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = next as OoShapeObserver;
                     //sayLastSelectedShape();
                 }
@@ -447,6 +449,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     OoShapeObserver last = AccDomWalker.GetLastShapeOfDocument(activeDoc);
                     if (last != null)
                     {
+                        AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                         LastSelectedShape = last;
                         //sayLastSelectedShape();
                     }
@@ -461,6 +464,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 OoShapeObserver prev = AccDomWalker.MoveToPrevious(LastSelectedShape);
                 if (prev != null)
                 {
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = prev as OoShapeObserver;
                     //sayLastSelectedShape();
                 }
@@ -483,6 +487,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     OoShapeObserver first = AccDomWalker.GetFirstShapeOfDocument(activeDoc);
                     if (first != null)
                     {
+                        AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                         LastSelectedShape = first;
                         //sayLastSelectedShape();
                     }
@@ -498,6 +503,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 OoShapeObserver child = AccDomWalker.MoveToChild(LastSelectedShape, ref index);
                 if (child != null)
                 {
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = child as OoShapeObserver;
                     //sayLastSelectedShape();
                 }
@@ -518,6 +524,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 fire_PolygonPointSelected_Reset();
                 if (LastSelectedShape != null)
                 {
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = LastSelectedShape;
                     //sayLastSelectedShape();
                     return;
@@ -532,6 +539,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     OoShapeObserver first = AccDomWalker.GetFirstShapeOfDocument(activeDoc);
                     if (first != null)
                     {
+                        AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                         LastSelectedShape = first;
                         //sayLastSelectedShape();
                     }
@@ -546,6 +554,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 OoShapeObserver parent = AccDomWalker.MoveToParent(LastSelectedShape);
                 if (parent != null)
                 {
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = parent as OoShapeObserver;
                     //sayLastSelectedShape();
                 }
@@ -567,6 +576,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (shape != null && shape.IsValid())
                 {
                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "synchronize with GUI focus");
+                    AudioRenderer.Instance.Abort(); // stop current audio to return the shape change
                     LastSelectedShape = shape;
                     AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.oomanipulation.set_braille_focus", LastSelectedShape.Name));
                     return;

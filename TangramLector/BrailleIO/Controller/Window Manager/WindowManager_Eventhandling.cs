@@ -26,7 +26,7 @@ namespace tud.mci.tangram.TangramLector
                 io.AdapterManager.ActiveAdapterChanged += AdapterManager_ActiveAdapterChanged;
                 io.AdapterManager.NewAdapterRegistered += AdapterManager_NewAdapterRegistered;
             }
-            
+
             // INTERACTION MANGER
             if (InteractionManager != null)
             {
@@ -135,22 +135,23 @@ namespace tud.mci.tangram.TangramLector
                                 if (ooc != null && ooc.Observer != null)
                                 {
                                     System.Drawing.Rectangle bb = new Rectangle();
-                                    if(OoDrawAccessibilityObserver.Instance != null){
+                                    if (OoDrawAccessibilityObserver.Instance != null)
+                                    {
                                         OoAccessibilitySelection selection = null;
                                         bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(ooc.Observer.GetActiveDocument(), out selection);
                                         if (success && selection != null)
                                         {
                                             bb = selection.SelectionBounds;
                                         }
-                                    }                                    
-                                    
+                                    }
+
                                     ooc.Observer.StartDrawSelectFocusHighlightingMode();
                                     if (bb != null && bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
                                     communicateSelection = true;
                                 }
                             }
-                            if (communicateSelection 
-                                && OoConnector.Instance != null 
+                            if (communicateSelection
+                                && OoConnector.Instance != null
                                 && OoConnector.Instance.Observer != null)
                             {
                                 OoConnector.Instance.Observer.CommunicateLastSelection(false);
@@ -258,7 +259,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsuu":// hoch blättern
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
                                     {
@@ -268,7 +269,7 @@ namespace tud.mci.tangram.TangramLector
                                 e.Cancel = true;
                                 return;
                             case "nsu":// hoch verschieben
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning up");
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning up");
                                 if (vs != null && center != null)
                                     if (moveVertical(vs.Name, center.Name, 5))
                                     {
@@ -327,9 +328,9 @@ namespace tud.mci.tangram.TangramLector
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom in");
                                     if (zoomWithFactor(vs.Name, center.Name, 1.5))
                                     {
+                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
                                         audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.in",
-                                            GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name)));
+                                            LL.GetTrans("tangram.lector.wm.zooming.in", zInProzent));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom in");
                                     }
                                     else audioRenderer.PlayWaveImmediately(StandardSounds.End);
@@ -342,9 +343,9 @@ namespace tud.mci.tangram.TangramLector
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom out");
                                     if (zoomWithFactor(vs.Name, center.Name, 1 / 1.5))
                                     {
+                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
                                         audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.out",
-                                            GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name)));
+                                            LL.GetTrans("tangram.lector.wm.zooming.out", zInProzent));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom out");
                                     }
                                     else audioRenderer.PlayWaveImmediately(StandardSounds.End);
@@ -357,9 +358,9 @@ namespace tud.mci.tangram.TangramLector
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom in");
                                     if (zoomWithFactor(vs.Name, center.Name, 3))
                                     {
+                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
                                         audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.in_big",
-                                            GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name)));
+                                            LL.GetTrans("tangram.lector.wm.zooming.in_big", zInProzent));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom in");
                                     }
                                     else audioRenderer.PlayWaveImmediately(StandardSounds.End);
@@ -372,9 +373,9 @@ namespace tud.mci.tangram.TangramLector
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom out");
                                     if (zoomWithFactor(vs.Name, center.Name, (double)1 / 3))
                                     {
+                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
                                         audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.out_big",
-                                            GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name)));
+                                            LL.GetTrans("tangram.lector.wm.zooming.out_big", zInProzent));
                                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom out");
                                     }
                                     else audioRenderer.PlayWaveImmediately(StandardSounds.End);
@@ -657,7 +658,7 @@ namespace tud.mci.tangram.TangramLector
                             }
                         }
 
-                        #endregion 
+                        #endregion
 
                         #region 3 keys
 
@@ -670,7 +671,7 @@ namespace tud.mci.tangram.TangramLector
                                 {
                                     Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle header region");
                                     if (vs.GetViewRange(VR_TOP_NAME).IsVisible())
-                                    {                                        
+                                    {
                                         if (changeViewVisibility(vs.Name, VR_TOP_NAME, false))
                                         {
                                             changeViewVisibility(vs.Name, VR_STATUS_NAME, false);
@@ -765,7 +766,7 @@ namespace tud.mci.tangram.TangramLector
                             }
                         }
 
-                        #endregion 
+                        #endregion
 
                         #region 5 keys
 
@@ -791,7 +792,7 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
-                        #endregion 
+                        #endregion
 
                         #region 6 keys
 
@@ -818,7 +819,7 @@ namespace tud.mci.tangram.TangramLector
                                 return;
                             }
                         }
-                        #endregion 
+                        #endregion
                     }
                 }
                 #endregion
@@ -849,7 +850,7 @@ namespace tud.mci.tangram.TangramLector
         private const String OO_DOC_WND_CLASS_NAME = "SALFRAME";
         protected override void im_GesturePerformed(object sender, GestureEventArgs e)
         {
-            if (e != null )
+            if (e != null)
             {
                 if (e.Gesture != null && e.Gesture.Name.Equals("tap"))
                 {

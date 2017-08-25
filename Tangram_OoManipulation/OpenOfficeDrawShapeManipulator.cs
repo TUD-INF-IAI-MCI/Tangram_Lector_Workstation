@@ -205,7 +205,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// Brings the last selected shape to the audio output.
         /// <param name="immediately">determine if the text should palyed immediately or not.</param>
         /// </summary>
-        private void sayLastSelectedShape(bool immediately = true)
+        public void SayLastSelectedShape(bool immediately = true)
         {
             if (LastSelectedShape != null)
             {
@@ -234,7 +234,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void fire_SelectedShapeChanged()
         {
-            sayLastSelectedShape();
+            // sayLastSelectedShape(false);
             if (SelectedShapeChanged != null)
             {
                 Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, null); } catch { } }));

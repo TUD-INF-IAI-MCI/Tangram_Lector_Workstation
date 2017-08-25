@@ -40,10 +40,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             get
             {
-                int trash; 
+                int trash;
                 if (CurrentPolyPoint != null)
                 {
-                    var PointDescriptor =  CurrentPolyPoint.Current(out trash);
+                    var PointDescriptor = CurrentPolyPoint.Current(out trash);
                     return CurrentPolyPoint.TransformPointCoordinatesIntoScreenCoordinates(PointDescriptor);
                 }
                 else
@@ -74,7 +74,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// Determine if this Hook should be active or not.
         /// </summary>
         public bool Active = false;
-                
+
         private bool _doRenderBoundingBox = false;
         /// <summary>
         /// Determine if this Hook should render the Bounding box or not.
@@ -98,7 +98,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         // Result is addressed in [y, x] notation.
         void IBailleIORendererHook.PostRenderHook(IViewBoxModel view, object content, ref bool[,] result, params object[] additionalParams)
         {
-            if (Active && _doRenderBoundingBox 
+            if (Active && _doRenderBoundingBox
                 && WindowManager.Instance != null && !WindowManager.Instance.IsInMinimapMode())
             {
                 doBlinkingBoundingBox(view, content, ref result, additionalParams);
@@ -128,6 +128,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
+        static int boundingBoxPadding = 2;
+
         virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] result)
         {
             if (view is IZoomable && view is IPannable)
@@ -147,10 +149,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
                     // converted to braille output coords, as shown in the original view (with zoom factor and panning position applied)
                     Rectangle out_bBox = new Rectangle(
-                        (int)Math.Round((relbBox.X * zoom) + xOffset - 1), // x
-                        (int)Math.Round((relbBox.Y * zoom) + yOffset - 1), // y
-                        (int)Math.Round((relbBox.Width * zoom) + 2),       // w
-                        (int)Math.Round((relbBox.Height * zoom) + 2));     // h
+                        (int)(Math.Round((relbBox.X * zoom) + xOffset - boundingBoxPadding)),     // x
+                        (int)(Math.Round((relbBox.Y * zoom) + yOffset - boundingBoxPadding)),     // y
+                        (int)(Math.Round((relbBox.Width * zoom) + 2 * boundingBoxPadding)),       // w
+                        (int)(Math.Round((relbBox.Height * zoom) + 2 * boundingBoxPadding)));     // h
 
                     // check for minimal height and width
                     if (out_bBox.Width < MIN_FRAME_SIZE)
@@ -203,53 +205,53 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                             // draw horizontal lines
                             //Parallel.For(x1, x2,
                             //    (x) =>
-                                for (int x = x1; x < x2; x++)
+                            for (int x = x1; x < x2; x++)
+                            {
+                                if (x >= 0 && x <= result_x_max)
                                 {
-                                    if (x >= 0 && x <= result_x_max)
+                                    if (y1 >= 0 && y1 <= result_y_max)
                                     {
-                                        if (y1 >= 0 && y1 <= result_y_max)
-                                        {
-                                            // top border
-                                            if (y1 > 0) target[y1 - 1, x] = false;   // outer (lowered pins)
-                                            if (y1 < result_y_max && x > x1 && x < x2) target[y1 + 1, x] = false;   // inner (lowered pins)
-                                            target[y1, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
+                                        // top border
+                                        if (y1 > 0) target[y1 - 1, x] = false;   // outer (lowered pins)
+                                        if (y1 < result_y_max && x > x1 && x < x2) target[y1 + 1, x] = false;   // inner (lowered pins)
+                                        target[y1, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
 
-                                        }
-                                        if (y2 >= 0 && y2 <= result_y_max)
-                                        {
-                                            // bottom border
-                                            if (y2 > 0 && x > x1 && x < x2) target[y2 - 1, x] = false;   // inner (lowered pins)
-                                            if (y2 < result_y_max) target[y2 + 1, x] = false;   // outer (lowered pins)
-                                            target[y2, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                        }
+                                    }
+                                    if (y2 >= 0 && y2 <= result_y_max)
+                                    {
+                                        // bottom border
+                                        if (y2 > 0 && x > x1 && x < x2) target[y2 - 1, x] = false;   // inner (lowered pins)
+                                        if (y2 < result_y_max) target[y2 + 1, x] = false;   // outer (lowered pins)
+                                        target[y2, x] = (!_dashed || (x - x1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
                                     }
                                 }
-                               //);
+                            }
+                            //);
 
                             // draw vertical lines
                             //Parallel.For(y1, y2 + 1,
                             //    (y) =>
-                                for (int y = y1; y < y2 +1; y++)
+                            for (int y = y1; y < y2 + 1; y++)
+                            {
+                                if (y >= 0 && y <= result_y_max)
                                 {
-                                    if (y >= 0 && y <= result_y_max)
+                                    if (x1 >= 0 && x1 <= result_x_max)
                                     {
-                                        if (x1 >= 0 && x1 <= result_x_max)
-                                        {
-                                            // left border 
-                                            if (x1 > 0) target[y, x1 - 1] = false;  // outer (lowered pins)
-                                            if (x1 < result_x_max && y > y1 && y < y2) target[y, x1 + 1] = false;  // inner (lowered pins)
-                                            target[y, x1] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                        }
-                                        if (x2 >= 0 && x2 <= result_x_max)
-                                        {
-                                            // right border 
-                                            if (x2 > 0 && y > y1 && y < y2) target[y, x2 - 1] = false;  // inner (lowered pins)
-                                            if (x2 < result_x_max) target[y, x2 + 1] = false;  // outer (lowered pins)
-                                            target[y, x2] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
-                                        }
+                                        // left border 
+                                        if (x1 > 0) target[y, x1 - 1] = false;  // outer (lowered pins)
+                                        if (x1 < result_x_max && y > y1 && y < y2) target[y, x1 + 1] = false;  // inner (lowered pins)
+                                        target[y, x1] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
+                                    }
+                                    if (x2 >= 0 && x2 <= result_x_max)
+                                    {
+                                        // right border 
+                                        if (x2 > 0 && y > y1 && y < y2) target[y, x2 - 1] = false;  // inner (lowered pins)
+                                        if (x2 < result_x_max) target[y, x2 + 1] = false;  // outer (lowered pins)
+                                        target[y, x2] = (!_dashed || (y - y1) % 3 != 2) ? true : false;        // raised pins, except every 3rd in dashed mode
                                     }
                                 }
-                                //);
+                            }
+                            //);
 
                             result = target;
                         }
@@ -390,8 +392,5 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             return pageBounds;
         }
-
-
-
     }
 }

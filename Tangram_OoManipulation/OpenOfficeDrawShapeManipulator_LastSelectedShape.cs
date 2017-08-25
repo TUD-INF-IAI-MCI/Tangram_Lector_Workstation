@@ -77,7 +77,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void unregisterFromEvents(OoShapeObserver shape)
         {
-            resetSelectedShapeProperties();
+            resetSelectedShapeProperties(true);
             if (shape != null && !shape.Disposed)
             {
                 try

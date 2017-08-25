@@ -80,11 +80,15 @@ namespace tud.mci.tangram.Accessibility
         {
             get
             {
-                if (DrawPageSupplier != null && DrawPageSupplier is XModifiable)
+                bool modified = false;
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(100, () =>
                 {
-                    return ((XModifiable)DrawPageSupplier).isModified();
-                }
-                return false;
+                    if (DrawPageSupplier != null && DrawPageSupplier is XModifiable)
+                    {
+                        modified = ((XModifiable)DrawPageSupplier).isModified();
+                    }
+                }, "Check for modification");
+                return modified;
             }
             set
             {
@@ -220,14 +224,14 @@ namespace tud.mci.tangram.Accessibility
                                 };
 
                                 path = path.Replace("\\", "/");
-                                ((XStorable)DrawPageSupplier).storeToURL(@"file:///" +path, arguments);
+                                ((XStorable)DrawPageSupplier).storeToURL(@"file:///" + path, arguments);
                                 success = true;
                             }
                             catch (Exception ex)
                             {
                                 Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't store file:", ex);
                             }
-                       }, "Store file");
+                        }, "Store file");
                     }
                 }
             }

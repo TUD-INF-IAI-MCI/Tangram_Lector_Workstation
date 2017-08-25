@@ -120,7 +120,8 @@ namespace tud.mci.tangram.controller.observer
                         }
                     }
                 }
-                SetProperty("FillStyle", (unoidl.com.sun.star.drawing.FillStyle)value);
+                if(!PolygonHelper.IsLine(Shape))
+                    SetProperty("FillStyle", (unoidl.com.sun.star.drawing.FillStyle)value);
             }
         }
 
@@ -476,29 +477,36 @@ namespace tud.mci.tangram.controller.observer
         {
             get
             {
-                if (_textgetting || DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
-
-                _textgetting = true;
-                try
+                if (Shape is XTextRange)
                 {
-                    XTextRange xTextRange = Shape as XTextRange;
-                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
+                    if (_textgetting || DateTime.Now - _lastTextGetting < _textGettingSpan) return _cachedText;
+
+                    _textgetting = true;
+                    try
                     {
-                        if (xTextRange != null) _cachedText = xTextRange.getString();
-                    }, "GetShapeText");
+                        XTextRange xTextRange = Shape as XTextRange;
+                        TimeLimitExecutor.WaitForExecuteWithTimeLimit(50, () =>
+                        {
+                            if (xTextRange != null) _cachedText = xTextRange.getString();
+                        }, "GetShapeText_" + this.GetHashCode());
 
-                    _lastTextGetting = DateTime.Now;
-                    return _cachedText;
+                        _lastTextGetting = DateTime.Now;
+                        return _cachedText;
+                    }
+                    finally
+                    {
+                        _textgetting = false;
+                    } 
                 }
-                finally
-                {
-                    _textgetting = false;
-                }
+                return _cachedText;
             }
             set
             {
-                XTextRange xTextRange = Shape as XTextRange;
-                if (xTextRange != null) xTextRange.setString(value);
+                if (Shape is XTextRange)
+                {
+                    XTextRange xTextRange = Shape as XTextRange;
+                    if (xTextRange != null) xTextRange.setString(value); 
+                }
             }
         }
 

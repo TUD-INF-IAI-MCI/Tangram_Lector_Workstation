@@ -1046,15 +1046,15 @@ namespace tud.mci.tangram.TangramLector
 
         #region temporary messages
 
-        private const int tempMessageTime = 12; // a value of 20 is around 10 seconds
+        private const int tempMessageTime = 20; // a value of 20 is around 10 seconds
         private List<string> detailRegionTempHistory = new List<string>();
         /// <summary>
         /// Get history of detail region temporary messages.
         /// </summary>
         /// <returns>list with all temp messages shown in detail region</returns>
         public List<string> GetDetailRegionTempMessageHistory() { return detailRegionTempHistory; }
-        private int messageTimerCount = 0;
-        private bool tempMessageShown = false;
+        private volatile int messageTimerCount = 0;
+        private volatile bool tempMessageShown = false;
 
         /// <summary>
         /// Show a message in detail region that will disappear after a given time (see tempMessageTime).
