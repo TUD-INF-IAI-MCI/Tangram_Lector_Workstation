@@ -171,6 +171,10 @@ namespace tud.mci.tangram.TangramLector.OO
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] new DOM focus " + _shape.Name + " " + _shape.Text);
                         }
                     }
+                    else
+                    {
+                        WindowManager.Instance.SetDetailRegionContent(LL.GetTrans("tangram.lector.oo_observer.selected_no"));
+                    }
                 }
                 catch (System.Exception ex)
                 {

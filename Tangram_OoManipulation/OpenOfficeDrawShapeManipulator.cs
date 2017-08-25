@@ -234,6 +234,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void fire_SelectedShapeChanged()
         {
+            sayLastSelectedShape();
             if (SelectedShapeChanged != null)
             {
                 Task t = new Task(new Action(() => { try { SelectedShapeChanged.Invoke(this, null); } catch { } }));

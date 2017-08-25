@@ -32,7 +32,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 bool fire = false;
                 lock (_shapeLock)
                 {
-                    if (_shape != null && !_shape.IsValid(false))
+                    if (_shape != null && !_shape.Disposed && !_shape.IsValid(false))
                     {
                         unregisterFromEvents(_shape);
                         _shape = null;
@@ -50,23 +50,26 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 lock (_shapeLock)
                 {
-                    if (value == null)
+                    if (value != _shape)
                     {
-                        _shapeSelected = false;
-                        unregisterFromEvents(_shape);
+                        if (value == null)
+                        {
+                            _shapeSelected = false;
+                            unregisterFromEvents(_shape);
+                        }
+                        else
+                        {
+                            _shapeSelected = true;
+                        }
+                        _shape = value;
+                        startValidationTimer();
+                        registerForEvents(_shape);
+                        _points = null;
+                        fire_PolygonPointSelected_Reset();
+                        Mode = ModificationMode.Unknown;
+                    fire_SelectedShapeChanged();
                     }
-                    else
-                    {
-                        _shapeSelected = true;
-                    }
-                    _shape = value;
-                    startValidationTimer();
-                    registerForEvents(_shape);
-                    _points = null;
-                    fire_PolygonPointSelected_Reset();
-                    Mode = ModificationMode.Unknown;
                 }
-                fire_SelectedShapeChanged();
             }
         }
 
@@ -288,7 +291,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (!_run || !IsShapeSelected ||
                 LastSelectedShape == null ||
-                !LastSelectedShape.IsValid())
+                !LastSelectedShape.IsValid(true))
             {
                 validationTimer.Dispose();
             }

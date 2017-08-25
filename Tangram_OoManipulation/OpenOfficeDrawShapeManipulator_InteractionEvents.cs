@@ -336,7 +336,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 play(LL.GetTrans("tangram.oomanipulation.group.end"));
 
                 LastSelectedShape = _group;
-                this.sayLastSelectedShape(false);
+                //this.sayLastSelectedShape(false);
                 _group = null;
             }
         }
@@ -406,7 +406,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (first != null)
                     {
                         LastSelectedShape = first;
-                        sayLastSelectedShape();
+                        //sayLastSelectedShape();
                     }
                     else
                     {
@@ -420,7 +420,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (next != null)
                 {
                     LastSelectedShape = next as OoShapeObserver;
-                    sayLastSelectedShape();
+                    //sayLastSelectedShape();
                 }
                 else
                 {
@@ -448,7 +448,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (last != null)
                     {
                         LastSelectedShape = last;
-                        sayLastSelectedShape();
+                        //sayLastSelectedShape();
                     }
                     else
                     {
@@ -462,7 +462,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (prev != null)
                 {
                     LastSelectedShape = prev as OoShapeObserver;
-                    sayLastSelectedShape();
+                    //sayLastSelectedShape();
                 }
                 else
                 {
@@ -484,7 +484,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (first != null)
                     {
                         LastSelectedShape = first;
-                        sayLastSelectedShape();
+                        //sayLastSelectedShape();
                     }
                     else
                     {
@@ -499,7 +499,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (child != null)
                 {
                     LastSelectedShape = child as OoShapeObserver;
-                    sayLastSelectedShape();
+                    //sayLastSelectedShape();
                 }
                 else
                 {
@@ -519,7 +519,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (LastSelectedShape != null)
                 {
                     LastSelectedShape = LastSelectedShape;
-                    sayLastSelectedShape();
+                    //sayLastSelectedShape();
                     return;
                 }
             }
@@ -533,7 +533,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (first != null)
                     {
                         LastSelectedShape = first;
-                        sayLastSelectedShape();
+                        //sayLastSelectedShape();
                     }
                     else
                     {
@@ -547,7 +547,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 if (parent != null)
                 {
                     LastSelectedShape = parent as OoShapeObserver;
-                    sayLastSelectedShape();
+                    //sayLastSelectedShape();
                 }
                 else
                 {
