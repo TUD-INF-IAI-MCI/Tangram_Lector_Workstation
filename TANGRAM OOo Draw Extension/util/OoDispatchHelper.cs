@@ -210,21 +210,21 @@ namespace tud.mci.tangram.util
         {
             try
             {
-                TimeLimitExecutor.ExecuteWithTimeLimit(800, () =>
+                TimeLimitExecutor.ExecuteWithTimeLimit(1000, () =>
                 {
                     try
                     {
                         var oldSel = GetSelection(selectProv);
-                        Thread.Sleep(50);
+                        Thread.Sleep(80);
                         var succ = SetSelection(selectProv, selection);
-                        Thread.Sleep(50);
+                        Thread.Sleep(80);
                         if (succ && act != null)
                         {
                             act.Invoke();
                             if (Thread.CurrentThread.IsAlive)
-                                Thread.Sleep(200);
+                                Thread.Sleep(250);
                         }
-                        Thread.Sleep(50);
+                        Thread.Sleep(100);
                         SetSelection(selectProv, oldSel);
                     }
                     catch (Exception ex){
