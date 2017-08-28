@@ -258,6 +258,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         Mode = ModificationMode.Move;
                     }
+                    else
+                    {
+                        // reset mode
+                        Mode = ModificationMode.Unknown;
+                    }
                 }
             }
         }

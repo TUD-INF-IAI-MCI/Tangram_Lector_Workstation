@@ -165,12 +165,17 @@ namespace tud.mci.tangram.TangramLector.OO
                         OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
                         if (_shape != null)
                         {
-                            if (e.Reason != ChangeReson.Property) BrailleDomFocusRenderer.CurrentPolyPoint = null;
+                            if (e.Reason != ChangeReson.Property) 
+                                BrailleDomFocusRenderer.CurrentPolyPoint = null;
+                            
                             InitBrailleDomFocusHighlightMode(null, e.Reason != ChangeReson.Property);
 
                             if (e.Reason != ChangeReson.Property && ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShapePolygonPoints == null) // in other cases the detailed infos for the  point is sent by the manipulator itself
                                 WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
-                            if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) jumpToDomFocus();
+                            
+                            if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) 
+                                jumpToDomFocus();
+                            
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] new DOM focus " + _shape.Name + " " + _shape.Text);
                         }
                     }

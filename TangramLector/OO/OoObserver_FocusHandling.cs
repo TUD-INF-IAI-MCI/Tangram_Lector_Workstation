@@ -79,13 +79,14 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         internal void StartFocusHighlightModes()
         {
-            if (!focusHighlightPaused)
+            if (!focusHighlightPaused || shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints != null)
             {
                 if (focusHighlightPauseTimer != null)
                 {
                     // Stops the blinking pause timer 
                     focusHighlightPauseTimer.Dispose();
                     focusHighlightPauseTimer = null;
+                    focusHighlightPaused = false;
                 }
 
                 if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
