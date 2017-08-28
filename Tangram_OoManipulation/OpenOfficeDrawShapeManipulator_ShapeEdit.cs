@@ -986,7 +986,10 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
                 success = LastSelectedShapePolygonPoints.IsBezier() ? deleteBezierPoint() : deletePolygonPoint();
 
-                if (success) playEdit();
+                if (success) { 
+                    playEdit();
+                    play(LL.GetTrans("tangram.oomanipulation.delete.element", LL.GetTrans("tangram.oomanipulation.element_speaker.label.point")), false);
+                }
                 else playError();
             }
             return success;

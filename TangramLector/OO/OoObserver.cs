@@ -165,9 +165,11 @@ namespace tud.mci.tangram.TangramLector.OO
                         OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
                         if (_shape != null)
                         {
-                            if (e.Reason != ChangeReson.Property) 
+                            if (e.Reason != ChangeReson.Property) // shape changed 
+                            {
                                 BrailleDomFocusRenderer.CurrentPolyPoint = null;
-                            
+                                focusHighlightPaused = false;
+                            }
                             InitBrailleDomFocusHighlightMode(null, e.Reason != ChangeReson.Property);
 
                             if (e.Reason != ChangeReson.Property && ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShapePolygonPoints == null) // in other cases the detailed infos for the  point is sent by the manipulator itself
