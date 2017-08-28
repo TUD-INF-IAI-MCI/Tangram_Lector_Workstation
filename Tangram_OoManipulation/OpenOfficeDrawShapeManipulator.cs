@@ -254,6 +254,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private void fire_PolygonPointSelected_Reset()
         {
+            LastSelectedShapePolygonPoints = null;
             fire_PolygonPointSelected(null, new util.PolyPointDescriptor());
         }
 

@@ -63,7 +63,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         startValidationTimer();
                         registerForEvents(_shape);
                         _points = null;
-                        fire_PolygonPointSelected_Reset();
+                        if(LastSelectedShapePolygonPoints != null) fire_PolygonPointSelected_Reset();
                         Mode = ModificationMode.Unknown;
                     fire_SelectedShapeChanged(ChangeReson.Object);
                     }

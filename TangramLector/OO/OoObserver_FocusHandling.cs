@@ -68,7 +68,7 @@ namespace tud.mci.tangram.TangramLector.OO
                                 // If less than 2 values are given, the default of [500, 500] is used!
                                 new int[8] { 250, 150, 250, 150, 250, 150, 500, 150 }
                                 );
-                        } 
+                        }
                     }
                 }
             }
@@ -79,15 +79,27 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         internal void StartFocusHighlightModes()
         {
-            focusHighlightPauseTimer = null;  // Stopps the blinking pause timer 
-
-            if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
+            if (!focusHighlightPaused)
             {
+                if (focusHighlightPauseTimer != null)
                 {
-                    BrailleDomFocusRenderer.CurrentBoundingBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds;
+                    // Stops the blinking pause timer 
+                    focusHighlightPauseTimer.Dispose();
+                    focusHighlightPauseTimer = null;
+                }
 
-                    brailleDomFocusHighlightMode = true;
-                    blinkFocusActive = true;
+                if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected)
+                {
+                    {
+                        try
+                        {
+                            BrailleDomFocusRenderer.CurrentBoundingBox = shapeManipulatorFunctionProxy.SelectedShapeAbsScreenBounds;
+
+                            brailleDomFocusHighlightMode = true;
+                            blinkFocusActive = true;
+                        }
+                        catch (Exception ex) { }
+                    }
                 }
             }
         }
@@ -97,6 +109,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         internal void StopFocusHighlightModes()
         {
+            // focusHighlightPaused = false;
             if (shapeManipulatorFunctionProxy != null)
             {
                 blinkStateOn = false;
@@ -150,6 +163,8 @@ namespace tud.mci.tangram.TangramLector.OO
             }
         }
 
+
+        volatile bool focusHighlightPaused = false;
         /// <summary>
         /// Pauses the focus highlight modes.
         /// </summary>
@@ -161,23 +176,29 @@ namespace tud.mci.tangram.TangramLector.OO
 
                 if (BrailleDomFocusRenderer != null)
                 {
-                    if (BrailleDomFocusRenderer.DoRenderBoundingBox == false)
-                    {
+                    // if (BrailleDomFocusRenderer.DoRenderBoundingBox == false)
+                    //{
+                        focusHighlightPaused = true;
                         // check if the timer is already running
                         focusHighlightPauseTimer = new Timer(focusHighlightPausTimerCB, null, getFocusTimerPauseTimeout(), Timeout.Infinite);
-                    }
+                    //}
                 }
             }
         }
 
         void focusHighlightPausTimerCB(object status)
         {
+            focusHighlightPaused = false;
+            if (focusHighlightPauseTimer != null)
+            {
+                focusHighlightPauseTimer.Dispose();
+                focusHighlightPauseTimer = null;
+            }
             focusHighlightPauseTimer = null;
             StartFocusHighlightModes();
         }
 
         #endregion
-
 
         private int invertRGBColor(int rbgColor)
         {

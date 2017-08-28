@@ -158,17 +158,18 @@ namespace tud.mci.tangram.TangramLector.OO
                 StopFocusHighlightModes();
                 try
                 {
-                   if(e.Reason != ChangeReson.Property) ((OpenOfficeDrawShapeManipulator)sender).SayLastSelectedShape(false);
+                    if (e.Reason != ChangeReson.Property) ((OpenOfficeDrawShapeManipulator)sender).SayLastSelectedShape(false);
 
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
                     {
                         OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
                         if (_shape != null)
                         {
-                            // memorize original properties to be restored after blinking
+                            if (e.Reason != ChangeReson.Property) BrailleDomFocusRenderer.CurrentPolyPoint = null;
                             InitBrailleDomFocusHighlightMode(null, e.Reason != ChangeReson.Property);
 
-                            WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
+                            if (e.Reason != ChangeReson.Property && ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShapePolygonPoints == null) // in other cases the detailed infos for the  point is sent by the manipulator itself
+                                WindowManager.Instance.SetDetailRegionContent(OoElementSpeaker.GetElementAudioText(_shape));
                             if (WindowManager.Instance.FocusMode == FollowFocusModes.FOLLOW_BRAILLE_FOCUS) jumpToDomFocus();
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] new DOM focus " + _shape.Name + " " + _shape.Text);
                         }
@@ -182,24 +183,18 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     Logger.Instance.Log(LogPriority.OFTEN, this, "[DRAW INTERACTION] new DOM focus error --> shape is null", ex);
                 }
-                //if (BrailleDomFocusRenderer != null)
-                //{
-                //    BrailleDomFocusRenderer.SetCurrentBoundingBoxByShape(_shape);
-                //}
             }
         }
-        
+
         void shapeManipulatorFunctionProxy_PolygonPointSelected(object sender, PolygonPointSelectedEventArgs e)
         {
-
             if (sender != null && sender is OpenOfficeDrawShapeManipulator)
             {
-                //OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
-                PauseFocusHighlightModes();
-
-                // memorize original properties to be restored after blinking
                 if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected/*LastSelectedShape != null*/)
+                {
+                    //PauseFocusHighlightModes();
                     InitBrailleDomFocusHighlightMode();
+                }
             }
 
             if (BrailleDomFocusRenderer != null)
@@ -207,15 +202,9 @@ namespace tud.mci.tangram.TangramLector.OO
                 if (e != null && e.PolygonPoints != null)
                 {
                     BrailleDomFocusRenderer.CurrentPolyPoint = e.PolygonPoints;
-
-                    // Point p = e.PolygonPoints.TransformPointCoordinatesIntoScreenCoordinates(e.Point);
-                    // BrailleDomFocusRenderer.CurrentPoint = p;
-                    // System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint selected Event: " + e.Point.ToString() + "   Iterator: " + e.PolygonPoints.GetIteratorIndex() + " of " + e.PolygonPoints.Count);
                 }
                 else if (shapeManipulatorFunctionProxy != null && shapeManipulatorFunctionProxy.IsShapeSelected && shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints != null)
                 {
-                    // BrailleDomFocusRenderer.CurrentPoint = new Point(-1, -1);
-                    //System.Diagnostics.Debug.WriteLine(" [P] ----- Polypoint reset Event");
                     BrailleDomFocusRenderer.CurrentPolyPoint = shapeManipulatorFunctionProxy.LastSelectedShapePolygonPoints;
                 }
                 else
@@ -223,8 +212,6 @@ namespace tud.mci.tangram.TangramLector.OO
                     BrailleDomFocusRenderer.CurrentPolyPoint = null;
                 }
             }
-
-
         }
 
         #endregion
@@ -694,7 +681,7 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     if (!silent)
                     {
-                        if(immediately) OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
+                        if (immediately) OoElementSpeaker.PlayElementImmediately(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
                         else OoElementSpeaker.PlayElement(shape, LL.GetTrans("tangram.lector.oo_observer.selected", String.Empty));
                     }
                     //audioRenderer.PlaySound("Form kann manipuliert werden");

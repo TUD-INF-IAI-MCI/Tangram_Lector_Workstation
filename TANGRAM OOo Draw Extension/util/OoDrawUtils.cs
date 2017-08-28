@@ -1006,7 +1006,7 @@ namespace tud.mci.tangram.util
         /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
         /// <param name="title">The title that appears in the undo/redo list.</param>
         /// <returns><c>true</c> if the number of children is higher after adding; otherwise, <c>false</c>.</returns>
-        internal static bool AddShapeToGroupUndoable( XShapes group, XShape shape, XUndoManagerSupplier undoManager, String title = "")
+        internal static bool AddShapeToGroupUndoable(XShapes group, XShape shape, XUndoManagerSupplier undoManager, String title = "")
         {
             if (shape != null && group != null)
             {
@@ -1060,7 +1060,7 @@ namespace tud.mci.tangram.util
             return RemoveShapeFromGroup(group, shape);
         }
 
-        #endregion 
+        #endregion
 
         #endregion
 
@@ -3026,22 +3026,71 @@ namespace tud.mci.tangram.util
     /// </summary>
     public struct PolyPointDescriptor
     {
+        private int _x;
         /// <summary>
         /// specifies the x-coordinate. 
         /// </summary>
-        public int X;
+        public int X
+        {
+            get { return _x; }
+            set
+            {
+                IsEmpty = false;
+                _x = value;
+            }
+        }
+        private int _y;
         /// <summary>
         /// specifies the y-coordinate. 
         /// </summary>
-        public int Y;
+        public int Y
+        {
+            get { return _y; }
+            set
+            {
+                IsEmpty = false;
+                _y = value;
+            }
+        }
+        private PolygonFlags _flag;
         /// <summary>
         /// defines how a bezier curve goes through a point.
         /// </summary>
-        public PolygonFlags Flag;
+        public PolygonFlags Flag
+        {
+            get { return _flag; }
+            set
+            {
+                IsEmpty = false;
+                _flag = value;
+            }
+        }
+        private object _value;
         /// <summary>
         /// Optional Value for special treatments or special kinds of points.
         /// </summary>
-        public object Value;
+        public object Value
+        {
+            get { return _value; }
+            set
+            {
+                IsEmpty = false;
+                _value = value;
+            }
+        }
+
+        private bool _isNotEmpty;
+        /// <summary>
+        /// Gets a value indicating whether this instance is empty.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is empty; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEmpty
+        {
+            get { return !_isNotEmpty; }
+            private set { _isNotEmpty = !value; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolyPointDescriptor"/> struct.
@@ -3051,10 +3100,11 @@ namespace tud.mci.tangram.util
         /// <param name="flag">The flag.</param>
         public PolyPointDescriptor(int x, int y, PolygonFlags flag = PolygonFlags.NORMAL)
         {
-            X = x;
-            Y = y;
-            Flag = flag;
-            Value = null;
+            _x = x;
+            _y = y;
+            _flag = flag;
+            _value = null;
+            _isNotEmpty = true;
         }
 
         /// <summary>
@@ -3094,6 +3144,17 @@ namespace tud.mci.tangram.util
                     ((PolyPointDescriptor)obj).Value.Equals(Value));
             }
             return false;
+        }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 

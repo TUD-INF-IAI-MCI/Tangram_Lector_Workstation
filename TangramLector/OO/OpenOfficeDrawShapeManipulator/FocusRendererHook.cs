@@ -146,27 +146,27 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
                     // converted to braille output coords, as shown in the original view (with zoom factor and panning position applied)
                     Rectangle out_bBox = new Rectangle(
-                        (int)(Math.Round((relbBox.X * zoom) + xOffset - boundingBoxPadding)),     // x
-                        (int)(Math.Round((relbBox.Y * zoom) + yOffset - boundingBoxPadding)),     // y
-                        (int)(Math.Round((relbBox.Width * zoom) + 2 * boundingBoxPadding)),       // w
-                        (int)(Math.Round((relbBox.Height * zoom) + 2 * boundingBoxPadding)));     // h
+                        (int)(Math.Round(((double)relbBox.X * zoom) + xOffset - boundingBoxPadding)),     // x
+                        (int)(Math.Round(((double)relbBox.Y * zoom) + yOffset - boundingBoxPadding)),     // y
+                        (int)(Math.Round(((double)relbBox.Width * zoom) + 2 * boundingBoxPadding)),       // w
+                        (int)(Math.Round(((double)relbBox.Height * zoom) + 2 * boundingBoxPadding)));     // h
 
                     // check for minimal height and width
                     if (out_bBox.Width < MIN_FRAME_SIZE)
                     {
                         int oldWidth = out_bBox.Width;
                         out_bBox.Width = MIN_FRAME_SIZE;
-                        int change = out_bBox.Width - oldWidth;
-                        out_bBox.X -= ((change) / 2);
+                        double change = out_bBox.Width - oldWidth;
+                        out_bBox.X -= (int)Math.Round((change) / 2);
                     }
 
                     if (out_bBox.Height < MIN_FRAME_SIZE)
                     {
                         int oldHeight = out_bBox.Height;
                         out_bBox.Height = MIN_FRAME_SIZE;
-                        int change = out_bBox.Height - oldHeight;
+                        double change = out_bBox.Height - oldHeight;
 
-                        out_bBox.Y -= ((change) / 2);
+                        out_bBox.Y -= (int)Math.Round((change) / 2);
                     }
 
                     if (out_bBox.Width > 0 && out_bBox.Height > 0)
