@@ -18,7 +18,7 @@ namespace tud.mci.tangram.Accessibility
 
         private readonly object _accLock = new Object();
         private readonly object _accScreenBoundsLock = new Object();
-              
+
 
         #endregion
 
@@ -84,7 +84,7 @@ namespace tud.mci.tangram.Accessibility
                 lock (_accScreenBoundsLock)
                 {
                     if (AccComp != null
-                        //&& (OoAccessibility.GetAccessibleRole(AccComp as XAccessible) != AccessibleRole.INVALID)
+                                //&& (OoAccessibility.GetAccessibleRole(AccComp as XAccessible) != AccessibleRole.INVALID)
                                 )
                     {
                         System.Drawing.Rectangle sB = _lastScreenBounds;
@@ -167,7 +167,7 @@ namespace tud.mci.tangram.Accessibility
                             {
                                 return AccCont.getAccessibleName();
                             }
-                            catch (System.Exception){}
+                            catch (System.Exception) { }
                         }
                     }
                     return String.Empty;
@@ -427,7 +427,14 @@ namespace tud.mci.tangram.Accessibility
             XAccessible result = null;
             if (this.AccComp != null)
             {
-                result = this.AccComp.getAccessibleAtPoint(new unoidl.com.sun.star.awt.Point(p.X, p.Y));
+                TimeLimitExecutor.WaitForExecuteWithTimeLimit(500, () =>
+                {
+                    try
+                    {
+                        result = this.AccComp.getAccessibleAtPoint(new unoidl.com.sun.star.awt.Point(p.X, p.Y));
+                    }
+                    catch { }
+                }, "GetAccessibleATPoint");
             }
             return result;
         }

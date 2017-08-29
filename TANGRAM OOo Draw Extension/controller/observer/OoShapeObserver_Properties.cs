@@ -64,7 +64,23 @@ namespace tud.mci.tangram.controller.observer
                 }
                 return util.BitmapMode.NO_REPEAT;
             }
-            set { SetProperty("FillBitmapMode", (unoidl.com.sun.star.drawing.BitmapMode)value); }
+            set {
+                int count = this.ChildCount;
+                if (count > 0) // group object
+                {
+                    var children = GetChilderen();
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        OoShapeObserver child = children.ElementAt(i);
+
+                        if (child != null)
+                        {
+                            child.FillBitmapMode = value;
+                        }
+                    }
+                }
+                if (!PolygonHelper.IsLine(Shape))
+                    SetProperty("FillBitmapMode", (unoidl.com.sun.star.drawing.BitmapMode)value); }
         }
 
         //TODO: translate into c# color
@@ -85,7 +101,24 @@ namespace tud.mci.tangram.controller.observer
         virtual public int FillColor
         {
             get { return getIntProperty("FillColor"); }
-            set { setIntProperty("FillColor", value); }
+            set {
+                int count = this.ChildCount;
+                if (count > 0) // group object
+                {
+                    var children = GetChilderen();
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        OoShapeObserver child = children.ElementAt(i);
+
+                        if (child != null)
+                        {
+                            child.FillColor = value;
+                        }
+                    }
+                }
+                if (!PolygonHelper.IsLine(Shape))
+                    setIntProperty("FillColor", value);
+            }
         }
 
         /// <summary>
@@ -134,7 +167,23 @@ namespace tud.mci.tangram.controller.observer
         virtual public short FillTransparence
         {
             get { return (short)getIntProperty("FillTransparence"); }
-            set { setIntProperty("FillTransparence", value); }
+            set {
+                int count = this.ChildCount;
+                if (count > 0) // group object
+                {
+                    var children = GetChilderen();
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        OoShapeObserver child = children.ElementAt(i);
+
+                        if (child != null)
+                        {
+                            child.FillTransparence = value;
+                        }
+                    }
+                }
+                if (!PolygonHelper.IsLine(Shape))
+                    setIntProperty("FillTransparence", value); }
         }
 
         /// <summary>
@@ -176,7 +225,23 @@ namespace tud.mci.tangram.controller.observer
         virtual public int LineColor
         {
             get { return getIntProperty("LineColor"); }
-            set { setIntProperty("LineColor", value); }
+            set {
+                int count = this.ChildCount;
+                if (count > 0) // group object
+                {
+                    var children = GetChilderen();
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        OoShapeObserver child = children.ElementAt(i);
+
+                        if (child != null)
+                        {
+                            child.LineColor = value;
+                        }
+                    }
+                }
+                if (!PolygonHelper.IsLine(Shape))
+                    setIntProperty("LineColor", value); }
         }
 
         /// <summary>
@@ -311,7 +376,23 @@ namespace tud.mci.tangram.controller.observer
         virtual public int LineTransparence
         {
             get { return getIntProperty("LineTransparence"); }
-            set { setIntProperty("LineTransparence", value); }
+            set {
+                int count = this.ChildCount;
+                if (count > 0) // group object
+                {
+                    var children = GetChilderen();
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        OoShapeObserver child = children.ElementAt(i);
+
+                        if (child != null)
+                        {
+                            child.LineTransparence = value;
+                        }
+                    }
+                }
+                if (!PolygonHelper.IsLine(Shape))
+                    setIntProperty("LineTransparence", value); }
         }
 
         /// <summary>

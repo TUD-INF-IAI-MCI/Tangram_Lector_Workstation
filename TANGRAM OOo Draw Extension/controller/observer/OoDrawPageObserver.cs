@@ -130,7 +130,7 @@ namespace tud.mci.tangram.controller.observer
         {
             try
             {
-                if(refreshPagePropertiesTimer != null) refreshPagePropertiesTimer.Stop();
+                if (refreshPagePropertiesTimer != null) refreshPagePropertiesTimer.Stop();
                 if (DrawPage != null)
                 {
                     XPropertySet pageProperties = (XPropertySet)DrawPage;
@@ -521,10 +521,12 @@ namespace tud.mci.tangram.controller.observer
         /// <returns></returns>
         public OoShapeObserver GetFirstChild()
         {
+            OoShapeObserver shapeObs = null;
             if (DrawPage != null && PagesObserver != null)
             {
                 if (DrawPage is XDrawPage)
                 {
+                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(500, () => { 
                     try
                     {
                         int childCount = ((XDrawPage)DrawPage).getCount();
@@ -537,7 +539,7 @@ namespace tud.mci.tangram.controller.observer
 
                                 if (firstChild is XShape)
                                 {
-                                    var shapeObs = PagesObserver.GetRegisteredShapeObserver(firstChild as XShape, this);
+                                    shapeObs = PagesObserver.GetRegisteredShapeObserver(firstChild as XShape, this);
                                     if (shapeObs != null)
                                     {
                                         if (shapeObs.AcccessibleCounterpart == null)
@@ -550,9 +552,8 @@ namespace tud.mci.tangram.controller.observer
                                         //TODO: register this shape
                                         OoShapeObserver newShapeObserver = OoShapeObserverFactory.BuildShapeObserver(firstChild, this);  //new OoShapeObserver(firstChild as XShape, this);
                                         PagesObserver.RegisterUniqueShape(newShapeObserver);
-                                        return newShapeObserver;
+                                        shapeObs =  newShapeObserver;
                                     }
-                                    return shapeObs;
                                 }
                                 else
                                 {
@@ -566,10 +567,11 @@ namespace tud.mci.tangram.controller.observer
                     {
                         Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Can't get first child: " + ex);
                     }
+                    }, "GetFirstChild");
                 }
             }
 
-            return null;
+            return shapeObs;
         }
 
         /// <summary>
@@ -578,43 +580,47 @@ namespace tud.mci.tangram.controller.observer
         /// <returns></returns>
         public OoShapeObserver GetLastChild()
         {
+            OoShapeObserver child = null;
             if (DrawPage != null && PagesObserver != null)
             {
                 if (DrawPage is XDrawPage)
                 {
-                    try
+                    TimeLimitExecutor.WaitForExecuteWithTimeLimit(500, () =>
                     {
-                        int childCount = ((XDrawPage)DrawPage).getCount();
-                        if (childCount > 0)
-                        {
-                            var anyLastChild = ((XDrawPage)DrawPage).getByIndex(childCount - 1);
-                            if (anyLastChild.hasValue())
-                            {
-                                var lastChild = anyLastChild.Value;
-                                //util.Debug.GetAllInterfacesOfObject(lastChild);
 
-                                if (lastChild is XShape)
+                        try
+                        {
+                            int childCount = ((XDrawPage)DrawPage).getCount();
+                            if (childCount > 0)
+                            {
+                                var anyLastChild = ((XDrawPage)DrawPage).getByIndex(childCount - 1);
+                                if (anyLastChild.hasValue())
                                 {
-                                    return PagesObserver.GetRegisteredShapeObserver(lastChild as XShape, this);
-                                }
-                                else
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[UNEXPECTED] The first child of a page is not a shape!");
+                                    var lastChild = anyLastChild.Value;
+                                    //util.Debug.GetAllInterfacesOfObject(lastChild);
+
+                                    if (lastChild is XShape)
+                                    {
+                                        child = PagesObserver.GetRegisteredShapeObserver(lastChild as XShape, this);
+                                    }
+                                    else
+                                    {
+                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[UNEXPECTED] The first child of a page is not a shape!");
+                                    }
+
                                 }
 
                             }
-
                         }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Can't get last child: " + ex);
-                    }
-
+                        catch (System.Exception ex)
+                        {
+                            Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Can't get last child: " + ex);
+                        }
+                    }, "GetLastChild");
                 }
             }
 
-            return null;
+            return child;
         }
 
         #endregion
