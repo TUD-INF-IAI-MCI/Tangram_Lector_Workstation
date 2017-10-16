@@ -749,13 +749,18 @@ namespace tud.mci.tangram.util
         /// <param name="service">The service identifier of the shape to create.</param>
         /// <param name="x">The x position.</param>
         /// <param name="y">The y position.</param>
-        /// <param name="width">The width of the shape.</param>
-        /// <param name="height">The height of the shape.</param>
+        /// <param name="width">The width of the shape. Must be != 0.</param>
+        /// <param name="height">The height of the shape. Must be != 0.</param>
         /// <returns>The resulting shape or null</returns>
+        /// <remarks>ATTENTION: The size should not be set if you request the 
+        /// accessibility size afterward. The shape have to be added to the 
+        /// page before setting its size and position, If not, currently the 
+        /// accessibility size is zero, no matter how you set it. This cannot 
+        /// be corrected afterwards!</remarks>
         internal static XShape CreateShape(Object drawDoc, String service, int x, int y, int width, int height)
         {
             XShape shape = CreateShape(drawDoc, service);
-            SetShapePositionAndSize(shape, x, y, width, height);
+            if(width * height != 0) SetShapePositionAndSize(shape, x, y, width, height);
             return shape;
         }
         /// <summary>

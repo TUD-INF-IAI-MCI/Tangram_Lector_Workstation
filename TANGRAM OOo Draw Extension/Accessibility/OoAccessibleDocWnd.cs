@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using tud.mci.tangram.controller;
 using tud.mci.tangram.controller.observer;
 using tud.mci.tangram.models.Interfaces;
@@ -10,9 +13,6 @@ using unoidl.com.sun.star.drawing;
 using unoidl.com.sun.star.frame;
 using unoidl.com.sun.star.lang;
 using unoidl.com.sun.star.view;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 
 namespace tud.mci.tangram.Accessibility
 {
