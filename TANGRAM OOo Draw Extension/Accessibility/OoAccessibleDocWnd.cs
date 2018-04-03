@@ -855,7 +855,7 @@ namespace tud.mci.tangram.Accessibility
             {
                 return _lastPageObs;
             }
-            System.Diagnostics.Debug.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] _______ new gartering of cached active page.");
+            System.Diagnostics.Debug.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] _______ new gathering of cached active page.");
             // if this is hanging or called multiple times
             int tries = 0;
             while (_runing && tries++ < 10) { Thread.Sleep(10); }
