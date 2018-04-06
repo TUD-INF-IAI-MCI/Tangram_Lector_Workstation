@@ -95,6 +95,30 @@ namespace tud.mci.tangram.TangramLector
             switchBlinking();
         }
 
+        public void ShowOverlayImage(Image image, Rectangle boundingBox, double opacity)
+        {
+            this.Invoke(new Action(() => {
+
+                onOffStepTimer.Stop();  //only for blinking
+                totalDisplayTimer.Stop();   //only for blinking
+                this.Location = new Point(boundingBox.X, boundingBox.Y);
+                this.Size = new Size(boundingBox.Width, boundingBox.Height);
+                this.Opacity = opacity;
+
+                // set foreground- and backgroundImage of the Overlay
+                this.BackgroundImage = null; //TODO: if image exists, dispose it
+                transparentOverlayPictureBox1.Image = image;
+
+                ShowInactiveTopmost(this);
+                //this.Visible=true;
+
+
+                transparentOverlayPictureBox1.Visible = true;
+            }));
+
+
+        }
+
         /// <summary>
         /// Starts to flash the window on the screen with the given parameters. 
         /// This method creates a callback and invokes it on the forms thread automatically.
@@ -130,6 +154,12 @@ namespace tud.mci.tangram.TangramLector
                     loadBitmap(ref pngImageByteArray);
                 }
             }
+        }
+
+        public void RefreshBounds(Rectangle boundingBox)
+        {
+            this.Invoke(new Action(() => { MoveWindow(this.Handle, boundingBox.X, boundingBox.Y, boundingBox.Width, boundingBox.Height, true); }));
+            
         }
 
         /// <summary>
