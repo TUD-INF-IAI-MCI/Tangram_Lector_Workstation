@@ -1158,8 +1158,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     {
                         audio += ", " + LL.GetTrans("tangram.oomanipulation.current") + ": "
                             + LL.GetTrans("tangram.oomanipulation.manipulation.scale.status.audio"
+                            , ((float)((float)LastSelectedShape.Size.Width / 1000)).ToString("0.#")
                             , ((float)((float)LastSelectedShape.Size.Height / 1000)).ToString("0.#")
-                            , ((float)((float)LastSelectedShape.Size.Width / 1000)).ToString("0.#"));
+                            );
                     }
                     break;
                 case ModificationMode.Rotate:
@@ -1225,8 +1226,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (IsShapeSelected && LastSelectedShape != null && LastSelectedShape.Size != null)
                     {
                         detail += " - " + LL.GetTrans("tangram.oomanipulation.manipulation.scale.status"
+                            , ((float)((float)LastSelectedShape.Size.Width / 1000)).ToString("0.#")
                             , ((float)((float)LastSelectedShape.Size.Height / 1000)).ToString("0.#")
-                            , ((float)((float)LastSelectedShape.Size.Width / 1000)).ToString("0.#"));
+                            );
                     }
                     break;
                 case ModificationMode.Rotate:
