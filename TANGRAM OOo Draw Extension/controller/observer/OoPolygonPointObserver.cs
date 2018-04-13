@@ -165,7 +165,7 @@ namespace tud.mci.tangram.controller.observer
         {
             // if (IsClosed())
             // {
-                if (IsBezier()) return _firstIsLast = true;
+                if (IsBezier() && IsClosed(true)) return _firstIsLast = true;
                 else if (!cached)
                 {
                     if (this.Count > 1)
@@ -178,6 +178,10 @@ namespace tud.mci.tangram.controller.observer
                             Math.Abs(firts.Y - last.Y) <= POINT_EQUAL_TOLERANCE)
                         {
                             return _firstIsLast = true;
+                        }
+                        else
+                        {
+                            _firstIsLast = false;
                         }
                     }
                     else return _firstIsLast = false;

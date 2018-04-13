@@ -394,7 +394,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 && LastSelectedShapePolygonPoints.IsValid()
                 && LastSelectedShapePolygonPoints.Shape == LastSelectedShape)
             {
-                SelectNextPolygonPoint();
+                SelectNextPolygonPoint(LastSelectedShapePolygonPoints != null && LastSelectedShapePolygonPoints.IsClosed(true));
             }
             else if (LastSelectedShape == null)
             {
@@ -509,7 +509,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 }
                 else
                 {
-                    SelectNextPolygonPoint();
+                    SelectNextPolygonPoint(LastSelectedShapePolygonPoints != null && LastSelectedShapePolygonPoints.IsClosed(true));
                     if (LastSelectedShapePolygonPoints == null) playError();
                 }
             }
@@ -621,6 +621,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// because it's the same as the first point..</param>
         public void SelectNextPolygonPoint(bool ignoreLastDuplicate = true)
         {
+            // check if the shape is closed or not
+
+
             Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "next poly point");
 
             if (LastSelectedShapePolygonPoints == null && LastSelectedShape != null)
@@ -629,7 +632,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 UpdateLastSelectedPolygonPoints();
             }
             if (LastSelectedShapePolygonPoints != null)
-            {
+            {                
                 PolyPointDescriptor point;
                 if (LastSelectedShapePolygonPoints.HasPoints())
                 {
