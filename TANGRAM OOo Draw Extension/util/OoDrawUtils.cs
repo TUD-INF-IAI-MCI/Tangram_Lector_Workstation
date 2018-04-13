@@ -760,7 +760,7 @@ namespace tud.mci.tangram.util
         internal static XShape CreateShape(Object drawDoc, String service, int x, int y, int width, int height)
         {
             XShape shape = CreateShape(drawDoc, service);
-            if(width * height != 0) SetShapePositionAndSize(shape, x, y, width, height);
+            if (width * height != 0) SetShapePositionAndSize(shape, x, y, width, height);
             return shape;
         }
         /// <summary>
@@ -3147,6 +3147,35 @@ namespace tud.mci.tangram.util
                     ((PolyPointDescriptor)obj).Y.Equals(Y) &&
                     ((PolyPointDescriptor)obj).Flag.Equals(Flag) &&
                     ((PolyPointDescriptor)obj).Value.Equals(Value));
+            }
+            return false;
+            // return Equals(obj, 0);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <param name="threshold">The threshold for accepted position displacement.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public bool Equals(object obj, int threshold = 0)
+        {
+            if (base.Equals(obj)) return true;
+            if (obj is PolyPointDescriptor)
+            {
+                if (((PolyPointDescriptor)obj).Flag.Equals(Flag) &&
+                    ((PolyPointDescriptor)obj).Value == Value)
+                {
+                    threshold++;
+                    var _x = Math.Abs(((PolyPointDescriptor)obj).X - X);
+                    if (_x < threshold)
+                    {
+                        var _y = Math.Abs(((PolyPointDescriptor)obj).Y - Y);
+                        if (_y < threshold) return true;
+                    }
+                }
             }
             return false;
         }

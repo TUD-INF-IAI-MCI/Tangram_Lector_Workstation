@@ -218,7 +218,8 @@ namespace tud.mci.tangram.Accessibility
         /// NOT IMPLEMENTED YET
         /// Only registered shapes are checked
         /// </summary>
-        public void Update() {
+        public void Update()
+        {
             this.DrawPagesObs.Update();
         }
 
@@ -743,7 +744,7 @@ namespace tud.mci.tangram.Accessibility
         /// </returns>
         internal OoShapeObserver GetRegisteredShapeObserver(XShape xShape, OoDrawPageObserver page)
         {
-            OoShapeObserver shape = DrawPagesObs.GetRegisteredShapeObserver(xShape, page);
+            OoShapeObserver shape = DrawPagesObs != null ? DrawPagesObs.GetRegisteredShapeObserver(xShape, page) : null;
             return shape;
         }
 
@@ -754,7 +755,7 @@ namespace tud.mci.tangram.Accessibility
         /// <returns>an accessible component if it is already registered</returns>
         internal OoShapeObserver GetRegisteredShapeObserver(XAccessibleComponent xAccessibleComponent)
         {
-            OoShapeObserver shape = DrawPagesObs.GetRegisteredShapeObserver(xAccessibleComponent);
+            OoShapeObserver shape = DrawPagesObs != null ? DrawPagesObs.GetRegisteredShapeObserver(xAccessibleComponent) : null;
             return shape;
         }
 
@@ -834,7 +835,7 @@ namespace tud.mci.tangram.Accessibility
                         }
                     }, "GetPageCount");
             }
-            catch (Exception){ }
+            catch (Exception) { }
 
             _cachedPageCount = pageCount;
             return pageCount;

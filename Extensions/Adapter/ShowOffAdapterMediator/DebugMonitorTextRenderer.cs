@@ -130,7 +130,8 @@ namespace ShowOffAdapterMediator
                 }
                 finally
                 {
-                    Thread.Sleep(200);
+                    if (((ShowOff)this.monitor).IsDisposed) { _run = false; }
+                    else Thread.Sleep(200);
                 }
             }
 

@@ -198,10 +198,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 {
                     string name = OoElementSpeaker.GetElementAudioText(LastSelectedShape);
                     play(LL.GetTrans("tangram.oomanipulation.shape.deleted", name), true);
-                }
-                catch (Exception ex)
+                }                
+                catch(ObjectDisposedException)
                 {
+                    play(LL.GetTrans("tangram.oomanipulation.shape.deleted", LL.GetTrans("tangram.oomanipulation.shape")), true);
                 }
+                catch (Exception ex) { }
+
                 resetSelectedShapeProperties(true);
                 LastSelectedShape = null;
             }
