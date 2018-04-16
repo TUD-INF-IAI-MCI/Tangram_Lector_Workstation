@@ -161,12 +161,14 @@ namespace tud.mci.tangram.TangramLector
                     }
                 }
 
-                if (newZoom > 0)
+
+                double zoomDivRatio = newZoom / oldZoom;
+
+                if (newZoom > 0 && (vr.ContentBox.Height <= vr.ContentHeight * zoomDivRatio || vr.ContentBox.Width <= vr.ContentWidth * zoomDivRatio))
                 {
-                    double zoomRatio = newZoom / oldZoom;
                     Point newCenter = new Point(
-                        (int)Math.Round(oldCenter.X * zoomRatio),
-                        (int)Math.Round(oldCenter.Y * zoomRatio)
+                        (int)Math.Round(oldCenter.X * zoomDivRatio),
+                        (int)Math.Round(oldCenter.Y * zoomDivRatio)
                         );
 
                     Point newOffset = new Point();
