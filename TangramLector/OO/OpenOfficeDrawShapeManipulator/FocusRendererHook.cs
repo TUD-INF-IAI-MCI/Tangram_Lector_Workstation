@@ -9,6 +9,21 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 {
     public class FocusRendererHook : IBailleIORendererHook
     {
+        bool _paintControlPointReferenceLine = true;
+        /// <summary>
+        /// Gets or sets a value indicating whether to paint a dotted reference line 
+        /// between a control point and its related edge point.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if set to <c>true</c> an reference line is drawn; otherwise set it to <c>false</c>.
+        /// </value>
+        public bool PaintControlPointReferenceLine
+        {
+            get { return _paintControlPointReferenceLine; }
+            set { _paintControlPointReferenceLine = value; }
+        }
+
+
         private bool _dashed = false;
         /// <summary>
         /// Initializes a new instance of the <see cref="FocusRendererHook"/> class.
@@ -33,6 +48,56 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             set { _currentBoundingBox = value; }
         }
 
+        private OoPolygonPointsObserver _currentPolyPoint = null;
+        /// <summary>
+        /// Gets or sets the current polygon point.
+        /// </summary>
+        /// <value>
+        /// The current polygon point.
+        /// </value>
+        public OoPolygonPointsObserver CurrentPolyPoint
+        {
+            get { return _currentPolyPoint; }
+            set { _currentPolyPoint = value; }
+        }
+
+        OoPolygonPointsObserver _relatedPolyPoint = null;
+
+        /// <summary>
+        /// Gets the related polygon edge point to the <see cref="CurrentPolyPoint"/> if it is a Control point.
+        /// </summary>
+        /// <value>
+        /// The related polygon edge point.
+        /// </value>
+        public PolyPointDescriptor RelatedPolyPoint
+        {
+            get
+            {
+                int i;
+                PolyPointDescriptor relPoint = new PolyPointDescriptor();
+                if (CurrentPolyPoint != null)
+                {
+                    var PointDescriptor = CurrentPolyPoint.Current(out i);
+                    if (i > 0 && !PointDescriptor.IsEmpty && PointDescriptor.Flag == PolygonFlags.CONTROL)
+                    {
+                        // get previous point
+                        relPoint = CurrentPolyPoint[i - 1];
+                        if (relPoint.IsEmpty || relPoint.Flag == PolygonFlags.CONTROL)
+                        {
+                            if (CurrentPolyPoint.Count > (i + 1))
+                            {
+                                relPoint = CurrentPolyPoint[i + 1];
+                                if (relPoint.IsEmpty || relPoint.Flag == PolygonFlags.CONTROL)
+                                    relPoint = new PolyPointDescriptor();
+                            }
+                            else relPoint = new PolyPointDescriptor();
+                        }
+                    }
+                }
+                return relPoint;
+            }
+        }
+
         /// <summary>
         /// The current point
         /// </summary>
@@ -53,8 +118,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-
-        public OoPolygonPointsObserver CurrentPolyPoint = null;
 
         /// <summary>
         /// Sets the current bounding box by shape.
@@ -268,7 +331,8 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         // coords of the shapes bounding box, relative to the whole captured image
                         // Rectangle relbBox = new Rectangle(CurrentBoundingBox.X - pageBounds.X, CurrentBoundingBox.Y - pageBounds.Y, CurrentBoundingBox.Width, CurrentBoundingBox.Height);
 
-                        Point relPoint = new Point(CurrentPoint.X
+                        Point relPoint = new Point(
+                            CurrentPoint.X
                             //- pageBounds.X
                             , CurrentPoint.Y
                             //- pageBounds.Y
@@ -313,6 +377,27 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
                             setSaveDot(x + 1, y - 1, ref result, false, result_x_max, result_y_max);
                             setSaveDot(x + 1, y + 1, ref result, false, result_x_max, result_y_max);
+                        }
+
+
+                        // paint dotted line
+                        if (PaintControlPointReferenceLine) // && _doRenderBoundingBox
+                        {
+                            var relatedPoint = RelatedPolyPoint;
+                            if (!relatedPoint.IsEmpty && CurrentPolyPoint != null)
+                            {
+                                Point relP = CurrentPolyPoint.TransformPointCoordinatesIntoScreenCoordinates(relatedPoint);
+                                if (relP.X > 0)
+                                {
+
+                                    int x2 = (int)Math.Round((relP.X * zoom) + xOffset - 1); // x
+                                    int y2 = (int)Math.Round((relP.Y * zoom) + yOffset - 1); // y
+
+
+                                    // do Bresenham painting
+                                    var success = doBresenham(x, y, x2, y2, ref result);
+                                }
+                            }
                         }
                     }
                 }
@@ -375,5 +460,58 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
             return pageBounds;
         }
+
+        
+        /// <summary>
+        /// Does an line interpolation between two points using the Bresenham algorithm.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="x2">The x2.</param>
+        /// <param name="y2">The y2.</param>
+        /// <param name="m">The matrix to draw in.</param>
+        public static bool doBresenham(int x, int y, int x2, int y2, ref bool[,] m)
+        {
+            int w = x2 - x;
+            int h = y2 - y;
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+            if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+            if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+            int longest = Math.Abs(w);
+            int shortest = Math.Abs(h);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(h);
+                shortest = Math.Abs(w);
+                if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            int numerator = longest >> 1;
+            for (int i = 0; i <= longest; i++)
+            {
+
+                // paint the point
+                if (i%2 == 0 && m != null && y >= 0 && x >= 0 && m.GetLength(0) > y && m.GetLength(1) > x)
+                {
+                    m[y, x] = true;
+                }
+
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    x += dx1;
+                    y += dy1;
+                }
+                else
+                {
+                    x += dx2;
+                    y += dy2;
+                }
+            }
+            return true;
+        }
+        
     }
 }
