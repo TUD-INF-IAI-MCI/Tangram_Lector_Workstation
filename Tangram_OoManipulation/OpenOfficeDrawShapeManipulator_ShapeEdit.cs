@@ -932,7 +932,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             bool success = false;
 
-            // FIXME: show MessageBox
             var _shape = LastSelectedShape;
             if (_shape != null)
             {
@@ -1136,7 +1135,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private String getAudioFeedback(ModificationMode mode)
         {
-            String audio = "";//"Element ";
+            String audio = "";
 
             switch (mode)
             {
@@ -1203,7 +1202,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         private String getDetailRegionFeedback(ModificationMode mode)
         {
-            String detail = "";//Bearbeitung: ";
+            String detail = "";
 
             switch (mode)
             {

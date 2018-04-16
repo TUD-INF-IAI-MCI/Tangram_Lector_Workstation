@@ -210,6 +210,17 @@ namespace tud.mci.tangram.TangramLector
 
             try { OoConnector.Instance.Dispose(); }
             catch { }
+
+            try // backstore the audiosettings
+            {
+                // Properties.Settings.Default.sound_voice = AudioRenderer.Instance.;
+                Properties.Settings.Default.sound_speed = AudioRenderer.Speed;
+                Properties.Settings.Default.sound_volume = AudioRenderer.Volume;
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception ex) { }
+
+
         }
 
         private void setTangramScreen()

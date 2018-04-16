@@ -150,7 +150,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         byte[] _pngData = null;
         /// <summary>
-        /// gets the slected shapes visual representation as png image
+        /// gets the selected shapes visual representation as png image
         /// </summary>
         public byte[] ShapePng
         {
@@ -245,10 +245,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             {
                 lock (_shapePointLock)
                 {
-                    //if (_shape != null && (_points == null || _points.Shape != _shape || !_points.IsValid()))
-                    //{
-                    //    _points = _shape.GetPolygonPointsObserver();
-                    //}
                     return _points;
                 }
             }
