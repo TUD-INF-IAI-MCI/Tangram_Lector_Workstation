@@ -798,6 +798,11 @@ namespace tud.mci.tangram.util
             public const String DRAW_POLY_POLYGON_BEZIER_DESCRIPTOR = "com.sun.star.drawing.PolyPolygonBezierDescriptor";
 
             /// <summary>
+            /// This service is for a ConnectorShape, a specialized Shape, which can be connected to other Shapes or GluePoints.
+            /// </summary>
+            public const String DRAW_SHAPE_CONNECTOR = "com.sun.star.drawing.ConnectorShape";
+
+            /// <summary>
             /// represents the environment for a desktop component.
             /// Frames are the anchors for the office components and they are the components' link to the outside world. 
             /// They create a skeleton for the whole office api infrastructure by building frame hierarchys. These hierarchies contains all currently loaded documents and make it possible to walk during these trees.
@@ -1152,6 +1157,28 @@ namespace tud.mci.tangram.util
             LANDSCAPE = 1,
         }
 
+        /// <summary>
+        /// The ConnectorType specifies the appearance of a connector shapes.
+        /// </summary>
+        public enum ConnectorType
+        {
+            /// <summary>
+            /// the connector is drawn with three lines, with the middle line perpendicular to the other two.
+            /// </summary>
+            STANDARD = unoidl.com.sun.star.drawing.ConnectorType.STANDARD,
+            /// <summary>
+            /// the ConnectorShape is drawn as a curve.
+            /// </summary>
+            CURVE = unoidl.com.sun.star.drawing.ConnectorType.CURVE,
+            /// <summary>
+            /// the ConnectorShape is drawn as a straight line.
+            /// </summary>
+            LINE = unoidl.com.sun.star.drawing.ConnectorType.LINE,
+            /// <summary>
+            /// the connector is drawn with three lines 
+            /// </summary>
+            LINES = unoidl.com.sun.star.drawing.ConnectorType.LINES,
+        }
 
         #endregion
 

@@ -162,7 +162,7 @@ namespace tud.mci.tangram.util
                     catch (unoidl.com.sun.star.uno.RuntimeException)
                     {
                         System.Diagnostics.Debug.WriteLine("Property value set cause internal error");
-                        Logger.Instance.Log(LogPriority.IMPORTANT, "OoUtils", "[FATAL ERROR] Cannot set property '" + propName + "' to value: '" + value.ToString() + "' for the current object");
+                        Logger.Instance.Log(LogPriority.IMPORTANT, "OoUtils", "[FATAL ERROR] Cannot set property '" + propName + "' to value: '" + (value != null ? value.ToString() : "NULL") + "' for the current object");
                     }
                 }
                 else

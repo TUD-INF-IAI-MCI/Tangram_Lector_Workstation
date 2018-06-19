@@ -523,6 +523,7 @@ namespace tud.mci.tangram.util
         /// <returns>The resulting shape[XShape] or null</returns>
         public static Object CreateRectangleShape_anonymous(Object drawDoc, int x, int y, int width, int height)
         { return CreateRectangleShape(drawDoc, x, y, width, height); }
+
         /// <summary>
         /// Creates a ellipse shape.
         /// </summary>
@@ -548,6 +549,7 @@ namespace tud.mci.tangram.util
         /// <returns>The resulting shape[XShape] or null</returns>
         public static Object CreateEllipseShape_anonymous(Object drawDoc, int x, int y, int width, int height)
         { return CreateEllipseShape(drawDoc, x, y, width, height); }
+
         /// <summary>
         /// Creates a line shape.
         /// </summary>
@@ -573,6 +575,43 @@ namespace tud.mci.tangram.util
         /// <returns>The resulting shape or null</returns>
         public static Object CreateLineShape_anonymous(Object drawDoc, int x, int y, int width, int height)
         { return CreateLineShape(drawDoc, x, y, width, height); }
+
+        /// <summary>
+        /// Creates a line shape.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape or null</returns>
+        internal static XShape CreateConnectorShape(Object drawDoc, int x = 0, int y = 0, int width = 0, int height = 0, XShape startShape = null, XShape endShape = null)
+        {
+            var connector =  CreateShape(drawDoc, OO.Services.DRAW_SHAPE_CONNECTOR, x, y, width, height);
+            XConnectorShape con = connector as XConnectorShape;
+            if (con != null)
+            {
+                if (startShape != null) SetConnectorStartShape(con, startShape, -1); //con.connectStart(startShape as XConnectableShape, ConnectionType.AUTO);
+                if (endShape != null) SetConnectorEndShape(con, endShape, -1); // con.connectStart(endShape as XConnectableShape, ConnectionType.AUTO);
+            }
+
+            return connector;
+        }
+        /// <summary>
+        /// Creates a line shape.
+        /// ANONYMOUS: UNO type interfaces will be covered. Only Objects are taken and given.
+        /// </summary>
+        /// <param name="drawDoc">The draw doc.</param>
+        /// <param name="x">The x position.</param>
+        /// <param name="y">The y position.</param>
+        /// <param name="width">The width of the shape.</param>
+        /// <param name="height">The height of the shape.</param>
+        /// <returns>The resulting shape or null</returns>
+        public static Object CreateConnectorShape_anonymous(Object drawDoc, int x = 0, int y = 0, int width = 0, int height = 0, Object startShape = null, Object endShape = null)
+        {
+            return CreateConnectorShape(drawDoc, x, y, width, height, startShape as XShape, endShape as XShape); 
+        }
+
         /// <summary>
         /// Creates a text shape.
         /// </summary>
@@ -1341,7 +1380,6 @@ namespace tud.mci.tangram.util
             return w;
         }
 
-
         /// <summary>
         /// Gets the bounding box of an object / shape.
         /// </summary>
@@ -1367,7 +1405,6 @@ namespace tud.mci.tangram.util
             return new System.Drawing.Rectangle();
         }
 
-
         /// <summary>
         /// Sets the FillColor property of an element.
         /// </summary>
@@ -1387,6 +1424,87 @@ namespace tud.mci.tangram.util
         public static int GetFillColor(Object obj)
         {
             return OoUtils.GetIntProperty(obj, "FillColor");
+        }
+        
+        /// <summary>
+        /// Sets the connector start shape.
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="startShape">The start shape.</param>
+        /// <param name="type">The type/position of the connection. Default is AUTO</param>
+        internal static bool SetConnectorStartShape(XConnectorShape connector, XShape startShape, ConnectionType type = ConnectionType.AUTO)
+        {
+            bool success = false;
+            if (connector != null)
+            {
+               success = OoUtils.SetProperty(connector, "StartShape", startShape);
+               success &= OoUtils.SetIntProperty(connector, "EndGluePointIndex", -1);
+            }
+             return success;
+        }
+        /// <summary>
+        /// Sets the connector start shape.
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="startShape">The start shape.</param>
+        /// <param name="type">The type/position of the connection. Default is AUTO = 0. For more connection types <see cref="unoidl.com.sun.star.drawing.ConnectionType"/></param>
+        public static bool SetConnectorStartShape(Object connector, Object startShape, int type = 0)
+        {
+            ConnectionType t = (ConnectionType)type;
+            return SetConnectorStartShape(connector as XConnectorShape, startShape as XShape, t);
+        }
+
+        /// <summary>
+        /// Sets the connector end shape.
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="endShape">The end shape.</param>
+        /// <param name="type">The type/position of the connection. Default is AUTO</param>
+        internal static bool SetConnectorEndShape(XConnectorShape connector, XShape endShape, ConnectionType type = ConnectionType.AUTO)
+        {
+            bool success = false;
+            if (connector != null) {
+                success = OoUtils.SetProperty(connector, "EndShape", endShape);
+                success &= OoUtils.SetIntProperty(connector, "EndGluePointIndex", -1);
+            }
+            return success;
+        }
+        /// <summary>
+        /// Sets the connector end shape.
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="endShape">The end shape.</param>
+        /// <param name="type">The type/position of the connection. Default is AUTO = 0. For more connection types <see cref="unoidl.com.sun.star.drawing.ConnectionType"/></param>
+        public static bool SetConnectorEndShape(Object connector, Object endShape, int type = 0)
+        {
+            ConnectionType t = (ConnectionType)type;
+            return SetConnectorEndShape(connector as XConnectorShape, endShape as XShape, t);
+        }
+        
+        /// <summary>
+        /// Sets the kind of the connector.
+        /// Standard means three lines. 
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="type">The type.</param>
+        /// <returns><c>true</c> if the type could be changed.</returns>
+        internal static bool SetConnectorEdgeKind(XConnectorShape connector, ConnectorType type = ConnectorType.STANDARD){
+            if (connector != null) {
+                return OoUtils.SetProperty(connector, "EdgeKind", type);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Sets the kind of the connector.
+        /// Standard means three lines. 
+        /// </summary>
+        /// <param name="connector">The connector.</param>
+        /// <param name="type">The type.</param>
+        /// <returns><c>true</c> if the type could be changed.</returns>
+        public static bool SetConnectorEdgeKind(Object connector, OO.ConnectorType type = OO.ConnectorType.STANDARD)
+        {
+            return SetConnectorEdgeKind(connector as XConnectorShape, (ConnectorType)type);
         }
 
         #endregion

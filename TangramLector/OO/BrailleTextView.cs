@@ -1,18 +1,19 @@
-﻿using System;
+﻿using BrailleIO;
+using BrailleIO.Interface;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
-using BrailleIO;
-using BrailleIO.Interface;
-using tud.mci.tangram;
 using tud.mci.tangram.Accessibility;
 using tud.mci.tangram.controller.observer;
-using tud.mci.tangram.TangramLector;
-using tud.mci.tangram.TangramLector.OO;
 
 namespace tud.mci.tangram.TangramLector.OO
 {
+    /// <summary>
+    /// A rendering hook that turns the content of text shapes into
+    /// readable braille text in print zoom-level.
+    /// </summary>
+    /// <seealso cref="BrailleIO.Interface.IBailleIORendererHook" />
     public class BrailleTextView : IBailleIORendererHook
     {
         #region Members
@@ -26,6 +27,11 @@ namespace tud.mci.tangram.TangramLector.OO
         );
 
         /// <summary>
+        /// a dummy view for text renering
+        /// </summary>
+        internal static IViewBoxModel dummyView = new BrailleIOViewRange(0, 0, 1000, 1000);
+
+        /// <summary>
         /// Activates or deactivates the renderer
         /// </summary>
         public bool Active { get; set; }
@@ -34,6 +40,9 @@ namespace tud.mci.tangram.TangramLector.OO
 
         #endregion
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BrailleTextView"/> class.
+        /// </summary>
         public BrailleTextView()
         {
             Active = true;
@@ -99,6 +108,13 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (m != null && !String.IsNullOrWhiteSpace(text.Text))
             {
+                if (text.Matrix == null) // if no text was renderd --> render it
+                {
+                    text.Matrix = BrailleRenderer.RenderMatrix(dummyView, text.Text);
+                    if (text.Matrix == null)
+                        return;
+                }
+
                 bool[,] matrix = m;
                 Rectangle startpoint = BrailleTextView.MakeZoomBoundingBox(text.ScreenPosition, zoom);
                 // calculate the center point and from that the staring point
@@ -172,20 +188,6 @@ namespace tud.mci.tangram.TangramLector.OO
         }
 
         #endregion
-
-        ///// <summary>
-        ///// Test if the given view is related to a filtered DRAW document
-        ///// </summary>
-        ///// <param name="view"></param>
-        ///// <returns><c>true</c> if the view is related to a DRAW document</returns>
-        //private bool isViewADrawDoc(BrailleIOViewRange view)
-        //{
-        //    if (view != null)
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //    return false;
-        //}
 
         #region Cache of text Elements
 
@@ -382,7 +384,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         /// <param name="bBox1">The b box1.</param>
         /// <param name="bBox2">The b box2.</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the boundingsboxes are partly overlapping.</returns>
         public static bool DoBoundingBoxesCollide(Rectangle bBox1, Rectangle bBox2)
         {
             /*
