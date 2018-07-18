@@ -2753,13 +2753,28 @@ namespace tud.mci.tangram.util
                     try
                     {
                         int i = 0;
+                        bool prevEdge = false;
                         foreach (var item in points)
                         {
                             if (!filterControlPoints || item.Flag == PolygonFlags.NORMAL)
                             {
                                 // System.Linq.Enumerable.ElementAt(points, i);
-                                Coordinates[i] = new Point(item.X, item.Y);
+                                if (item.Flag == PolygonFlags.CONTROL)
+                                {
+                                    // move control point -1 because of preventing them to lay 
+                                    // on the same point as the edge point 
+                                    // -> this would causes problems when setting the polygon descriptors
+                                    if (prevEdge) Coordinates[i] = new Point(item.X + 1, item.Y);
+                                    else Coordinates[i] = new Point(item.X - 1, item.Y);
+                                    prevEdge = false;
+                                }
+                                else
+                                {
+                                    Coordinates[i] = new Point(item.X, item.Y);
+                                    prevEdge = true;
+                                }
                                 Flags[i] = (unodrawing.PolygonFlags)item.Flag;
+
                                 i++;
                             }
                         }
