@@ -922,9 +922,48 @@ namespace tud.mci.tangram.util
                         );
                     OoUtils.AddActionToUndoManager(undoManager, undoAction);
                 }
+                AddShapeToDrawPage(shape, page);
             }
-            AddShapeToDrawPage(shape, page);
         }
+
+
+        /// <summary>
+        /// Adds the shape to a page and make this undo/redoable.
+        /// </summary>
+        /// <param name="shape">The shape to remove [XShape].</param>
+        /// <param name="page">The page to remove from [XShapes].</param>
+        /// <param name="undoManager">The undo manager [XUndoManagerSupplier] 
+        /// - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        public static void RemoveShapeFromDrawPageUndoable(Object shape, Object page, Object undoManager, String title = "")
+        {
+            RemoveShapeFromDrawPageUndoable(shape as XShape, page as XShapes, undoManager as XUndoManagerSupplier, title);
+        }
+
+        /// <summary>
+        /// removes a shape from a page and make this undo/redoable.
+        /// </summary>
+        /// <param name="shape">The shape to remove.</param>
+        /// <param name="page">The page to remove from.</param>
+        /// <param name="undoManager">The undo manager - normally this is the document (DrawPagesSupplier: SERVICE com.sun.star.document.OfficeDocument).</param>
+        /// <param name="title">The title that appears in the undo/redo list.</param>
+        internal static void RemoveShapeFromDrawPageUndoable(XShape shape, XShapes page, XUndoManagerSupplier undoManager, String title = "")
+        {
+            if (shape != null && page != null)
+            {
+                if (undoManager != null)
+                {
+                    var undoAction = new ActionUndo(
+                        String.IsNullOrWhiteSpace(title) ? "Remove Element" : title,
+                        () => { AddShapeToDrawPage(shape, page); }, // undo
+                        () => { RemoveShapeFromDrawPage(shape, page); }  // redo
+                        );
+                    OoUtils.AddActionToUndoManager(undoManager, undoAction);
+                }
+                RemoveShapeFromDrawPage(shape, page);
+            }
+        }
+
 
         #endregion
 
