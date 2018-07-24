@@ -76,8 +76,8 @@ namespace tud.mci.tangram.TangramLector
 
                 windowManager = WindowManager.Instance;
 
-                initializeAudioRenderer();
-                initializeBrailleIO();
+                initAudioRenderer();
+                initBrailleIOAdapters();
 
                 if (windowManager != null)
                 {
@@ -126,7 +126,7 @@ namespace tud.mci.tangram.TangramLector
         /// Register for Button events from the interaction manager to show them as debug output 
         /// on the ShowOff adapter.
         /// </summary>
-        private void initializeBrailleIO()
+        private void initBrailleIOAdapters()
         {
             io = BrailleIOMediator.Instance;
             //Task t = new Task(new Action(() =>
@@ -149,7 +149,7 @@ namespace tud.mci.tangram.TangramLector
         /// Initializes the audio renderer. 
         /// Set the Voice to 'Steffi' if available. Play a sound and speak welcome message.
         /// </summary>
-        private void initializeAudioRenderer()
+        private void initAudioRenderer()
         {
             logger.Log(LogPriority.DEBUG, this, "Installed voices: [" + String.Join("] [", audioRenderer.GetVoices()) + "]");
 

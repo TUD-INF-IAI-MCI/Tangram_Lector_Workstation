@@ -505,7 +505,7 @@ namespace tud.mci.tangram.TangramLector
         /// <returns>true if it is visible</returns>
         private bool fullscreenVisible()
         {
-            var view = io.GetView(BS_FULLSCREEN_NAME) as BrailleIO.Interface.IViewable;
+            var view = io.GetView(BS_FULLSCREEN_NAME) as IViewable;
             if (view != null) return view.IsVisible();
             return false;
         }
@@ -517,7 +517,7 @@ namespace tud.mci.tangram.TangramLector
         {
             if (io.GetView(BS_FULLSCREEN_NAME) != null)
             {
-                var view = io.GetView(BS_FULLSCREEN_NAME) as BrailleIO.Interface.IViewable;
+                var view = io.GetView(BS_FULLSCREEN_NAME) as IViewable;
                 BrailleIOScreen ms = io.GetView(BS_MAIN_NAME) as BrailleIOScreen;
                 if (view != null && ms != null)
                 {

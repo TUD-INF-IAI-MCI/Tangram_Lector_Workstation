@@ -484,7 +484,7 @@ namespace tud.mci.tangram.TangramLector
                     detailViewDic[key].SetVisibility(false);
                 }
             }
-            WindowManager.Instance.SetTopRegionContent(WindowManager.Instance.GetMainscreenTitle());
+            WindowManager.Instance.SetTopRegionContent(WindowManager.MAINSCREEN_TITLE);
 
 
             //////////////////////////////////////////////////////////////////////////

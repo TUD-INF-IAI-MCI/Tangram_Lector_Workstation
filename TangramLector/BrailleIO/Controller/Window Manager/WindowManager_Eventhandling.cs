@@ -10,6 +10,7 @@ using tud.mci.tangram.util;
 using tud.mci.tangram.audio;
 using tud.mci.tangram.Uia;
 using tud.mci.tangram.controller.observer;
+using BrailleIO.Interface;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -36,7 +37,7 @@ namespace tud.mci.tangram.TangramLector
             registerTopMostSpFProxy();
         }
 
-        void AdapterManager_NewAdapterRegistered(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        void AdapterManager_NewAdapterRegistered(object sender, IBrailleIOAdapterEventArgs e)
         {
             if (e != null && e.Adapter != null && e.Adapter.Device != null)
             {
@@ -45,7 +46,7 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        void AdapterManager_ActiveAdapterChanged(object sender, IBrailleIOAdapterEventArgs e)
         {
             //CleanScreen();
             //BuildScreens();            
@@ -933,7 +934,7 @@ namespace tud.mci.tangram.TangramLector
                                 //generic handling
                                 if (e.ReleasedGenericKeys.Count < 2 &&
                                     e.PressedGenericKeys.Count < 1 &&
-                                    e.ReleasedGeneralKeys.Contains(BrailleIO.Interface.BrailleIO_DeviceButton.Gesture))
+                                    e.ReleasedGeneralKeys.Contains(BrailleIO_DeviceButton.Gesture))
                                 {
                                     UiaPicker.SpeakElement(element);
                                 }

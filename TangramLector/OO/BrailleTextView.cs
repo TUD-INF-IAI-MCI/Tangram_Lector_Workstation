@@ -1,5 +1,7 @@
 ﻿using BrailleIO;
 using BrailleIO.Interface;
+using BrailleIO.Renderer;
+using BrailleIO.Renderer.BrailleInterpreter;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -21,13 +23,13 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <summary>
         /// The braille renderer used for the text replacement
         /// </summary>
-        internal static readonly BrailleIO.Renderer.MatrixBrailleRenderer BrailleRenderer = new BrailleIO.Renderer.MatrixBrailleRenderer(
-            new BrailleIO.Renderer.BrailleInterpreter.SimpleBrailleInterpreter()
-            , BrailleIO.Renderer.RenderingProperties.RETURN_REAL_WIDTH
+        internal static readonly MatrixBrailleRenderer BrailleRenderer = new MatrixBrailleRenderer(
+            new SimpleBrailleInterpreter()
+            , RenderingProperties.RETURN_REAL_WIDTH
         );
 
         /// <summary>
-        /// a dummy view for text renering
+        /// a dummy view for text rendering
         /// </summary>
         internal static IViewBoxModel dummyView = new BrailleIOViewRange(0, 0, 1000, 1000);
 

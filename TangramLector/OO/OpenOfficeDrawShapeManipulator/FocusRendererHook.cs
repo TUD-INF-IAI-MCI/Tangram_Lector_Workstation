@@ -197,7 +197,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         {
             if (view is IZoomable && view is IPannable)
             {
-                double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                double zoom = ((IZoomable)view).GetZoom();
                 int xOffset = ((IPannable)view).GetXOffset();
                 int yOffset = ((IPannable)view).GetYOffset();
 
@@ -325,7 +325,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (view is IZoomable && view is IPannable)
                     {
                         //Rectangle pageBounds = getPageBounds();
-                        double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                        double zoom = ((IZoomable)view).GetZoom();
                         int xOffset = ((IPannable)view).GetXOffset();
                         int yOffset = ((IPannable)view).GetYOffset();
                         // coords of the shapes bounding box, relative to the whole captured image
