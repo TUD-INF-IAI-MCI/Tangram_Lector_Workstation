@@ -127,7 +127,7 @@ namespace tud.mci.tangram.TangramLector
                 InteractionManager.Instance.Dispose();
                 AudioRenderer.Instance.Dispose();
                 Logger.Instance.Dispose();
-                WindowManager.Instance.ScreenObserver.Stop();
+                WindowManager.Instance.DrawAppModel.Dispose();
                 Application.Exit();
             }
             catch(System.Exception ex) { Logger.Instance.Log(LogPriority.IMPORTANT, "Program", "[FATAL ERROR] Unhandled exception occurred in lgui_Disposed", ex); }

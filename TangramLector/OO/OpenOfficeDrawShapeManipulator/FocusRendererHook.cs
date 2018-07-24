@@ -444,7 +444,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             Rectangle pageBounds = new Rectangle();
             if (WindowManager.Instance != null)
             {
-                ScreenObserver obs = WindowManager.Instance.ScreenObserver;
+                ScreenObserver obs = WindowManager.Instance.DrawAppModel.ScreenObserver;
                 if (obs != null)
                 {
                     Object scPos = obs.ScreenPos;

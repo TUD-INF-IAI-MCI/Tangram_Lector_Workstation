@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Linq;
 using tud.mci.LanguageLocalization;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.TangramLector.BrailleIO.Model;
 using tud.mci.tangram.TangramLector.Window_Manager;
 
 namespace tud.mci.tangram.TangramLector
@@ -107,10 +108,17 @@ namespace tud.mci.tangram.TangramLector
         /// Timer-based value telling if blinking pins should be up or down.
         /// </summary>
         public bool blinkPinsUp = true;
-        public ScreenObserver ScreenObserver { get; private set; }
+        
+        //public ScreenObserver ScreenObserver { get; private set; }
 
 
-
+        /// <summary>
+        /// Gets the DRAW application model.
+        /// </summary>
+        /// <value>
+        /// The DRAW application model.
+        /// </value>
+        public OoDrawModel DrawAppModel { get; private set; }
 
 
 
@@ -173,6 +181,7 @@ namespace tud.mci.tangram.TangramLector
 
         private WindowManager()
         {
+            DrawAppModel = new OoDrawModel();
             registerForEvents();
             initBlinkTimer();
             BuildScreens();
@@ -884,29 +893,29 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         void setCaptureArea()
         {
-            if (ScreenObserver == null)
+            if (DrawAppModel.ScreenObserver == null)
             {
-                ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
+                DrawAppModel.ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
 
                 // so_Changed event handles the rendering of the bitmap
-                try { ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
+                try { DrawAppModel.ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
                 catch (Exception) { }
-                ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
+                DrawAppModel.ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
             }
-            ScreenObserver.Start();
+            DrawAppModel.ScreenObserver.Start();
         }
 
         /// <summary>
         /// Pause the screen capturing.
         /// </summary>
-        void StopCapturing() { if (ScreenObserver != null) ScreenObserver.Stop(); }
+        void StopCapturing() { if (DrawAppModel.ScreenObserver != null) DrawAppModel.ScreenObserver.Stop(); }
 
         /// <summary>
         /// Restarts the screen capturing.
         /// </summary>
         void RestartCapturing()
         {
-            if (ScreenObserver != null) ScreenObserver.Start();
+            if (DrawAppModel.ScreenObserver != null) DrawAppModel.ScreenObserver.Start();
             else setCaptureArea();
         }
 
@@ -1060,9 +1069,9 @@ namespace tud.mci.tangram.TangramLector
                     int y_old = p.Y;
                     p = new Point((int)Math.Round(x_old / zoom), (int)Math.Round(y_old / zoom));
 
-                    if (ScreenObserver != null && ScreenObserver.ScreenPos is Rectangle)
+                    if (DrawAppModel.ScreenObserver != null && DrawAppModel.ScreenObserver.ScreenPos is Rectangle)
                     {
-                        Rectangle sp = (Rectangle)ScreenObserver.ScreenPos;
+                        Rectangle sp = (Rectangle)DrawAppModel.ScreenObserver.ScreenPos;
                         p.X += sp.X;
                         p.Y += sp.Y;
                     }

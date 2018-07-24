@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BrailleIO.Interface;
 using BrailleIO.Renderer;
 using System.Threading.Tasks;
 using System.Threading;

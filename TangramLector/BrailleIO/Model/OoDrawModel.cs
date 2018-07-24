@@ -10,7 +10,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
     /// <summary>
     /// A wrapping class for information about the DRAW application. 
     /// </summary>
-    public class OoDrawModel
+    public class OoDrawModel : IDisposable
     {
         #region Members
 
@@ -25,7 +25,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
         public ScreenObserver ScreenObserver
         {
             get { return _obs; }
-            protected set
+            set
             {
                 if (value != _obs)
                 {
@@ -52,7 +52,8 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
                 {
                     var tmp = _lstCapt;
                     _lstCapt = value;
-                    tmp.Dispose();
+                    try { if (tmp != null) tmp.Dispose(); }
+                    catch { }
                 }
             }
         }
@@ -105,5 +106,19 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
 
         #endregion
 
+        #region IDisposable
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            try
+            {
+                if (ScreenObserver != null) ScreenObserver.Stop();
+            }
+            catch (Exception)
+            {}
+        }
+        #endregion
     }
 }
