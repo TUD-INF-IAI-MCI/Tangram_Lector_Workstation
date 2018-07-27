@@ -52,7 +52,11 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
                 {
                     var tmp = _lstCapt;
                     _lstCapt = value;
-                    try { if (tmp != null) tmp.Dispose(); }
+                    try
+                    {
+                        if (tmp != null) tmp.Dispose();
+                        fire_ScreenShotChanged();
+                    }
                     catch { }
                 }
             }
@@ -120,5 +124,23 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.Model
             {}
         }
         #endregion
+
+        #region event
+
+        /// <summary>
+        /// Occurs when the screen shot has changed.
+        /// </summary>
+        public event EventHandler ScreenShotChanged;
+
+        void fire_ScreenShotChanged()
+        {
+            if (ScreenShotChanged != null)
+            {
+                ScreenShotChanged.Invoke(this, new EventArgs());
+            }
+        }
+
+        #endregion
+
     }
 }

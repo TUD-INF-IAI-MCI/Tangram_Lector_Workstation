@@ -202,13 +202,13 @@ namespace tud.mci.tangram.TangramLector.OO
 
             // make the document bounds relative to the chosen zoom level
             double zoom = view is IZoomable ? zoom = ((IZoomable)view).GetZoom() : 1;
-            if (((BrailleIOViewRange)view).Name.Equals(WindowManager.VR_CENTER_NAME) && ((BrailleIOViewRange)view).Parent.Name.Equals(WindowManager.BS_MINIMAP_NAME))
-            {
-                if (WindowManager.Instance != null)
-                {
-                    zoom = WindowManager.Instance.MinimapScalingFactor; // handling for minimap mode
-                }
-            }
+            //if (((BrailleIOViewRange)view).Name.Equals(WindowManager.VR_CENTER_NAME) && ((BrailleIOViewRange)view).Parent.Name.Equals(WindowManager.BS_MINIMAP_NAME))
+            //{
+            //    if (WindowManager.Instance != null)
+            //    {
+            //        zoom = WindowManager.Instance.MinimapScalingFactor; // handling for minimap mode
+            //    }
+            //}
 
             Rectangle zPos = new Rectangle(
                 (int)(pagePosOnScreen.X * zoom),

@@ -591,7 +591,8 @@ namespace tud.mci.tangram.TangramLector
                     BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
                     if (vr != null)
                     {
-                        SetDetailRegionContent(LL.GetTrans("tangram.lector.wm.zooming.current.short", ((int)(vr.GetZoom() * 100)).ToString()));
+                        double zl = GetZoomPercentageBasedOnPrintZoom(vs.Name, vr.Name);
+                        SetDetailRegionContent(LL.GetTrans("tangram.lector.wm.zooming.current.short", (int)zl));
                     }
                 }
             }

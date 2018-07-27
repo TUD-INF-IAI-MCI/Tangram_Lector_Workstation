@@ -7,9 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using tud.mci.LanguageLocalization;
 using tud.mci.tangram.audio;
 using tud.mci.tangram.TangramLector.BrailleIO.Model;
+using tud.mci.tangram.TangramLector.BrailleIO.View;
 using tud.mci.tangram.TangramLector.Window_Manager;
 
 namespace tud.mci.tangram.TangramLector
@@ -107,10 +110,7 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// Timer-based value telling if blinking pins should be up or down.
         /// </summary>
-        public bool blinkPinsUp = true;
-        
-        //public ScreenObserver ScreenObserver { get; private set; }
-
+        public bool BlinkPinsUp = true;
 
         /// <summary>
         /// Gets the DRAW application model.
@@ -119,7 +119,10 @@ namespace tud.mci.tangram.TangramLector
         /// The DRAW application model.
         /// </value>
         public OoDrawModel DrawAppModel { get; private set; }
-
+        DrawRenderer drawRenderer_Fullscreen = new DrawRenderer();
+        DrawRenderer drawRenderer_Minimap = new DrawRenderer();
+        DrawRenderer drawRenderer_Default = new DrawRenderer();
+        MinimapRendererHook minimapHook = new MinimapRendererHook();
 
 
         private FollowFocusModes _focusMode = FollowFocusModes.NONE;
@@ -141,16 +144,6 @@ namespace tud.mci.tangram.TangramLector
                 fireFocusModeChangeEvent(old, _focusMode);
             }
         }
-
-        /// <summary>
-        /// Mode for tracking the focus automatically on the pin device. 
-        /// If true, view port of pin device is set to the selected element.
-        /// </summary>
-        //public bool FocusTrackingMode = false;
-        /// <summary>
-        /// Scaling factor for resizing original content to its size in minimap mode.
-        /// </summary>
-        public double MinimapScalingFactor { get; private set; }
 
         private ConcurrentBag<string> detailRegionHistory = new ConcurrentBag<string>();
         /// <summary>
@@ -179,6 +172,9 @@ namespace tud.mci.tangram.TangramLector
             set { instance = null; }
         }
 
+        /// <summary>
+        /// Prevents a default instance of the <see cref="WindowManager"/> class from being created.
+        /// </summary>
         private WindowManager()
         {
             DrawAppModel = new OoDrawModel();
@@ -220,7 +216,6 @@ namespace tud.mci.tangram.TangramLector
                 }
             }
             catch { }
-
         }
 
         internal void UpdateScreens()
@@ -241,10 +236,8 @@ namespace tud.mci.tangram.TangramLector
                 updateMainScreen(deviceSize.Width, deviceSize.Height);
                 updateFullScreen(deviceSize.Width, deviceSize.Height);
                 updateMinimapScreen(deviceSize.Width, deviceSize.Height);
-
             }
             catch { }
-
         }
 
         #endregion
@@ -384,6 +377,7 @@ namespace tud.mci.tangram.TangramLector
             center.SetBorder(0);
             center.SetContrastThreshold(STANDARD_CONTRAST_THRESHOLD);
             center.ShowScrollbars = true;
+            center.SetOtherContent(DrawAppModel, drawRenderer_Fullscreen);
 
             fullScreen.AddViewRange(VR_CENTER_NAME, center);
             if (io != null) io.AddView(BS_FULLSCREEN_NAME, fullScreen);
@@ -436,6 +430,15 @@ namespace tud.mci.tangram.TangramLector
             minimapScreen.AddViewRange(VR_TOP_NAME, top);
             minimapScreen.AddViewRange(VR_DETAIL_NAME, detail);
 
+
+            // register minimap view frame renderer hook
+            if (drawRenderer_Minimap != null)
+            {
+                drawRenderer_Minimap.UnregisterHook(minimapHook);
+                drawRenderer_Minimap.RegisterHook(minimapHook);
+            }
+
+            center.SetOtherContent(DrawAppModel, drawRenderer_Minimap);
             setRegionContent(minimapScreen, VR_TOP_NAME, "Minimap");
             setRegionContent(minimapScreen, VR_DETAIL_NAME, LL.GetTrans("tangram.lector.wm.minimap.vr_detail"));
 
@@ -712,6 +715,7 @@ namespace tud.mci.tangram.TangramLector
                     switch (currentView)
                     {
                         case LectorView.Drawing:
+                            center.SetOtherContent(DrawAppModel, drawRenderer_Default);
                             setCaptureArea();
                             if (center2 != null)
                                 center2.SetVisibility(false);
@@ -721,6 +725,7 @@ namespace tud.mci.tangram.TangramLector
                             setRegionContent(screen, VR_CENTER_2_NAME, content);
                             break;
                         default:
+                            center.SetOtherContent(DrawAppModel, drawRenderer_Default);
                             setCaptureArea();
                             break;
                     }
@@ -728,75 +733,75 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        /// <summary>
-        /// Set the content in minimap mode. Thereby the screen capturing bitmap is shown with blinking frame.
-        /// </summary>
-        /// <param name="vr">ViewRange in which minimap content should be shown.</param>
-        /// <param name="e">EventArgs of the screen capturing event.</param>
-        void setMinimapContent(BrailleIOViewRange vr, CaptureChangedEventArgs e)
-        {
-            int width = vr.ContentBox.Width;
-            int height = vr.ContentBox.Height;
-            Bitmap bmp = new Bitmap(width, height);
-            Graphics graph = Graphics.FromImage(bmp);
+        ///// <summary>
+        ///// Set the content in minimap mode. Thereby the screen capturing bitmap is shown with blinking frame.
+        ///// </summary>
+        ///// <param name="vr">ViewRange in which minimap content should be shown.</param>
+        ///// <param name="e">EventArgs of the screen capturing event.</param>
+        //void setMinimapContent(BrailleIOViewRange vr, CaptureChangedEventArgs e)
+        //{
+        //    int width = vr.ContentBox.Width;
+        //    int height = vr.ContentBox.Height;
+        //    Bitmap bmp = new Bitmap(width, height);
+        //    Graphics graph = Graphics.FromImage(bmp);
 
-            if (screenBeforeMinimap != null)
-            {
-                BrailleIOViewRange imgvr = screenBeforeMinimap.GetViewRange(VR_CENTER_NAME);
-                if (imgvr == null) return;
+        //    if (screenBeforeMinimap != null)
+        //    {
+        //        BrailleIOViewRange imgvr = screenBeforeMinimap.GetViewRange(VR_CENTER_NAME);
+        //        if (imgvr == null) return;
 
-                int xoffset = imgvr.GetXOffset();
-                int yoffset = imgvr.GetYOffset();
-                int imgWidth = imgvr.ContentWidth;
-                int imgHeight = imgvr.ContentHeight;
+        //        int xoffset = imgvr.GetXOffset();
+        //        int yoffset = imgvr.GetYOffset();
+        //        int imgWidth = imgvr.ContentWidth;
+        //        int imgHeight = imgvr.ContentHeight;
 
-                if (imgWidth > 0 && imgHeight > 0)
-                {
-                    // calculate image size for minimap (complete image has to fit into view range)
-                    int imgScaledWidth = imgWidth;
-                    int imgScaledHeight = imgHeight;
-                    double scaleFactorX = 1;
-                    double scaleFactorY = 1;
+        //        if (imgWidth > 0 && imgHeight > 0)
+        //        {
+        //            // calculate image size for minimap (complete image has to fit into view range)
+        //            int imgScaledWidth = imgWidth;
+        //            int imgScaledHeight = imgHeight;
+        //            double scaleFactorX = 1;
+        //            double scaleFactorY = 1;
 
-                    if (width != 0 && imgScaledWidth > width)
-                    {
-                        scaleFactorX = (double)imgWidth / (double)width;
-                        if (scaleFactorX != 0)
-                        {
-                            imgScaledWidth = width;
-                            imgScaledHeight = (int)(imgHeight / scaleFactorX);
-                        }
-                    }
-                    if (height != 0 && imgScaledHeight > height)
-                    {
-                        scaleFactorY = (double)imgScaledHeight / (double)height;
-                        if (scaleFactorY != 0)
-                        {
-                            imgScaledHeight = height;
-                            imgScaledWidth = (int)(imgScaledWidth / scaleFactorY);
-                        }
-                    }
+        //            if (width != 0 && imgScaledWidth > width)
+        //            {
+        //                scaleFactorX = (double)imgWidth / (double)width;
+        //                if (scaleFactorX != 0)
+        //                {
+        //                    imgScaledWidth = width;
+        //                    imgScaledHeight = (int)(imgHeight / scaleFactorX);
+        //                }
+        //            }
+        //            if (height != 0 && imgScaledHeight > height)
+        //            {
+        //                scaleFactorY = (double)imgScaledHeight / (double)height;
+        //                if (scaleFactorY != 0)
+        //                {
+        //                    imgScaledHeight = height;
+        //                    imgScaledWidth = (int)(imgScaledWidth / scaleFactorY);
+        //                }
+        //            }
 
-                    // calculate scaling factor from original image to minimap image size
-                    MinimapScalingFactor = 1 / (scaleFactorX * scaleFactorY);
-                    double zoom = imgvr.GetZoom();
-                    if (zoom > 0) MinimapScalingFactor = MinimapScalingFactor * zoom;
+        //            // calculate scaling factor from original image to minimap image size
+        //            MinimapScalingFactor = 1 / (scaleFactorX * scaleFactorY);
+        //            double zoom = imgvr.GetZoom();
+        //            if (zoom > 0) MinimapScalingFactor = MinimapScalingFactor * zoom;
 
-                    // calculate position and size of the blinking frame
-                    int x = Math.Abs(xoffset) * imgScaledWidth / imgWidth;
-                    int y = Math.Abs(yoffset) * imgScaledHeight / imgHeight;
-                    int frameWidth = width * imgScaledWidth / imgWidth;
-                    int frameHeigth = height * imgScaledHeight / imgHeight;
+        //            // calculate position and size of the blinking frame
+        //            int x = Math.Abs(xoffset) * imgScaledWidth / imgWidth;
+        //            int y = Math.Abs(yoffset) * imgScaledHeight / imgHeight;
+        //            int frameWidth = width * imgScaledWidth / imgWidth;
+        //            int frameHeigth = height * imgScaledHeight / imgHeight;
 
-                    // draw scaled image and blinking frame
-                    graph.DrawImage(e.Img, 0, 0, imgScaledWidth, imgScaledHeight);
-                    Color frameColor = Color.Black;
-                    if (!blinkPinsUp) frameColor = Color.White;
-                    graph.DrawRectangle(new Pen(frameColor, 2), x, y, frameWidth, frameHeigth);
-                    vr.SetBitmap(bmp);
-                }
-            }
-        }
+        //            // draw scaled image and blinking frame
+        //            graph.DrawImage(e.Img, 0, 0, imgScaledWidth, imgScaledHeight);
+        //            Color frameColor = Color.Black;
+        //            if (!blinkPinsUp) frameColor = Color.White;
+        //            graph.DrawRectangle(new Pen(frameColor, 2), x, y, frameWidth, frameHeigth);
+        //            vr.SetBitmap(bmp);
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Get the visible screen.
@@ -906,41 +911,17 @@ namespace tud.mci.tangram.TangramLector
         }
 
         /// <summary>
-        /// Pause the screen capturing.
-        /// </summary>
-        void StopCapturing() { if (DrawAppModel.ScreenObserver != null) DrawAppModel.ScreenObserver.Stop(); }
-
-        /// <summary>
-        /// Restarts the screen capturing.
-        /// </summary>
-        void RestartCapturing()
-        {
-            if (DrawAppModel.ScreenObserver != null) DrawAppModel.ScreenObserver.Start();
-            else setCaptureArea();
-        }
-
-        /// <summary>
         /// Handles the Changed event of the screen observer control and send it to view range that is defined by getTargetViewRangeForScreenCapturing().
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="tud.mci.tangram.TangramLector.CaptureChangedEventArgs"/> instance containing the event data.</param>
         void so_Changed(object sender, CaptureChangedEventArgs e)
-        {
-            if (currentView != LectorView.Drawing) return;
-            BrailleIOViewRange vr = getTargetViewRangeForScreenCapturing();
-            if (vr != null && e != null)
-            {
-                BrailleIOScreen vs = GetVisibleScreen();
-                if (vs != null && vs.Name.Equals(BS_MINIMAP_NAME))
-                {
-                    setMinimapContent(vr, e);
-                }
-                else
-                {
-                    vr.SetBitmap(e.Img as Bitmap);
-                }
-                io.RefreshDisplay(true);
-            }
+        {            
+            Task t = new Task(()=>{
+                // add some delay so the other listeners can do their job (e.g. prerender)
+                Thread.Sleep(5);
+                io.RefreshDisplay(true);});
+            t.Start();
         }
 
         #endregion
@@ -1174,7 +1155,7 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="e"></param>
         void blinkTimer_Tick(object sender, EventArgs e)
         {
-            blinkPinsUp = !blinkPinsUp;
+            BlinkPinsUp = !BlinkPinsUp;
 
             // Timer handling for temporary detail area messages
             if (tempMessageShown)

@@ -22,11 +22,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
     class DrawRenderer : AbstractCachingRendererBase, ITouchableRenderer, IDisposable
     {
         #region Members
-
-        #region protected
         public readonly BrailleIOImageToMatrixRenderer ImageRenderer = new BrailleIOImageToMatrixRenderer();
-        #endregion
-
         #endregion
 
         #region Constructor
@@ -37,12 +33,42 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         public DrawRenderer()
             : base()
         {
+            DoesPanning = true;
         }
 
         #endregion
-
-
+        
         #region Rendering
+
+        /// <summary>
+        /// Informs the renderer that the content the or view has changed.
+        /// You have to call the PrerenderMatrix function manually if you want to have a cached result.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="content">The content.</param>
+        public override void ContentOrViewHasChanged(IViewBoxModel view, object content)
+        {
+            if (lastContent != content)
+            {
+                unregisterFromDrawModelEvents(lastContent as OoDrawModel);
+                lastContent = content;
+                registerToDrawModelEvents(lastContent as OoDrawModel);
+            }
+            base.ContentOrViewHasChanged(view, content);
+        }
+
+        /// <summary>
+        /// Gets the previously rendered and cached matrix.
+        /// </summary>
+        /// <returns>
+        /// The cached rendering result
+        /// </returns>
+        public override bool[,] GetCachedMatrix()
+        {
+            //int trys = 0;
+            //while (IsRendering && trys++ < 2) { Thread.Sleep(renderingWaitTimeout); }
+            return _cachedMatrix;
+        }
 
         /// <summary>
         /// Renders the current content
@@ -52,9 +78,9 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         public override void PrerenderMatrix(IViewBoxModel view, object content)
         {
             int trys = 0;
-            while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
             Task t = new Task(() =>
             {
+                while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
                 this.IsRendering = true;
                 ContentChanged = false;
                 _cachedMatrix = _renderMatrix(view, content, CallHooksOnCacherendering);
@@ -66,18 +92,30 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
 
         protected virtual bool[,] _renderMatrix(global::BrailleIO.Interface.IViewBoxModel view, object content, bool CallHooksOnCacherendering)
         {
-            this.lastContent = content;
-
-            if (view != null && content is OoDrawModel)
+            if (content is OoDrawModel)
             {
                 if (view is BrailleIOViewRange &&
                     ((BrailleIOViewRange)view).IsVisible() &&
                     ((BrailleIOViewRange)view).Parent != null &&
                     ((BrailleIOViewRange)view).Parent.IsVisible())
                 {
-                    // TODO: render this
-                    return ImageRenderer.RenderMatrix(view,
+
+                    // fix zoom -1 = fit to available space
+                    if (((OoDrawModel)content).LastScreenCapturing != null
+                        && view is IZoomable && ((IZoomable)view).GetZoom() < 0)
+                    {
+                        var Bounds = ((OoDrawModel)content).LastScreenCapturing.Size;
+                        var factor = Math.Min(
+                           (double)view.ContentBox.Height / (double)Bounds.Height + 0.000000001,
+                            (double)view.ContentBox.Width / (double)Bounds.Width + 0.000000001
+                            );
+                        ((IZoomable)view).SetZoom(factor);
+                    }
+
+                    var result = ImageRenderer.RenderMatrix(view,
                         ((OoDrawModel)content).LastScreenCapturing);
+
+                    return result;
                 }
                 else
                 {
@@ -153,6 +191,37 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             {
             }
             catch (Exception) { }
+        }
+
+        #endregion
+
+        #region events
+
+        void registerToDrawModelEvents(OoDrawModel model)
+        {
+            if (model != null)
+            {
+                model.ScreenShotChanged += model_ScreenShotChanged;
+            }
+        }
+
+        void unregisterFromDrawModelEvents(OoDrawModel model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    model.ScreenShotChanged -= model_ScreenShotChanged;
+                }
+            }
+            catch (Exception) { }
+        }
+
+        void model_ScreenShotChanged(object sender, EventArgs e)
+        {
+           // ((OoDrawModel)lastContent).LastScreenCapturing.Save(@"C:\test\" + DateTime.Now.Ticks + "_capturing.png", System.Drawing.Imaging.ImageFormat.Png);
+
+            PrerenderMatrix(lastView, lastContent);
         }
 
         #endregion

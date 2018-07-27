@@ -103,6 +103,7 @@
     <Compile Include="BrailleIO\View\DrawRenderer.cs" />
     <Compile Include="BrailleIO\View\GUI_Menu.cs" />
     <Compile Include="BrailleIO\View\ImageData.cs" />
+    <Compile Include="BrailleIO\View\MinimapRendererHook.cs" />
     <Compile Include="BrailleIO\View\SceneGraphView.cs" />
     <Compile Include="OO\BrailleTextView.cs" />
     <Compile Include="OO\DrawDocumentRendererHook.cs" />
