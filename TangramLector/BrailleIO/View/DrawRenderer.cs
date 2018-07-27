@@ -112,6 +112,11 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
                         ((IZoomable)view).SetZoom(factor);
                     }
 
+                    // set the contrast threshold
+                    if (view is IContrastThreshold) 
+                        ImageRenderer.SetThreshold(
+                            ((IContrastThreshold)view).GetContrastThreshold());
+
                     var result = ImageRenderer.RenderMatrix(view,
                         ((OoDrawModel)content).LastScreenCapturing);
 
