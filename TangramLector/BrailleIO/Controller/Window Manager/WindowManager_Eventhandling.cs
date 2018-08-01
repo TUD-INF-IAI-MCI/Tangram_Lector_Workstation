@@ -566,6 +566,25 @@ namespace tud.mci.tangram.TangramLector
                                     e.Cancel = true;
                                     return;
 
+                                case "k5": // Toggle grid
+                                    if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
+                                    {
+                                        if (gridHook != null)
+                                        {
+                                            var mode = gridHook.NextMode();
+                                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "toggle grid to mode: " + mode);
+                                            gridHook.Active = true;
+
+                                            string msg = LL.GetTrans("tangram.lector.grid.active." + (gridHook.Active ? 1 : 0), mode);
+                                            audioRenderer.PlaySoundImmediately(msg);
+                                            ShowTemporaryMessageInDetailRegion(msg);
+                                        }
+                                    }
+                                    e.Cancel = true;
+                                    return;
+
+
+
                                 case "k7": // 1-zu-1 Zoom
                                     if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
                                     {

@@ -884,6 +884,12 @@ namespace tud.mci.tangram.TangramLector
                     return touchedValue.ToString();
                 }
 
+                else // OoShapeObserver
+                {
+
+                }
+                // UIA element
+
             }
             return String.Empty;
         }

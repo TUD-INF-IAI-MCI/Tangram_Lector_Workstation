@@ -106,6 +106,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\BrailleIO\BrailleIO_Interfaces\BrailleIO_Interfaces.csproj">
+      <Project>{168ec2f2-7e4a-493a-ab4a-9fb1b45dab64}</Project>
+      <Name>BrailleIO_Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\Tangram_InteractionManger\Submodules\DotNet_AudioRenderer\AudioRenderer.csproj">
       <Project>{c0f2d4e2-fc99-4218-b877-1d217fbf0437}</Project>
       <Name>AudioRenderer</Name>

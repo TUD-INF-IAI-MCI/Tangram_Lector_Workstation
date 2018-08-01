@@ -123,6 +123,8 @@ namespace tud.mci.tangram.TangramLector
         DrawRenderer drawRenderer_Minimap = new DrawRenderer();
         DrawRenderer drawRenderer_Default = new DrawRenderer();
         MinimapRendererHook minimapHook = new MinimapRendererHook();
+        GridRendererHook gridHook = new GridRendererHook();
+
 
 
         private FollowFocusModes _focusMode = FollowFocusModes.NONE;
@@ -285,7 +287,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 ((MatrixBrailleRenderer)renderer).RenderingProperties |= RenderingProperties.IGNORE_LAST_LINESPACE;
             }
-
+            
             mainScreen.AddViewRange(VR_CENTER_2_NAME, center2);
             mainScreen.AddViewRange(VR_CENTER_NAME, center);
             mainScreen.AddViewRange(VR_TOP_NAME, top);
@@ -378,6 +380,13 @@ namespace tud.mci.tangram.TangramLector
             center.SetContrastThreshold(STANDARD_CONTRAST_THRESHOLD);
             center.ShowScrollbars = true;
             center.SetOtherContent(DrawAppModel, drawRenderer_Fullscreen);
+
+            // register grid hook
+            if (drawRenderer_Fullscreen != null && gridHook != null)
+            {
+                drawRenderer_Fullscreen.UnregisterHook(gridHook);
+                drawRenderer_Fullscreen.RegisterHook(gridHook);
+            }
 
             fullScreen.AddViewRange(VR_CENTER_NAME, center);
             if (io != null) io.AddView(BS_FULLSCREEN_NAME, fullScreen);
@@ -716,9 +725,19 @@ namespace tud.mci.tangram.TangramLector
                     {
                         case LectorView.Drawing:
                             center.SetOtherContent(DrawAppModel, drawRenderer_Default);
+                            
+                            // register grid hook
+                            if (drawRenderer_Default != null && gridHook != null)
+                            {
+                                drawRenderer_Default.UnregisterHook(gridHook);
+                                drawRenderer_Default.RegisterHook(gridHook);
+                            }
+
                             setCaptureArea();
                             if (center2 != null)
                                 center2.SetVisibility(false);
+
+
                             break;
                         case LectorView.Braille:
                             String content = "Hallo Welt"; // TODO: set real content
@@ -726,6 +745,14 @@ namespace tud.mci.tangram.TangramLector
                             break;
                         default:
                             center.SetOtherContent(DrawAppModel, drawRenderer_Default);
+
+                            // register grid hook
+                            if (drawRenderer_Default != null && gridHook != null)
+                            {
+                                drawRenderer_Default.UnregisterHook(gridHook);
+                                drawRenderer_Default.RegisterHook(gridHook);
+                            }
+
                             setCaptureArea();
                             break;
                     }

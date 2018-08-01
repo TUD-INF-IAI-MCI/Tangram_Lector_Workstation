@@ -101,6 +101,7 @@
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_TopMostSpFProxy.cs" />
     <Compile Include="BrailleIO\Model\OoDrawModel.cs" />
     <Compile Include="BrailleIO\View\DrawRenderer.cs" />
+    <Compile Include="BrailleIO\View\GridRendererHook.cs" />
     <Compile Include="BrailleIO\View\GUI_Menu.cs" />
     <Compile Include="BrailleIO\View\ImageData.cs" />
     <Compile Include="BrailleIO\View\MinimapRendererHook.cs" />

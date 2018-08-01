@@ -13,7 +13,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
     /// corresponding to the view port position and size of the previously presented Screen.
     /// </summary>
     /// <seealso cref="BrailleIO.Interface.IBailleIORendererHook" />
-    class MinimapRendererHook : IBailleIORendererHook
+    class MinimapRendererHook : IBailleIORendererHook, IActivatable
     {
         #region Member
         BrailleIOMediator io { get { return BrailleIOMediator.Instance; } }
@@ -27,7 +27,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         /// <summary>
         /// Gets a value indicating whether the hook should be active or not.
         /// </summary>
-        public bool Active = false;
+        public bool Active { get; set; }
         
         /// <summary>
         /// Gets a value indicating whether [show raised frame].
