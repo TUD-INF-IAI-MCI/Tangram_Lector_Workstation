@@ -96,6 +96,7 @@
     <Reference Include="UIAutomationClient" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BrailleIO\Controller\SceneGraphDialogController.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_FeedbackReceiver.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_SpecializedFunctionProxy.cs" />
     <Compile Include="BrailleIO\Controller\Window Manager\WindowManager_TopMostSpFProxy.cs" />
