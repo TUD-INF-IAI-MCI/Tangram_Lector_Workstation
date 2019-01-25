@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<mappings>
+  <!--
+  <function name="callMeFunction" description="some function to handle something">
+    <mapping device="_default">f1,f2, fn3, gesture,none,unknown,</mapping>
+    <mapping device="BrailleDis">k1,k2,k3</mapping>
+  </function>
+  -->
+
+  <!-- General Commands -->
+
+  <function name="abortSpeechOutput" description="Aborts all audio feedback immediately">
+    <mapping device="_default">F1</mapping>
+  </function>
+  
+  <function name="recalibrate" description="Recalibrate the current active adapter">
+    <mapping device="_default">Abort,k1,k3</mapping>
+  </function>
+
+  <function name="followGUIFocus" description="Activate follow GUI focus mode">
+    <mapping device="_default">k1,k2,k4,k7</mapping>
+  </function>
+
+  <function name="Gesture" description="Gesture recognition">
+    <mapping device="_default">Gesture</mapping>
+  </function>
+
+  <function name="Manipulation" description="Gesture recognition for manipulation">
+    <mapping device="_default">Abort</mapping>
+  </function>
+  
+  <!-- Global Commands -->
+  
+  <!-- Panning -->
+  
+  <function name="pannPageLeft" description="Moves the viewPort a large step to the left">
+    <mapping device="_default">fn10</mapping>
+  </function>
+
+  <function name="pannStepLeft" description="Moves the viewPort a small step to the left">
+    <mapping device="_default">Left</mapping>
+  </function>
+
+  <function name="pannPageRight" description="Moves the viewPort a large step to the right">
+    <mapping device="_default">fn11</mapping>
+  </function>
+
+  <function name="pannStepRight" description="Moves the viewPort a small step to the right">
+    <mapping device="_default">Right</mapping>
+  </function>
+
+  <function name="pannPageUp" description="Moves the viewPort a large step to the top">
+    <mapping device="_default">fn8</mapping>
+  </function>
+
+  <function name="pannStepUp" description="Moves the viewPort a small step to the top">
+    <mapping device="_default">Up</mapping>
+  </function>
+
+  <function name="pannPageDown" description="Moves the viewPort a large step to the bottom">
+    <mapping device="_default">fn9</mapping>
+  </function>
+
+  <function name="pannStepDown" description="Moves the viewPort a small step to the bottom">
+    <mapping device="_default">Down</mapping>
+  </function>
+  
+  <!-- panning jumps-->
+
+  <function name="pannJumpToLeft" description="Moves the viewPort to the very left">
+    <mapping device="_default">fn6</mapping>
+  </function>
+
+  <function name="pannJumpToRight" description="Moves the viewPort to the very right">
+    <mapping device="_default">fn7</mapping>
+  </function>
+
+  <function name="pannJumpToTop" description="Moves the viewPort to the very top">
+    <mapping device="_default">fn4</mapping>
+  </function>
+
+  <function name="pannJumpToBottom" description="Moves the viewPort to the very bottom">
+    <mapping device="_default">fn5</mapping>
+  </function>
+  
+  
+  <!-- zooming -->
+
+  <function name="zoomIncrease" description="Increase the presentation - decrease the zooming factor">
+    <mapping device="_default">ZoomIn</mapping>
+    <mapping device="BrailleIO.BrailleIOAdapter_ShowOff">fn2</mapping>
+  </function>
+
+  <function name="zoomDecrease" description="Decrease the presentation - increase the zooming factor">
+    <mapping device="_default">ZoomOut</mapping>
+    <mapping device="BrailleIO.BrailleIOAdapter_ShowOff">fn3</mapping>
+  </function>
+
+  <function name="zoomIncreaseLarge" description="Strongly increase the presentation - decrease the zooming factor">
+    <mapping device="_default">fn2</mapping>
+    <mapping device="BrailleIO.BrailleIOAdapter_ShowOff">ZoomIn</mapping>
+  </function>
+
+  <function name="zoomDecreaseLarge" description="Strongly decrease the presentation - increase the zooming factor">
+    <mapping device="_default">fn3</mapping>
+    <mapping device="BrailleIO.BrailleIOAdapter_ShowOff">ZoomOut</mapping>
+  </function>
+  
+  
+  <!-- ############# Drawing Mode Commands  ################ -->
+  
+  <function name="zoomTo100" description="print zoom level">
+    <mapping device="_default">k1</mapping>
+  </function>
+
+  <function name="zoomToFit" description="Calculate the zoom level to fit the whole content in the available viewPort">
+    <mapping device="_default">k3</mapping>
+  </function>
+
+  <function name="zoomTo1to1" description="Set the zoom level to 1 = 100%">
+    <mapping device="_default">k7</mapping>
+  </function>
+
+  <function name="returnZoomLevel" description="Request the current set zoom level">
+    <mapping device="_default">k1,k3,k5,k6,k7,k8</mapping>
+  </function>
+
+  <!-- brightness thresholding -->
+
+  <function name="invert" description="Inverts the presentation of the view">
+    <mapping device="_default">F11</mapping>
+  </function>
+
+  <function name="decreaseBrightnessThreshold" description="Decreases the threshold of the brightness - pins will rise on darker colors than before">
+    <mapping device="_default">F22</mapping>
+  </function>
+
+  <function name="increaseBrightnessThreshold" description="Increases the threshold of the brightness - pins will rise on lighter colors than before">
+    <mapping device="_default">F2</mapping>
+  </function>
+
+  <function name="resetBrightnessThreshold" description="Reset the threshold of the brightness">
+    <mapping device="_default">F2,F22</mapping>
+  </function>
+
+  <!-- control the regions -->
+
+  <function name="toggleMinimap" description="Toggle the visibility of the Minmap">
+    <mapping device="_default">k2</mapping>
+  </function>
+
+  <function name="toggleHeaderRegion" description="Toggles the visibility of the header region">
+    <mapping device="_default">k1,k3,k8</mapping>
+  </function>
+
+  <function name="toggleDetailRegion" description="Toggles the visibility of the detail region">
+    <mapping device="_default">k1,k4,k5,k8</mapping>
+  </function>
+
+  <function name="toggleFullScreen" description="Toggles the visibility of the detail full screen mode">
+    <mapping device="_default">k1,k3,k4,k6,k8</mapping>
+  </function>
+  
+  <!-- Braille Input Commands -->
+
+  <function name="maximizeEditArea" description="Maximizes the area within is written">
+    <mapping device="_default">F2</mapping>
+  </function>
+
+  <!-- Graphic manipulation -->
+
+  <function name="centerFocusedElement" description="Brings the currently focused element to center">
+    <mapping device="_default">fn1</mapping>
+  </function>
+
+  <function name="highlightDOMFocusInGui" description="Mark the currently selected element in the GUI">
+    <mapping device="_default">F1,F11</mapping>
+  </function>
+  
+  <function name="toggleDOMFocusMode" description="Turn on and off if the focused element should be automatically bring to the center of the display">
+    <mapping device="_default">k1,k2,k4</mapping>
+  </function>
+
+  <function name="toggleBrailleDisplayOverlay" description="Turn on and off the replacement of text to Braille text">
+    <mapping device="_default">k6</mapping>
+  </function>
+
+  <function name="toggleFocusHighlight" description="Turn on and off the blinking frame for highlighting the current manipulation focus">
+    <mapping device="_default">k8</mapping>
+  </function>
+
+  <!-- confirmChange -->
+  <function name="confirm" description="Request for a manipulation change in right direction">
+    <mapping device="_default">Enter</mapping>
+  </function>
+
+  <function name="changeUp" description="Request for a manipulation change in top direction">
+    <mapping device="_default">fn12</mapping>
+  </function>
+
+  <function name="changeDown" description="Request for a manipulation change in bottom direction">
+    <mapping device="_default">fn13</mapping>
+  </function>
+
+  <function name="changeLeft" description="Request for a manipulation change in left direction">
+    <mapping device="_default">fn14</mapping>
+  </function>
+
+  <function name="changeRight" description="Request for a manipulation change in right direction">
+    <mapping device="_default">fn15</mapping>
+  </function>
+
+  
+  <function name="changeUpRight" description="Request for a manipulation change in top direction">
+    <mapping device="_default">fn12,fn15</mapping>
+  </function>
+
+  <function name="changeDownRight" description="Request for a manipulation change in bottom direction">
+    <mapping device="_default">fn13,fn15</mapping>
+  </function>
+
+  <function name="changeUpLeft" description="Request for a manipulation change in left direction">
+    <mapping device="_default">fn12,fn14</mapping>
+  </function>
+
+  <function name="changeDownLeft" description="Request for a manipulation change in right direction">
+    <mapping device="_default">fn13,fn14</mapping>
+  </function>
+
+
+  <function name="editTitleDesc" description="Opens the title and description edit dialog">
+    <mapping device="_default">k2,k3,k4,k5</mapping>
+  </function>
+
+  <!-- focusing -->
+
+  <function name="focusGuiElement" description="Set the focus to the currently selected element of the GUI">
+    <mapping device="_default">k4</mapping>
+  </function>
+
+  <function name="nextElement" description="Set the focus to the next element">
+    <mapping device="_default">k4,k5</mapping>
+  </function>
+
+  <function name="previousElement" description="Set the focus to the previous element">
+    <mapping device="_default">k1,k2</mapping>
+  </function>
+
+  <function name="parentElement" description="Set the focus to the parent element">
+    <mapping device="_default">k1,k2,k3</mapping>
+  </function>
+
+  <function name="childElement" description="Set the focus to the first child element">
+    <mapping device="_default">k4,k5,k6</mapping>
+  </function>
+
+  <function name="unfocusElement" description="Remove the focus from any element">
+    <mapping device="_default">k1,k2,k4,k5</mapping>
+  </function>
+  
+  <!-- z ordering -->
+  
+  <function name="sendToBackground" description="Put an element down in the z-order = send it more in the background.">
+    <mapping device="_default">k3,k6</mapping>
+  </function>
+
+  <function name="sendToForeground" description="Pull an element up in the z-order = bring it more in the foreground.">
+    <mapping device="_default">k2,k3,k5</mapping>
+  </function>
+  
+  <!-- others -->
+
+  <function name="getDescription" description="Return the description of an element">
+    <mapping device="_default">k5,k6</mapping>
+  </function>
+
+  <function name="deleteElement" description="Delete the currently selected element">
+    <mapping device="_default">k1,k4,k5</mapping>
+  </function>
+
+  <function name="toggleGrouping" description="Toggles the mode for grouping elements">
+    <mapping device="_default">k1,k2,k4,k5,k7</mapping>
+  </function>
+
+  <!-- panning the detail area -->
+
+  <function name="pannDetailLeft" description="Moves the viewPort of the detail are a step to the left">
+    <mapping device="_default">fn14</mapping>
+  </function>
+
+  <function name="pannDetailRight" description="Moves the viewPort of the detail are a step to the right">
+    <mapping device="_default">fn15</mapping>
+  </function>
+
+  <function name="pannDetailUp" description="Moves the viewPort of the detail are a step to the top">
+    <mapping device="_default">fn12</mapping>
+  </function>
+
+  <function name="pannDetailDown" description="Moves the viewPort of the detail are a step to the bottom">
+    <mapping device="_default">fn13</mapping>
+  </function>
+
+
+</mappings>

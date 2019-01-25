@@ -1029,7 +1029,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         private void openTitleDescDialog()
         {
-            if (shapeManipulatorFunctionProxy == null || shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
+            if (shapeManipulatorFunctionProxy == null || !shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
             {
                 return;
             }

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Drawing;
-using BrailleIO;
+﻿using BrailleIO;
 using BrailleIO.Interface;
-using TangramLector.OO;
-using tud.mci.tangram.controller.observer;
-using tud.mci.tangram.TangramLector.OO;
 using BrailleIO.Renderer;
 using BrailleIO.Renderer.Structs;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using TangramLector.OO;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.controller.observer;
+using tud.mci.tangram.TangramLector.OO;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -43,7 +43,7 @@ namespace tud.mci.tangram.TangramLector
                 var pagesObs = wnd.DrawPagesObs;
                 if (pagesObs != null)
                 {
-                    var zoomLevel = (float)pagesObs.ZoomValue / 100f;
+                    var zoomLevel = pagesObs.ZoomValue / 100f;
                     return _PRINT_ZOOM_FACTOR / zoomLevel;
                 }
             }
@@ -819,14 +819,10 @@ namespace tud.mci.tangram.TangramLector
             if (observed != null && observed.DocumentComponent != null)
             {
                 //try to get the touched element
-                tud.mci.tangram.Accessibility.OoAccComponent c = observed.DocumentComponent.GetAccessibleFromScreenPos(p);
 
-                if (eventData == null || ( // selection for reading
-                    eventData.PressedGenericKeys.Count < 1 && eventData.ReleasedGenericKeys.Count == 1
-                    && eventData.ReleasedGeneralKeys.Contains(BrailleIO_DeviceButton.Gesture)
-                    ))
+                if (InteractionManager.Mode.HasFlag(InteractionMode.Gesture))
                 {
-                    // try to get a shape observer for better audio output
+                    tud.mci.tangram.Accessibility.OoAccComponent c = observed.DocumentComponent.GetAccessibleFromScreenPos(p);
                     if (c != null && observed.DrawPagesObs != null)
                     {
                         OoShapeObserver sObs = observed.DrawPagesObs.GetRegisteredShapeObserver(c);
@@ -841,12 +837,47 @@ namespace tud.mci.tangram.TangramLector
                         }
                         SetDetailRegionContent(text);
                     }
+
+                    // Quit gesture mode
+                    InteractionManager.ChangeMode( InteractionManager.Mode & ~InteractionMode.Gesture);
+
                 }
-                else if (eventData != null && eventData.ReleasedGenericKeys.Contains("hbr"))
+                else if (InteractionManager.Mode.HasFlag(InteractionMode.Manipulation))
                 {
+                    tud.mci.tangram.Accessibility.OoAccComponent c = observed.DocumentComponent.GetAccessibleFromScreenPos(p);
                     OoShapeObserver shape = OoConnector.Instance.Observer.GetShapeForModification(c, observed);
-                    //TODO: what to do if shape is null?
+                    // TODO: what to do if shape is null?
+                    // TODO: quit manipulation mode
                 }
+
+
+                //if (eventData == null || ( // selection for reading
+                //    eventData.PressedGenericKeys.Count < 1 && eventData.ReleasedGenericKeys.Count == 1
+                //    && eventData.ReleasedGeneralKeys.Contains(BrailleIO_DeviceButton.Gesture
+                //    eventData.ReleasedButtonsToString().Equals("Gesture") && !eventData.AreButtonsPressed()                    
+                //    ))
+                //{
+                //     try to get a shape observer for better audio output
+                //    if (c != null && observed.DrawPagesObs != null)
+                //    {
+                //        OoShapeObserver sObs = observed.DrawPagesObs.GetRegisteredShapeObserver(c);
+                //        String text = "";
+                //        if (sObs != null)
+                //        {
+                //            text = OoElementSpeaker.PlayElementTitleAndDescriptionImmediately(sObs);
+                //        }
+                //        else
+                //        {
+                //            text = OoElementSpeaker.PlayElementImmediately(c);
+                //        }
+                //        SetDetailRegionContent(text);
+                //    }
+                //}
+                //else if (eventData != null && eventData.ReleasedGenericKeys.Contains("hbr"))
+                //{
+                //    OoShapeObserver shape = OoConnector.Instance.Observer.GetShapeForModification(c, observed);
+                //    TODO: what to do if shape is null?
+                //}
             }
         }
 
