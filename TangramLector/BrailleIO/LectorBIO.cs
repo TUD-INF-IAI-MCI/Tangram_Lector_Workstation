@@ -353,8 +353,6 @@ namespace tud.mci.tangram.TangramLector
                 }
             }
 
-            mapMonitors(adapters, adapterSupplierExtensions);
-
             return adapters;
         }
 
@@ -459,40 +457,6 @@ namespace tud.mci.tangram.TangramLector
             }
 
             return suppliers;
-        }
-
-        private static void mapMonitors(List<IBrailleIOAdapter> adapters, List<IBrailleIOAdapterSupplier> suppliers)
-        {
-            if (adapters != null && adapters.Count > 0 && suppliers != null && suppliers.Count > 0)
-            {
-                foreach (var supplier in suppliers)
-                {
-                    if (supplier != null)
-                    {
-                        List<String> monitorables;
-                        if (supplier.IsMonitor(out monitorables))
-                        {
-                            if (monitorables != null && monitorables.Count > 0)
-                            {
-                                foreach (String monitorable in monitorables)
-                                {
-                                    if (!String.IsNullOrWhiteSpace(monitorable))
-                                    {
-                                        foreach (var adapter in adapters)
-                                        {
-                                            String name = adapter.GetType().FullName;
-                                            if (adapter.GetType().FullName.Equals(monitorable))
-                                            {
-                                                supplier.StartMonitoringAdapter(adapter);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         #endregion
