@@ -212,7 +212,7 @@ namespace tud.mci.tangram.TangramLector.OO
 
         protected override void im_FunctionCall(object sender, FunctionCallInteractionEventArgs e)
         {
-            if (Active && e != null && !String.IsNullOrEmpty(e.Function) && !e.AreButtonsPressed())
+            if (Active && e != null && !String.IsNullOrEmpty(e.Function))
             {
 
                 switch (e.Function)

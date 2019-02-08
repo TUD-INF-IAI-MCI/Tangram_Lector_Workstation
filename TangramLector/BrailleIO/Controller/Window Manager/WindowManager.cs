@@ -316,7 +316,7 @@ namespace tud.mci.tangram.TangramLector
                         status.SetLeft(width - 12);
                     }
 
-                    // center 2
+                    // detail
                     BrailleIOViewRange detail = mainScreen.GetViewRange(VR_DETAIL_NAME);
                     if (detail != null)
                     {

@@ -853,7 +853,7 @@ namespace tud.mci.tangram.TangramLector
 
         protected override void im_FunctionCall(object sender, FunctionCallInteractionEventArgs e)
         {
-            if (e != null && !string.IsNullOrEmpty(e.Function) && !e.AreButtonsPressed())
+            if (e != null && !string.IsNullOrEmpty(e.Function))
             {
                 BrailleIOScreen vs = GetVisibleScreen();
 

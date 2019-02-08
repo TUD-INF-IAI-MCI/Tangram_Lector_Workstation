@@ -25,7 +25,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 
         protected override void im_FunctionCall(object sender, FunctionCallInteractionEventArgs e)
         {
-            if (Active && e != null && !String.IsNullOrEmpty(e.Function) && !e.AreButtonsPressed())
+            if (Active && e != null && !String.IsNullOrEmpty(e.Function))
             {
                 if (!InteractionManager.Instance.Mode.HasFlag(InteractionMode.Braille))
                 {
