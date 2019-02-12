@@ -9,6 +9,7 @@ using tud.mci.tangram.audio;
 using tud.mci.tangram.TangramLector.Extension;
 using System.Configuration;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -54,6 +55,7 @@ namespace tud.mci.tangram.TangramLector
 
         public LectorGUI()
         {
+            // Step 1: load logger 
             try
             {
                 logger.Priority = LogPriority.IMPORTANT;
@@ -74,9 +76,11 @@ namespace tud.mci.tangram.TangramLector
                 logger.Priority = LogPriority.DEBUG;
 #endif
 
+                // Step 2: initialize Window manager
                 windowManager = WindowManager.Instance;
-
+                // Step 3: initialize Audio Render
                 initializeAudioRenderer();
+                // Step 4: initialize the tactile I/O framework and load all the Adapters/Devices
                 initializeBrailleIO();
 
                 if (windowManager != null)
@@ -84,12 +88,16 @@ namespace tud.mci.tangram.TangramLector
                     windowManager.Disposing += new EventHandler(windowManager_Disposing);
                 }
 
+                // Step 5: load all the extensions
                 if (functionProxy != null)
                 {
                     functionProxy.Initialize(interactionManager);
                     // load specialized script function proxy extensions
                     initializeSSFPExtensions();
                 }
+
+                // Step 6: load user function mappings
+                loadUsersButton2FunctionMappings();
 
                 logger.Log(LogPriority.OFTEN, this, "[NOTICE] LGui loaded successfully");
             }
@@ -174,6 +182,42 @@ namespace tud.mci.tangram.TangramLector
             audioRenderer.PlayWave(StandardSounds.Start);
             audioRenderer.PlaySound(LL.GetTrans("tangram.lector.bio.welcome"));
         }
+        
+        private void loadUsersButton2FunctionMappings()
+        {
+            try
+            {
+                // find user setting file by config
+                String userFunctionMappingFile = ConfigurationManager.AppSettings["Button2FunctionMappings"];
+                if (!String.IsNullOrWhiteSpace(userFunctionMappingFile))
+                {
+                    logger.Log(LogPriority.DEBUG, this, "[INFO]\ttry to load users key-combination to function mapping file from '" + userFunctionMappingFile + "'");
+                    if (File.Exists(userFunctionMappingFile))
+                    {
+
+                        if(interactionManager != null)
+                        {
+                            bool success = interactionManager.AddButton2FunctionMappingFile(userFunctionMappingFile);
+                            if (success)
+                            {
+                                logger.Log(LogPriority.DEBUG, this, "[INFO]\tusers key-combination to function mapping file loaded successfully");
+                            }
+                            else
+                            {
+                                logger.Log(LogPriority.DEBUG, this, "[ERROR]\tusers key-combination to function mapping file could not been loaded");
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        logger.Log(LogPriority.DEBUG, this, "[ERROR]\tno function mapping file at the requested location found.");
+                    }
+                }
+            }
+            catch { }
+        }
+
 
         #endregion
 

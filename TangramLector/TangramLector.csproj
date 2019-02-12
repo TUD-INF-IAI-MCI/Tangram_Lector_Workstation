@@ -178,6 +178,9 @@
     <Content Include="config\pics\tactile_logo.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\UserFunctionMappings.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\GlobalFunctionMappings.xml" />
     <Content Include="Resources\Language.xml">
       <SubType>Designer</SubType>
