@@ -190,7 +190,7 @@
   </function>
 
   <!-- confirmChange -->
-  <function name="confirm" description="Request for a manipulation change in right direction">
+  <function name="confirm" description="Confirms the selection or change and switch to the next manipulation mode">
     <mapping device="_default">Enter</mapping>
   </function>
 
@@ -211,19 +211,19 @@
   </function>
 
   
-  <function name="changeUpRight" description="Request for a manipulation change in top direction">
+  <function name="changeUpRight" description="Request for a manipulation change in top right direction">
     <mapping device="_default">fn12,fn15</mapping>
   </function>
 
-  <function name="changeDownRight" description="Request for a manipulation change in bottom direction">
+  <function name="changeDownRight" description="Request for a manipulation change in bottom right direction">
     <mapping device="_default">fn13,fn15</mapping>
   </function>
 
-  <function name="changeUpLeft" description="Request for a manipulation change in left direction">
+  <function name="changeUpLeft" description="Request for a manipulation change in top left direction">
     <mapping device="_default">fn12,fn14</mapping>
   </function>
 
-  <function name="changeDownLeft" description="Request for a manipulation change in right direction">
+  <function name="changeDownLeft" description="Request for a manipulation change in bottom left direction">
     <mapping device="_default">fn13,fn14</mapping>
   </function>
 
