@@ -162,6 +162,10 @@ namespace tud.mci.tangram.TangramLector.OO
 
                     if (((OpenOfficeDrawShapeManipulator)sender).IsShapeSelected)
                     {
+                        if (InteractionManager.Instance != null)
+                            InteractionManager.Instance.ChangeMode(
+                                InteractionManager.Instance.Mode | InteractionMode.Manipulation);
+
                         OoShapeObserver _shape = ((OpenOfficeDrawShapeManipulator)sender).LastSelectedShape;
                         if (_shape != null)
                         {
@@ -183,6 +187,9 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
                     else
                     {
+                        if (InteractionManager.Instance != null)
+                            InteractionManager.Instance.ChangeMode(
+                                InteractionManager.Instance.Mode & ~InteractionMode.Manipulation);
                         WindowManager.Instance.SetDetailRegionContent(LL.GetTrans("tangram.lector.oo_observer.selected_no"));
                     }
                 }
@@ -687,6 +694,8 @@ namespace tud.mci.tangram.TangramLector.OO
         {
             if (shape != null)
             {
+                if (InteractionManager.Instance != null) InteractionManager.Instance.ChangeMode(InteractionManager.Instance.Mode | InteractionMode.Manipulation);
+
                 if (shapeManipulatorFunctionProxy != null && !ImageData.Instance.Active)
                 {
                     if (!silent)
@@ -702,6 +711,12 @@ namespace tud.mci.tangram.TangramLector.OO
                 {
                     ImageData.Instance.NewSelectionHandling(shape);
                 }
+            }
+            else
+            {
+                if (InteractionManager.Instance != null)
+                    InteractionManager.Instance.ChangeMode(
+                        InteractionManager.Instance.Mode & ~InteractionMode.Manipulation);
             }
 
             return false;
@@ -1032,7 +1047,7 @@ namespace tud.mci.tangram.TangramLector.OO
         /// </summary>
         private void openTitleDescDialog()
         {
-            if (shapeManipulatorFunctionProxy == null || shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
+            if (shapeManipulatorFunctionProxy == null || !shapeManipulatorFunctionProxy.IsShapeSelected /*.LastSelectedShape == null*/)
             {
                 return;
             }

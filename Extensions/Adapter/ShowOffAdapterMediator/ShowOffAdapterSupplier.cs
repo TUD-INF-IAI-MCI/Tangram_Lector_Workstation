@@ -80,50 +80,9 @@ namespace ShowOffAdapterMediator
             return false;
         }
 
-        bool IBrailleIOAdapterSupplier.IsMonitor(out List<String> monitoringAdapter)
-        {
-            monitoringAdapter = new List<String>() { 
-                "BrailleIOBrailleDisAdapter.BrailleIOAdapter_BrailleDisNet"
-                ,"BrailleIOHbsAdapter.BrailleIOAdapter_HyperBrailleS"
-                ,"PegasusAirPenAdapter.BrailleIOAdapter_AirPen"};
-            return true;
-        }
-
-        bool IBrailleIOAdapterSupplier.StartMonitoringAdapter(BrailleIO.Interface.IBrailleIOAdapter adapter)
-        {
-            if (adapter != null)
-            {
-                #region BrailleDis events
-                ((IBrailleIOAdapterSupplier)this).StopMonitoringAdapter(adapter);
-                adapter.touchValuesChanged += new EventHandler<BrailleIO_TouchValuesChanged_EventArgs>(_bda_touchValuesChanged);
-                #endregion
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Stops the monitoring of the adapter.
-        /// </summary>
-        /// <param name="adapter">The adapter to monitor.</param>
-        /// <returns>
-        /// 	<c>true</c> if the specified adapter monitoring was stopped; otherwise, <c>false</c>.
-        /// </returns>
-        bool IBrailleIOAdapterSupplier.StopMonitoringAdapter(BrailleIO.Interface.IBrailleIOAdapter adapter)
-        {
-            if (adapter != null)
-            {
-                #region BrailleDis events
-                adapter.touchValuesChanged -= new EventHandler<BrailleIO_TouchValuesChanged_EventArgs>(_bda_touchValuesChanged);
-                #endregion
-            }
-
-            return true;
-        }
-
         #endregion
-        
-        #region Event Hanlding
+
+        #region Event Handling
 
         void monitor_Disposed(object sender, EventArgs e)
         {
@@ -141,7 +100,7 @@ namespace ShowOffAdapterMediator
         }
 
         #endregion
-        
+
         #region  Monitoring in ShowOff Adapter
 
         void _bda_touchValuesChanged(object sender, BrailleIO.Interface.BrailleIO_TouchValuesChanged_EventArgs e)
@@ -151,13 +110,23 @@ namespace ShowOffAdapterMediator
 
         void interactionManager_ButtonReleased(object sender, ButtonReleasedEventArgs e)
         {
-            if (monitor != null) monitor.MarkButtonAsPressed(e.PressedGenericKeys);
-            if (monitor != null) monitor.UnmarkButtons(e.ReleasedGenericKeys);
+            if (monitor != null)
+            {
+                // monitor.MarkButtonAsPressed(e.PressedGenericKeys);
+                monitor.MarkButtonAsPressed(e.PressedGeneralKeys, e.PressedBrailleKeyboardKeys, e.PressedAdditionalKeys);
+
+                // monitor.UnmarkButtons(e.ReleasedGenericKeys);
+                monitor.UnmarkButtons(e.ReleasedGeneralKeys, e.ReleasedBrailleKeyboardKeys, e.ReleasedAdditionalKeys);
+            }
         }
 
         void interactionManager_ButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if (monitor != null) monitor.MarkButtonAsPressed(e.PressedGenericKeys);
+            if (monitor != null)
+            {
+                //monitor.MarkButtonAsPressed(e.PressedGenericKeys);
+                monitor.MarkButtonAsPressed(e.PressedGeneralKeys, e.PressedBrailleKeyboardKeys, e.PressedAdditionalKeys);
+            }
         }
 
         void audioRenderer_Stoped(object sender, EventArgs e)
@@ -211,6 +180,77 @@ namespace ShowOffAdapterMediator
                 //for monitoring the pressed buttons in the ShowOffAdapter
                 interactionManager.ButtonPressed += new EventHandler<ButtonPressedEventArgs>(interactionManager_ButtonPressed);
                 interactionManager.ButtonReleased += new EventHandler<ButtonReleasedEventArgs>(interactionManager_ButtonReleased);
+            }
+
+            if (io != null)
+            {
+                io.AdapterManagerChanged += Io_AdapterManagerChanged;
+                Io_AdapterManagerChanged(null, null);
+            }
+
+        }
+
+        private void Io_AdapterManagerChanged(object sender, EventArgs e)
+        {
+            if (io != null && io.AdapterManager != null)
+            {
+                io.AdapterManager.NewAdapterRegistered -= AdapterManager_NewAdapterRegistered;
+                io.AdapterManager.NewAdapterRegistered += AdapterManager_NewAdapterRegistered;
+
+                io.AdapterManager.AdapterRemoved -= AdapterManager_AdapterRemoved;
+                io.AdapterManager.AdapterRemoved += AdapterManager_AdapterRemoved;
+
+                var adapters = io.AdapterManager.GetAdapters();
+                if (adapters != null && adapters.Length > 0)
+                {
+                    foreach (var item in adapters)
+                    {
+                        unregisterToAdapterEvents(item);
+                        registerToAdapterEvents(item);
+                    }
+                }
+
+            }
+        }
+
+        private void AdapterManager_AdapterRemoved(object sender, IBrailleIOAdapterEventArgs e)
+        {
+            if (e != null && e.Adapter != null)
+            {
+                unregisterToAdapterEvents(e.Adapter);
+            }
+        }
+
+        private void AdapterManager_NewAdapterRegistered(object sender, IBrailleIOAdapterEventArgs e)
+        {
+            if (e != null && e.Adapter != null)
+            {
+                unregisterToAdapterEvents(e.Adapter);
+                registerToAdapterEvents(e.Adapter);
+            }
+        }
+
+        private void unregisterToAdapterEvents(IBrailleIOAdapter adapter)
+        {
+            if (adapter != null)
+            {
+                adapter.touchValuesChanged -= Adapter_touchValuesChanged;
+            }
+        }
+
+        private void registerToAdapterEvents(IBrailleIOAdapter adapter)
+        {
+            if (adapter != null)
+            {
+                adapter.touchValuesChanged += Adapter_touchValuesChanged;
+            }
+        }
+
+        private void Adapter_touchValuesChanged(object sender, BrailleIO_TouchValuesChanged_EventArgs e)
+        {
+            if (e != null && monitor != null)
+            {
+                monitor.PaintTouchMatrix(e.touches, e.DetailedTouches);
             }
         }
 

@@ -1,16 +1,15 @@
-﻿using System;
+﻿using BrailleIO;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Automation;
-using BrailleIO;
-using tud.mci.tangram.TangramLector.OO;
-using tud.mci.tangram.util;
 using tud.mci.tangram.audio;
-using tud.mci.tangram.Uia;
 using tud.mci.tangram.controller.observer;
-using BrailleIO.Interface;
+using tud.mci.tangram.TangramLector.OO;
+using tud.mci.tangram.Uia;
+using tud.mci.tangram.util;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -31,13 +30,17 @@ namespace tud.mci.tangram.TangramLector
             // INTERACTION MANGER
             if (InteractionManager != null)
             {
+                // load the button mapping
+                InteractionManager.AddButton2FunctionMapping(Properties.Resources.GlobalFunctionMappings);
+
+
                 registerAsSpecializedFunctionProxy();
                 InteractionManager.InteractionModeChanged += new EventHandler<InteractionModeChangedEventArgs>(InteractionManager_InteractionModeChanged);
             }
             registerTopMostSpFProxy();
         }
 
-        void AdapterManager_NewAdapterRegistered(object sender, IBrailleIOAdapterEventArgs e)
+        void AdapterManager_NewAdapterRegistered(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
         {
             if (e != null && e.Adapter != null && e.Adapter.Device != null)
             {
@@ -46,7 +49,7 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        void AdapterManager_ActiveAdapterChanged(object sender, IBrailleIOAdapterEventArgs e)
+        void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
         {
             //CleanScreen();
             //BuildScreens();            
@@ -70,99 +73,83 @@ namespace tud.mci.tangram.TangramLector
         }
 
         protected override void im_ButtonCombinationReleased(object sender, ButtonReleasedEventArgs e)
+        { }
+
+        protected override void im_FunctionCall(object sender, FunctionCallInteractionEventArgs e)
         {
-            if (e != null && e.ReleasedGenericKeys != null)
+            if (e != null && !string.IsNullOrEmpty(e.Function))
             {
                 BrailleIOScreen vs = GetVisibleScreen();
 
                 #region General Commands
 
-                switch (e.ReleasedGenericKeys.Count)
+                switch (e.Function)
                 {
-                    case 1:
-                        switch (e.ReleasedGenericKeys[0])
+                    case "abortSpeechOutput": // abort speech output
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "stop audio");
+                        AbortAudio();
+                        e.Cancel = true;
+                        e.Handled = true;
+                        return;
+
+                    case "recalibrate":
+                        // calibrate BrailleDis //
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "recalibrate devices");
+                        if (io != null)
                         {
-                            case "l": // abort speech output
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "stop audio");
-
-                                AbortAudio();
-                                e.Cancel = true;
-                                return;
-
-                            default:
-                                break;
+                            this.ScreenObserver.Stop();
+                            audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate"));
+                            // bool res = io.Recalibrate();
+                            bool res = io.RecalibrateAll();
+                            this.ScreenObserver.Start();
+                            audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate.success", (res ? "" : LL.GetTrans("tangram.lector.not") + " ")));
                         }
-                        break;
+                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] recalibrate the device");
+                        e.Cancel = true;
+                        e.Handled = true;
+                        return;
 
-                    case 3:
-                        if (e.ReleasedGenericKeys.Contains("k1"))
-                        {
-                            // calibrate BrailleDis //
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "hbr" }).ToList().Count == 3)
-                            {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "recalibrate devices");
-                                if (io != null)
-                                {
-                                    //this.ScreenObserver.Stop();
-                                    audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate"));
-                                    // bool res = io.Recalibrate();
-                                    bool res = io.RecalibrateAll();
-                                    //this.ScreenObserver.Start();
-                                    audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate.success", (res ? "" : LL.GetTrans("tangram.lector.not") + " ")));
-                                }
-                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] recalibrate the device");
-                                e.Cancel = true;
-                                return;
-                            }
-                        }
-                        break;
-
-                    case 4:
+                    case "followGUIFocus":
                         // follow GUI focus mode //
-                        if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k4", "k7" }).ToList().Count == 4)
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "start follow GUI focus mode");
+                        bool communicateSelection = false;
+                        if (this.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
                         {
-                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "start follow GUI focus mode");
-                            bool communicateSelection = false;
-                            if (this.FocusMode == FollowFocusModes.FOLLOW_MOUSE_FOCUS)
-                            {
-                                this.FocusMode = FollowFocusModes.NONE;
-                            }
-                            else
-                            {
-                                this.FocusMode = FollowFocusModes.FOLLOW_MOUSE_FOCUS;
-
-                                // jump to selected element
-                                OoConnector ooc = OoConnector.Instance;
-                                if (ooc != null && ooc.Observer != null)
-                                {
-                                    System.Drawing.Rectangle bb = new Rectangle();
-                                    if (OoDrawAccessibilityObserver.Instance != null)
-                                    {
-                                        OoAccessibilitySelection selection = null;
-                                        bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(ooc.Observer.GetActiveDocument(), out selection);
-                                        if (success && selection != null)
-                                        {
-                                            bb = selection.SelectionBounds;
-                                        }
-                                    }
-
-                                    ooc.Observer.StartDrawSelectFocusHighlightingMode();
-                                    if (bb != null && bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
-                                    communicateSelection = true;
-                                }
-                            }
-                            if (communicateSelection
-                                && OoConnector.Instance != null
-                                && OoConnector.Instance.Observer != null)
-                            {
-                                OoConnector.Instance.Observer.CommunicateLastSelection(false);
-                            }
-                            e.Cancel = true;
-                            return;
+                            this.FocusMode = FollowFocusModes.NONE;
                         }
-                        break;
-                    default:
-                        break;
+                        else
+                        {
+                            this.FocusMode = FollowFocusModes.FOLLOW_MOUSE_FOCUS;
+
+                            // jump to selected element
+                            OoConnector ooc = OoConnector.Instance;
+                            if (ooc != null && ooc.Observer != null)
+                            {
+                                System.Drawing.Rectangle bb = new Rectangle();
+                                if (OoDrawAccessibilityObserver.Instance != null)
+                                {
+                                    OoAccessibilitySelection selection = null;
+                                    bool success = OoDrawAccessibilityObserver.Instance.TryGetSelection(ooc.Observer.GetActiveDocument(), out selection);
+                                    if (success && selection != null)
+                                    {
+                                        bb = selection.SelectionBounds;
+                                    }
+                                }
+
+                                ooc.Observer.StartDrawSelectFocusHighlightingMode();
+                                if (bb != null && bb.Width > 0 && bb.Height > 0) MoveToObject(bb);
+                                communicateSelection = true;
+                            }
+                        }
+                        if (communicateSelection
+                            && OoConnector.Instance != null
+                            && OoConnector.Instance.Observer != null)
+                        {
+                            OoConnector.Instance.Observer.CommunicateLastSelection(false);
+                        }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
                 }
 
                 #endregion
@@ -170,340 +157,288 @@ namespace tud.mci.tangram.TangramLector
                 #region minimap commands
                 if (vs != null && vs.Name.Equals(BS_MINIMAP_NAME))
                 {
-                    if (e.PressedGenericKeys == null || e.PressedGenericKeys.Count < 1)
+                    switch (e.Function)
                     {
-                        if (e.ReleasedGenericKeys.Count == 1)
-                        {
-                            if (e.ReleasedGenericKeys[0].Equals("k2")) { } // exit minimap 
-                            else if (e.ReleasedGenericKeys[0].Equals("lr")) { } // invert image
-                            else
-                            {
-                                vs = screenBeforeMinimap; // operation has to be executed for normal screen, minimap is automatically synchronized to this
-                                switch (e.ReleasedGenericKeys[0])
-                                {
-                                    // panning operations will be handled later
-                                    case "nsll": break;
-                                    case "nsl": break;
-                                    case "nsr": break;
-                                    case "nsrr": break;
-                                    case "nsuu": break;
-                                    case "nsu": break;
-                                    case "nsd": break;
-                                    case "nsdd": break;
-                                    case "clu": break;
-                                    case "cll": break;
-                                    case "clr": break;
-                                    case "cld": break;
-
-                                    default: // all other operations lead to error sound
-                                        audioRenderer.PlayWaveImmediately(StandardSounds.Error);
-                                        e.Cancel = true;
-                                        return;
-                                }
-                            }
-                        }
+                        case "toggleMinimap":
+                        //case "exitMinimap":
+                            break;
+                        case "invert":
+                            break;
+                        case "pannPageLeft":
+                        case "pannStepLeft":
+                        case "pannPageRight":
+                        case "pannStepRight":
+                        case "pannPageUp":
+                        case "pannStepUp":
+                        case "pannPageDown":
+                        case "pannStepDown":
+                        case "pannJumpToLeft":
+                        case "pannJumpToRight":
+                        case "pannJumpToTop":
+                        case "pannJumpToBottom":
+                            vs = screenBeforeMinimap;
+                            break;
+                        default:
+                            vs = screenBeforeMinimap;
+                            audioRenderer.PlayWaveImmediately(StandardSounds.Error);
+                            e.Cancel = true;
+                            return;
                     }
                 }
+
+
+
                 #endregion
 
                 #region global button commands
 
-                if (e.PressedGenericKeys == null || e.PressedGenericKeys.Count < 1)
+                BrailleIOViewRange center = GetActiveCenterView(vs);
+                BrailleIOViewRange detail = null;
+                if (vs != null) detail = vs.GetViewRange(VR_DETAIL_NAME);
+
+                switch (e.Function)
                 {
-                    BrailleIOViewRange center = GetActiveCenterView(vs);
-                    BrailleIOViewRange detail = null;
-                    if (vs != null) detail = vs.GetViewRange(VR_DETAIL_NAME);
+                    #region panning operations
+                    case "pannPageLeft":// links blättern
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning left");
+                        if (vs != null && center != null)
+                            if (moveHorizontal(vs.Name, center.Name, center.ContentBox.Width))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.left_big"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll left");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
 
-                    if (e.ReleasedGenericKeys.Count == 1)
-                    {
-                        switch (e.ReleasedGenericKeys[0])
+                    case "pannStepLeft":// links verschieben
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning left");
+                        if (vs != null && center != null)
+                            if (moveHorizontal(vs.Name, center.Name, 5))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.left"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll left");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannStepRight":// rechts verschieben
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning right");
+                        if (vs != null && center != null)
+                            if (moveHorizontal(vs.Name, center.Name, -5))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.right"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll right");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannPageRight":// rechts blättern
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning right");
+                        if (vs != null && center != null)
+                            if (moveHorizontal(vs.Name, center.Name, -center.ContentBox.Width))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.right_big"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll right");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannPageUp":// hoch blättern
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
+                        if (vs != null && center != null)
+                            if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.up_big"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll up");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannStepUp":// hoch verschieben
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning up");
+                        if (vs != null && center != null)
+                            if (moveVertical(vs.Name, center.Name, 5))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.up"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll up");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannStepDown":// runter verschieben
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning down");
+                        if (vs != null && center != null)
+                            if (moveVertical(vs.Name, center.Name, -5))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.down"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll down");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannPageDown":// runter blättern
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning down");
+                        if (vs != null && center != null)
+                            if (moveVertical(vs.Name, center.Name, -center.ContentBox.Height))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.down_big"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll down");
+                            }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannJumpToTop":// Sprung nach oben
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to top");
+                        jumpToTopBorder(center);
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannJumpToLeft":// Sprung nach links
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to left");
+                        jumpToLeftBorder(center);
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannJumpToRight":// Sprung nach rechts
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to right");
+                        jumpToRightBorder(center);
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "pannJumpToBottom":// Sprung nach unten
+                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to bottom");
+                        jumpToBottomBorder(center);
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    #endregion
+
+                    #region zooming operations
+
+                    case "zoomIncrease": // kleiner Zoom in
+                        if (vs != null && center != null)
                         {
-                            #region panning operations
-                            case "nsll":// links blättern
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning left");
-                                if (vs != null && center != null)
-                                    if (moveHorizontal(vs.Name, center.Name, center.ContentBox.Width))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.left_big"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll left");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsl":// links verschieben
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning left");
-                                if (vs != null && center != null)
-                                    if (moveHorizontal(vs.Name, center.Name, 5))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.left"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll left");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsr":// rechts verschieben
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning right");
-                                if (vs != null && center != null)
-                                    if (moveHorizontal(vs.Name, center.Name, -5))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.right"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll right");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsrr":// rechts blättern
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning right");
-                                if (vs != null && center != null)
-                                    if (moveHorizontal(vs.Name, center.Name, -center.ContentBox.Width))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.right_big"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll right");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsuu":// hoch blättern
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
-                                if (vs != null && center != null)
-                                    if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.up_big"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll up");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsu":// hoch verschieben
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning up");
-                                if (vs != null && center != null)
-                                    if (moveVertical(vs.Name, center.Name, 5))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.up"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll up");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsd":// runter verschieben
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "panning down");
-                                if (vs != null && center != null)
-                                    if (moveVertical(vs.Name, center.Name, -5))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.down"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small scroll down");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "nsdd":// runter blättern
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning down");
-                                if (vs != null && center != null)
-                                    if (moveVertical(vs.Name, center.Name, -center.ContentBox.Height))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.down_big"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll down");
-                                    }
-                                e.Cancel = true;
-                                return;
-                            case "clu":// Sprung nach oben
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to top");
-                                jumpToTopBorder(center);
-                                e.Cancel = true;
-                                return;
-                            case "cll":// Sprung nach links
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to left");
-                                jumpToLeftBorder(center);
-                                e.Cancel = true;
-                                return;
-                            case "clr":// Sprung nach rechts
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to right");
-                                jumpToRightBorder(center);
-                                e.Cancel = true;
-                                return;
-                            case "cld":// Sprung nach unten
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "jump to bottom");
-                                jumpToBottomBorder(center);
-                                e.Cancel = true;
-                                return;
-
-                            #endregion
-
-                            #region zooming operations
-                            case "rslu": // kleiner Zoom in
-                                if (vs != null && center != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom in");
-                                    if (zoomWithFactor(vs.Name, center.Name, 1.5))
-                                    {
-                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
-                                        audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.in", zInProzent));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom in");
-                                    }
-                                    else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                }
-                                e.Cancel = true;
-                                return;
-                            case "rsld": // kleiner Zoom out
-                                if (vs != null && center != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom out");
-                                    if (zoomWithFactor(vs.Name, center.Name, 1 / 1.5))
-                                    {
-                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
-                                        audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.out", zInProzent));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom out");
-                                    }
-                                    else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                }
-                                e.Cancel = true;
-                                return;
-                            case "rsru": // großer Zoom in
-                                if (vs != null && center != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom in");
-                                    if (zoomWithFactor(vs.Name, center.Name, 3))
-                                    {
-                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
-                                        audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.in_big", zInProzent));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom in");
-                                    }
-                                    else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                }
-                                e.Cancel = true;
-                                return;
-                            case "rsrd": // großer Zoom out
-                                if (vs != null && center != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom out");
-                                    if (zoomWithFactor(vs.Name, center.Name, (double)1 / 3))
-                                    {
-                                        var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
-                                        audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.zooming.out_big", zInProzent));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom out");
-                                    }
-                                    else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                }
-                                e.Cancel = true;
-                                return;
-                            #endregion
-
-                            #region detail area scrolling
-
-                            case "cru": // scroll detail region up
-                                if (detail != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning up");
-                                    if (scrollViewRange(detail, 5))
-                                    {
-                                        e.Cancel = true;
-                                        break;
-                                    }
-                                }
-                                AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
-                                break;
-
-                            case "crl": // no function yet
-                                AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
-                                break;
-
-                            case "crr": // no function yet
-                                AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
-                                break;
-
-                            case "crd": // scroll detail region down
-                                if (detail != null)
-                                {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning down");
-                                    if (scrollViewRange(detail, -5))
-                                    {
-                                        e.Cancel = true;
-                                        break;
-                                    }
-                                }
-                                AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
-                                break;
-
-                            #endregion
-
-                            default:
-                                break;
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom in");
+                            if (zoomWithFactor(vs.Name, center.Name, 1.5))
+                            {
+                                var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
+                                audioRenderer.PlaySoundImmediately(
+                                    LL.GetTrans("tangram.lector.wm.zooming.in", zInProzent));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom in");
+                            }
+                            else audioRenderer.PlayWaveImmediately(StandardSounds.End);
                         }
-                    }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
 
-                    else if (e.ReleasedGenericKeys.Count == 2) // TODO: maybe bring this in one
-                    {
-                        #region panning operations
-                        if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsdd", "nsd" }).ToList().Count == 2)
+                    case "zoomDecrease": // kleiner Zoom out
+                        if (vs != null && center != null)
                         {
-                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning down");
-                            if (vs != null && center != null)
-                                if (moveVertical(vs.Name, center.Name, -center.ContentBox.Height))
-                                {
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.down_big"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll down");
-                                }
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom out");
+                            if (zoomWithFactor(vs.Name, center.Name, 1 / 1.5))
+                            {
+                                var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
+                                audioRenderer.PlaySoundImmediately(
+                                    LL.GetTrans("tangram.lector.wm.zooming.out", zInProzent));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] small zoom out");
+                            }
+                            else audioRenderer.PlayWaveImmediately(StandardSounds.End);
                         }
-                        else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsuu", "nsu" }).ToList().Count == 2)
-                        {
-                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning up");
-                            if (vs != null && center != null)
-                                if (moveVertical(vs.Name, center.Name, center.ContentBox.Height))
-                                {
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.up_big"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll up");
-                                }
-                        }
-                        else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsll", "nsl" }).ToList().Count == 2)
-                        {
-                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning left");
-                            if (vs != null && center != null)
-                                if (moveHorizontal(vs.Name, center.Name, center.ContentBox.Width))
-                                {
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.left_big"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll left");
-                                }
-                        }
-                        else if (e.ReleasedGenericKeys.Intersect(new List<String> { "nsrr", "nsr" }).ToList().Count == 2)
-                        {
-                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large panning right");
-                            if (vs != null && center != null)
-                                if (moveHorizontal(vs.Name, center.Name, -center.ContentBox.Width))
-                                {
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.panning.right_big"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big scroll right");
-                                }
-                        }
-                        #endregion
-                    }
+                        e.Cancel = true;
+                        e.Handled = true;
+                        return;
 
-                    else if (e.ReleasedGenericKeys.Count == 8)
-                    {
-                        //// Ansichtswechsel
-                        //if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8" }).ToList().Count == 8)
-                        //{
-                        //    string message = "";
-                        //    if (currentView.Equals(LectorView.Braille))
-                        //    {
-                        //        if (ChangeLectorView(LectorView.Drawing))
-                        //        {
-                        //            changeActiveCenterView(vs, VR_CENTER_NAME);
-                        //            message = LL.GetTrans("tangram.lector.wm.views.draw_activated");
-                        //        }
-                        //    }
-                        //    else if (currentView.Equals(LectorView.Drawing))
-                        //    {
-                        //        if (ChangeLectorView(LectorView.Braille))
-                        //        {
-                        //            changeActiveCenterView(vs, VR_CENTER_2_NAME);
-                        //            message = LL.GetTrans("tangram.lector.wm.views.braille_activated");
-                        //        }
-                        //    }
-                        //    audioRenderer.PlaySoundImmediately(message);
-                        //    ShowTemporaryMessageInDetailRegion(message);
-                        //    fillMainCenterContent();
-                        //    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] " + message);
-                        //    e.Cancel = true;
-                        //    return;
-                        //}
-                    }
+                    case "zoomIncreaseLarge": // großer Zoom in
+                        if (vs != null && center != null)
+                        {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom in");
+                            if (zoomWithFactor(vs.Name, center.Name, 3))
+                            {
+                                var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
+                                audioRenderer.PlaySoundImmediately(
+                                    LL.GetTrans("tangram.lector.wm.zooming.in_big", zInProzent));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom in");
+                            }
+                            else audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                        }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    case "zoomDecreaseLarge": // großer Zoom out
+                        if (vs != null && center != null)
+                        {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "large zoom out");
+                            if (zoomWithFactor(vs.Name, center.Name, (double)1 / 3))
+                            {
+                                var zInProzent = GetZoomPercentageBasedOnPrintZoom(vs.Name, center.Name);
+                                audioRenderer.PlaySoundImmediately(
+                                    LL.GetTrans("tangram.lector.wm.zooming.out_big", zInProzent));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] big zoom out");
+                            }
+                            else audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                        }
+                        e.Handled = true;
+                        e.Cancel = true;
+                        return;
+
+                    #endregion
+
+                    #region detail area scrolling
+
+                    case "pannDetailUp": // scroll detail region up
+                        if (detail != null)
+                        {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning up");
+                            if (scrollViewRange(detail, 5))
+                            {
+                                e.Handled = true;
+                                e.Cancel = true;
+                                break;
+                            }
+                        }
+                        AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
+                        break;
+
+                    case "pannDetailLeft": // no function yet
+                        AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
+                        break;
+
+                    case "pannDetailRight": // no function yet
+                        AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
+                        break;
+
+                    case "pannDetailDown": // scroll detail region down
+                        if (detail != null)
+                        {
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "detail area panning down");
+                            if (scrollViewRange(detail, -5))
+                            {
+                                e.Handled = true;
+                                e.Cancel = true;
+                                break;
+                            }
+                        }
+                        AudioRenderer.Instance.PlayWaveImmediately(StandardSounds.Error);
+                        break;
+
+                    #endregion
+                    default:
+                        break;
+
                 }
                 #endregion
 
@@ -512,334 +447,278 @@ namespace tud.mci.tangram.TangramLector
                 // button commands that are not working in Braille mode
                 if (!InteractionManager.Mode.Equals(InteractionMode.Braille))
                 {
-                    if (e.PressedGenericKeys == null || e.PressedGenericKeys.Count < 1)
+                    switch (e.Function)
                     {
-                        #region 1 key
+                        case "zoomTo100": // Druck-Zoom
 
-                        if (e.ReleasedGenericKeys.Count == 1)
-                        {
-                            switch (e.ReleasedGenericKeys[0])
+                            if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
                             {
-                                case "k1": // Druck-Zoom
-
-                                    if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to print zoom");
-                                        if (ZoomTo(vs.Name, VR_CENTER_NAME, GetPrintZoomLevel()))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.to_print"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] print zoom");
-                                        }
-                                        else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "k2": // Minimap
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "toggle minimap");
-                                    toggleMinimap();
-                                    BrailleIOScreen nvs = GetVisibleScreen();
-                                    if (nvs != null && nvs.Name.Equals(BS_MINIMAP_NAME))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.minimap.show"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] start minimap");
-                                    }
-                                    else if (nvs != null)
-                                    {
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.minimap.hide"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] stop minimap");
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "k3": // Breite/Höhe einpassen
-                                    if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to fit");
-                                        if (ZoomTo(vs.Name, VR_CENTER_NAME, -1))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.fit_height"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] zoom fit to height");
-                                        }
-                                        else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "k5": // Toggle grid
-                                    if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
-                                    {
-                                        if (gridHook != null)
-                                        {
-                                            var mode = gridHook.NextMode();
-                                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "toggle grid to mode: " + mode);
-                                            gridHook.Active = true;
-
-                                            string msg = LL.GetTrans("tangram.lector.grid.active." + (gridHook.Active ? 1 : 0), mode);
-                                            audioRenderer.PlaySoundImmediately(msg);
-                                            ShowTemporaryMessageInDetailRegion(msg);
-                                        }
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-
-
-                                case "k7": // 1-zu-1 Zoom
-                                    if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to 1:1");
-                                        if (ZoomTo(vs.Name, VR_CENTER_NAME, 1))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.1-1"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] zoom 1:1");
-                                        }
-                                        else audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "lr": // Invertieren
-                                    if (vs != null)
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "invert view");
-                                        invertImage(vs.Name, VR_CENTER_NAME);
-                                        BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
-                                        if (vr != null && !vr.InvertImage)
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.non_invert"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] not invert output");
-                                        }
-                                        else
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.invert"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] invert output");
-                                        }
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "rl": // Schwellwert minus
-                                    if (vs != null)
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "decrease threshold");
-                                        if (updateContrast(vs.Name, VR_CENTER_NAME, -THRESHOLD_STEP))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_down"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] reduce threshold");
-                                        }
-                                        else
-                                        {
-                                            audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] already mininum threshold");
-                                        }
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                case "r": // Schwellwert plus
-                                    if (vs != null)
-                                    {
-                                        Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "increase threshold");
-                                        if (updateContrast(vs.Name, VR_CENTER_NAME, THRESHOLD_STEP))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_up"));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] increase threshold");
-                                        }
-                                        else
-                                        {
-                                            audioRenderer.PlayWaveImmediately(StandardSounds.End);
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] already maximum threshold");
-                                        }
-                                    }
-                                    e.Cancel = true;
-                                    return;
-
-                                default:
-                                    break;
-                            }
-                        }
-                        #endregion
-
-                        #region 2 keys
-
-                        else if (e.ReleasedGenericKeys.Count == 2)
-                        {
-                            // Standard-Schwellwert
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "rl", "r" }).ToList().Count == 2)
-                            {
-                                if (vs != null)
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to print zoom");
+                                if (ZoomTo(vs.Name, VR_CENTER_NAME, GetPrintZoomLevel()))
                                 {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "reset threshold");
-                                    setContrast(vs.Name, VR_CENTER_NAME, STANDARD_CONTRAST_THRESHOLD);
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_reset"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] reset threshold");
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.to_print"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] print zoom");
+                                }
+                                else audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        case "toggleMinimap": // Minimap
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "toggle minimap");
+                            toggleMinimap();
+                            BrailleIOScreen nvs = GetVisibleScreen();
+                            if (nvs != null && nvs.Name.Equals(BS_MINIMAP_NAME))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.minimap.show"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] start minimap");
+                            }
+                            else if (nvs != null)
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.minimap.hide"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] stop minimap");
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        case "zoomToFit": // Breite/Höhe einpassen
+                            if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to fit");
+                                if (ZoomTo(vs.Name, VR_CENTER_NAME, -1))
+                                {
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.fit_height"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] zoom fit to height");
+                                }
+                                else audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        case "zoomTo1to1": // 1-zu-1 Zoom
+                            if (vs != null && !vs.Name.Equals(BS_MINIMAP_NAME))
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[NAVIGATION]\t" + "zoom to 1:1");
+                                if (ZoomTo(vs.Name, VR_CENTER_NAME, 1))
+                                {
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.zooming.1-1"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] zoom 1:1");
+                                }
+                                else audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        case "invert": // Invertieren
+                            if (vs != null)
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "invert view");
+                                invertImage(vs.Name, VR_CENTER_NAME);
+                                BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
+                                if (vr != null && !vr.InvertImage)
+                                {
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.non_invert"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] not invert output");
+                                }
+                                else
+                                {
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.invert"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] invert output");
                                 }
                             }
-                        }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
 
-                        #endregion
-
-                        #region 3 keys
-
-                        else if (e.ReleasedGenericKeys.Count == 3)
-                        {
-                            // Kopfbereich ein/aus
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "k8" }).ToList().Count == 3)
+                        case "decreaseBrightnessThreshold": // Schwellwert minus
+                            if (vs != null)
                             {
-                                if (vs != null && vs.GetViewRange(VR_TOP_NAME) != null)
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "decrease threshold");
+                                if (updateContrast(vs.Name, VR_CENTER_NAME, -THRESHOLD_STEP))
                                 {
-                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle header region");
-                                    if (vs.GetViewRange(VR_TOP_NAME).IsVisible())
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_down"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] reduce threshold");
+                                }
+                                else
+                                {
+                                    audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] already mininum threshold");
+                                }
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        case "increaseBrightnessThreshold": // Schwellwert plus
+                            if (vs != null)
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "increase threshold");
+                                if (updateContrast(vs.Name, VR_CENTER_NAME, THRESHOLD_STEP))
+                                {
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_up"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] increase threshold");
+                                }
+                                else
+                                {
+                                    audioRenderer.PlayWaveImmediately(StandardSounds.End);
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] already maximum threshold");
+                                }
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        // Standard-Schwellwert
+                        case "resetBrightnessThreshold":
+                            if (vs != null)
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "reset threshold");
+                                setContrast(vs.Name, VR_CENTER_NAME, STANDARD_CONTRAST_THRESHOLD);
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.threshold_reset"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] reset threshold");
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        // Kopfbereich ein/aus
+                        case "toggleHeaderRegion":
+                            if (vs != null && vs.GetViewRange(VR_TOP_NAME) != null)
+                            {
+                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle header region");
+                                if (vs.GetViewRange(VR_TOP_NAME).IsVisible())
+                                {
+                                    if (changeViewVisibility(vs.Name, VR_TOP_NAME, false))
                                     {
-                                        if (changeViewVisibility(vs.Name, VR_TOP_NAME, false))
-                                        {
-                                            changeViewVisibility(vs.Name, VR_STATUS_NAME, false);
-                                            audioRenderer.PlaySoundImmediately(
-                                                LL.GetTrans("tangram.lector.wm.views.region.hide",
-                                                LL.GetTrans("tangram.lector.wm.views.region.VR_TOP_NAME")
-                                                ));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] hide top region");
-                                        }
-                                    }
-                                    else if (changeViewVisibility(vs.Name, VR_TOP_NAME, true))
-                                    {
-                                        changeViewVisibility(vs.Name, VR_STATUS_NAME, true);
+                                        changeViewVisibility(vs.Name, VR_STATUS_NAME, false);
                                         audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.views.region.show",
-                                                LL.GetTrans("tangram.lector.wm.views.region.VR_TOP_NAME")
-                                                ));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] show top region");
+                                            LL.GetTrans("tangram.lector.wm.views.region.hide",
+                                            LL.GetTrans("tangram.lector.wm.views.region.VR_TOP_NAME")
+                                            ));
+                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] hide top region");
                                     }
                                 }
-                                else if (vs != null && vs.Name.Equals(BS_FULLSCREEN_NAME))
+                                else if (changeViewVisibility(vs.Name, VR_TOP_NAME, true))
                                 {
-                                    // exit fullscreen mode and show top region
-                                    toggleFullscreen();
-                                    BrailleIOScreen nvs = GetVisibleScreen();
-                                    if (nvs != null)
-                                    {
-                                        BrailleIOViewRange top = nvs.GetViewRange(VR_TOP_NAME);
-                                        if (top != null && !top.IsVisible())
-                                        {
-                                            changeViewVisibility(nvs.Name, VR_TOP_NAME, true);
-                                        }
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_exit"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] exit full screen");
-                                    }
+                                    changeViewVisibility(vs.Name, VR_STATUS_NAME, true);
+                                    audioRenderer.PlaySoundImmediately(
+                                        LL.GetTrans("tangram.lector.wm.views.region.show",
+                                            LL.GetTrans("tangram.lector.wm.views.region.VR_TOP_NAME")
+                                            ));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] show top region");
                                 }
-                                e.Cancel = true;
-                                return;
                             }
-                        }
-
-                        #endregion
-
-                        #region 4 keys
-                        else if (e.ReleasedGenericKeys.Count == 4)
-                        {
-                            // Detailbereich ein/aus
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k4", "k5", "k8" }).ToList().Count == 4)
+                            else if (vs != null && vs.Name.Equals(BS_FULLSCREEN_NAME))
                             {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle detail region");
-                                if (vs != null && vs.GetViewRange(VR_DETAIL_NAME) != null)
-                                {
-                                    if (vs.GetViewRange(VR_DETAIL_NAME).IsVisible())
-                                    {
-                                        if (changeViewVisibility(vs.Name, VR_DETAIL_NAME, false))
-                                        {
-                                            audioRenderer.PlaySoundImmediately(
-                                                LL.GetTrans("tangram.lector.wm.views.region.hide",
-                                                LL.GetTrans("tangram.lector.wm.views.region.VR_DETAIL_NAME")
-                                                ));
-                                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] hide detail region");
-                                        }
-                                    }
-                                    else if (changeViewVisibility(vs.Name, VR_DETAIL_NAME, true))
-                                    {
-                                        audioRenderer.PlaySoundImmediately(
-                                            LL.GetTrans("tangram.lector.wm.views.region.show",
-                                                LL.GetTrans("tangram.lector.wm.views.region.VR_DETAIL_NAME")
-                                                ));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] show detail region");
-                                    }
-                                }
-
-                                else if (vs != null && vs.Name.Equals(BS_FULLSCREEN_NAME))
-                                {
-                                    // exit fullscreen mode and show detail region
-                                    toggleFullscreen();
-                                    BrailleIOScreen nvs = GetVisibleScreen();
-                                    if (nvs != null)
-                                    {
-                                        BrailleIOViewRange detail = nvs.GetViewRange(VR_DETAIL_NAME);
-                                        if (detail != null && !detail.IsVisible())
-                                        {
-                                            changeViewVisibility(nvs.Name, VR_DETAIL_NAME, true);
-                                        }
-                                        audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_exit"));
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] exit full screen");
-                                    }
-                                }
-                                e.Cancel = true;
-                                return;
-                            }
-                        }
-
-                        #endregion
-
-                        #region 5 keys
-
-                        else if (e.ReleasedGenericKeys.Count == 5)
-                        {
-                            // Vollbildmodus
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "k4", "k6", "k8" }).ToList().Count == 5)
-                            {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle full screen");
+                                // exit fullscreen mode and show top region
                                 toggleFullscreen();
-                                BrailleIOScreen nvs = GetVisibleScreen();
-                                if (nvs != null && nvs.Name.Equals(BS_FULLSCREEN_NAME))
+                                BrailleIOScreen __nvs = GetVisibleScreen();
+                                if (__nvs != null)
                                 {
-                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_start"));
-                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] start full screen");
-                                }
-                                else if (nvs != null)
-                                {
+                                    BrailleIOViewRange top = __nvs.GetViewRange(VR_TOP_NAME);
+                                    if (top != null && !top.IsVisible())
+                                    {
+                                        changeViewVisibility(__nvs.Name, VR_TOP_NAME, true);
+                                    }
                                     audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_exit"));
                                     Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] exit full screen");
                                 }
-                                e.Cancel = true;
-                                return;
                             }
-                        }
-                        #endregion
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
 
-                        #region 6 keys
-
-                        else if (e.ReleasedGenericKeys.Count == 6)
-                        {
-                            // Zoomstufe abfragen
-                            if (e.ReleasedGenericKeys.Intersect(new List<String> { "k1", "k3", "k5", "k6", "k7", "k8" }).ToList().Count == 6)
+                        // Detailbereich ein/aus
+                        case "toggleDetailRegion":
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle detail region");
+                            if (vs != null && vs.GetViewRange(VR_DETAIL_NAME) != null)
                             {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "request current zoom level");
-                                if (vs != null)
+                                if (vs.GetViewRange(VR_DETAIL_NAME).IsVisible())
                                 {
-                                    BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
-                                    if (vr != null)
+                                    if (changeViewVisibility(vs.Name, VR_DETAIL_NAME, false))
                                     {
-                                        double zl = GetZoomPercentageBasedOnPrintZoom(vs.Name, vr.Name);
-                                        string message = LL.GetTrans("tangram.lector.wm.zooming.current", zl.ToString());
-
-                                        audioRenderer.PlaySoundImmediately(message);
-                                        ShowTemporaryMessageInDetailRegion(message);
-                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] ask for current zoom level");
+                                        audioRenderer.PlaySoundImmediately(
+                                            LL.GetTrans("tangram.lector.wm.views.region.hide",
+                                            LL.GetTrans("tangram.lector.wm.views.region.VR_DETAIL_NAME")
+                                            ));
+                                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] hide detail region");
                                     }
                                 }
-                                e.Cancel = true;
-                                return;
+                                else if (changeViewVisibility(vs.Name, VR_DETAIL_NAME, true))
+                                {
+                                    audioRenderer.PlaySoundImmediately(
+                                        LL.GetTrans("tangram.lector.wm.views.region.show",
+                                            LL.GetTrans("tangram.lector.wm.views.region.VR_DETAIL_NAME")
+                                            ));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] show detail region");
+                                }
                             }
-                        }
-                        #endregion
+
+                            else if (vs != null && vs.Name.Equals(BS_FULLSCREEN_NAME))
+                            {
+                                // exit fullscreen mode and show detail region
+                                toggleFullscreen();
+                                BrailleIOScreen __nvs = GetVisibleScreen();
+                                if (__nvs != null)
+                                {
+                                    var _detail = __nvs.GetViewRange(VR_DETAIL_NAME);
+                                    if (_detail != null && !detail.IsVisible())
+                                    {
+                                        changeViewVisibility(__nvs.Name, VR_DETAIL_NAME, true);
+                                    }
+                                    audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_exit"));
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] exit full screen");
+                                }
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        // Vollbildmodus
+                        case "toggleFullScreen":
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "toggle full screen");
+                            toggleFullscreen();
+                            BrailleIOScreen _nvs = GetVisibleScreen();
+                            if (_nvs != null && _nvs.Name.Equals(BS_FULLSCREEN_NAME))
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_start"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] start full screen");
+                            }
+                            else if (_nvs != null)
+                            {
+                                audioRenderer.PlaySoundImmediately(LL.GetTrans("tangram.lector.wm.views.full_screen_exit"));
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] exit full screen");
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        // Zoomstufe abfragen
+                        case "returnZoomLevel":
+                            Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "request current zoom level");
+                            if (vs != null)
+                            {
+                                BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
+                                if (vr != null)
+                                {
+                                    double zl = GetZoomPercentageBasedOnPrintZoom(vs.Name, vr.Name);
+                                    string message = LL.GetTrans("tangram.lector.wm.zooming.current", zl.ToString());
+
+                                    audioRenderer.PlaySoundImmediately(message);
+                                    ShowTemporaryMessageInDetailRegion(message);
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] ask for current zoom level");
+                                }
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+
+                        default:
+                            break;
                     }
                 }
                 #endregion
@@ -848,24 +727,22 @@ namespace tud.mci.tangram.TangramLector
                 // button commands that only work in Braille writing mode
                 if (InteractionManager.Mode.Equals(InteractionMode.Braille))
                 {
-                    if (e.PressedGenericKeys == null || e.PressedGenericKeys.Count < 1)
+                    switch (e.Function)
                     {
-                        if (e.ReleasedGenericKeys.Count == 1)
-                        {
-                            switch (e.ReleasedGenericKeys[0])
-                            {
-                                case "r": // maximize detail area
-                                    //toggleFullDetailScreen();
-                                    audioRenderer.PlayWaveImmediately(StandardSounds.Error);
-                                    e.Cancel = true;
-                                    return;
-                            }
-                        }
+                        case "maximizeEditArea": // maximize detail area
+                                                 //toggleFullDetailScreen();
+                            audioRenderer.PlayWaveImmediately(StandardSounds.Error);
+                            e.Cancel = true;
+                            e.Handled = true;
+                            return;
+                        default:
+                            break;
                     }
                 }
                 #endregion
             }
         }
+
 
         private const String OO_DOC_WND_CLASS_NAME = "SALFRAME";
         protected override void im_GesturePerformed(object sender, GestureEventArgs e)
@@ -929,9 +806,9 @@ namespace tud.mci.tangram.TangramLector
                             Point p = GetTapPositionOnScreen(e.Gesture.NodeParameters[0].X, e.Gesture.NodeParameters[0].Y, vr);
 
                             //check if a OpenOffice Window is presented
-                            if (DrawAppModel.ScreenObserver != null && DrawAppModel.ScreenObserver.Whnd != null)
+                            if (ScreenObserver != null && ScreenObserver.Whnd != null)
                             {
-                                var observed = isObservedOpebnOfficeDrawWindow(DrawAppModel.ScreenObserver.Whnd.ToInt32());
+                                var observed = isObservedOpebnOfficeDrawWindow(ScreenObserver.Whnd.ToInt32());
                                 if (observed != null)
                                 {
                                     handleSelectedOoAccItem(observed, p, e);
@@ -950,10 +827,11 @@ namespace tud.mci.tangram.TangramLector
                                     if (handleTouchRequestForOO(element, p, e)) return;
                                 }
 
+
+                                // TODO: ask for function?
+
                                 //generic handling
-                                if (e.ReleasedGenericKeys.Count < 2 &&
-                                    e.PressedGenericKeys.Count < 1 &&
-                                    e.ReleasedGeneralKeys.Contains(BrailleIO_DeviceButton.Gesture))
+                                if (e.ReleasedButtonsToString().Equals("Gesture") && !e.AreButtonsPressed())
                                 {
                                     UiaPicker.SpeakElement(element);
                                 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using BrailleIO;
 using BrailleIO.Interface;
 
 namespace tud.mci.tangram.TangramLector
 {
-    public class ShowOffBrailleIOButtonMediator : AbstractBrailleIOButtonMediatorBase, IBrailleIOButtonMediator
+    public class ShowOffBrailleIOButtonMediator : AbstractBrailleIOButtonMediatorBase
     {
         // BrailleIO_KeyStateChanged_EventArgs
         // raw contains
@@ -15,7 +16,10 @@ namespace tud.mci.tangram.TangramLector
         public ShowOffBrailleIOButtonMediator() : base() { }
         public ShowOffBrailleIOButtonMediator(BrailleIODevice device) : base(device) { }
 
-        public List<String> GetAllPressedGenericButtons(System.EventArgs args)
+        /// <summary>Gets all pressed generic buttons.</summary>
+        /// <param name="args">The <see cref="T:System.EventArgs"/> instance containing the event data and all current keys states.</param>
+        /// <returns>a list of pressed and interpreted generic buttons</returns>
+        override public List<String> GetAllPressedGenericButtons(System.EventArgs args)
         {
             List<String> pressedKeys = new List<String>();
             if (args != null && args is BrailleIO_KeyStateChanged_EventArgs)
@@ -23,19 +27,29 @@ namespace tud.mci.tangram.TangramLector
                 BrailleIO_KeyStateChanged_EventArgs kscea = args as BrailleIO_KeyStateChanged_EventArgs;
                 if (kscea != null)
                 {
-                    if (kscea.raw != null)
+                    return GetAllPressedGenericButtons(kscea.raw);
+                }
+            }
+            return pressedKeys;
+        }
+
+        /// <summary>Gets all pressed generic buttons.</summary>
+        /// <param name="raw">The raw event data.</param>
+        /// <returns>a list of pressed and interpreted generic buttons</returns>
+        override public List<String> GetAllPressedGenericButtons(OrderedDictionary raw)
+        {
+            List<String> pressedKeys = new List<String>();
+            if (raw != null)
+            {
+                var keys = raw.Keys;
+                if (raw.Contains("pressedKeys"))
+                {
+                    List<String> pkl = raw["pressedKeys"] as List<String>;
+                    if (pkl != null && pkl.Count > 0)
                     {
-                        var keys = kscea.raw.Keys;
-                        if (kscea.raw.Contains("pressedKeys"))
+                        foreach (var item in pkl)
                         {
-                            List<String> pkl = kscea.raw["pressedKeys"] as List<String>;
-                            if (pkl != null && pkl.Count > 0)
-                            {
-                                foreach (var item in pkl)
-                                {
-                                    if (!String.IsNullOrWhiteSpace(item)) { pressedKeys.Add(item.Trim()); }
-                                }
-                            }
+                            if (!String.IsNullOrWhiteSpace(item)) { pressedKeys.Add(item.Trim()); }
                         }
                     }
                 }
@@ -48,7 +62,7 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         /// <param name="args">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         /// <returns></returns>
-        public List<String> GetAllReleasedGenericButtons(System.EventArgs args)
+        override public List<String> GetAllReleasedGenericButtons(System.EventArgs args)
         {
             List<String> releasedKeys = new List<String>();
 
@@ -57,66 +71,31 @@ namespace tud.mci.tangram.TangramLector
                 BrailleIO_KeyStateChanged_EventArgs kscea = args as BrailleIO_KeyStateChanged_EventArgs;
                 if (kscea != null)
                 {
-                    //if (kscea.keyCode != BrailleIO_DeviceButtonStates.None)
-                    //{
-                    //    List<String> ks = BraillIOButtonMediatorHelper.GetAllGeneralReleasedButtons(kscea.keyCode);
-                    //    if (ks != null && ks.Count > 0) releasedKeys.AddRange(ks);
-                    //}
-                    if (kscea.raw != null)
-                    {
-                        var keys = kscea.raw.Keys;
-                        if (kscea.raw.Contains("releasedKeys"))
-                        {
-                            List<String> rkl = kscea.raw["releasedKeys"] as List<String>;
-                            if (rkl != null && rkl.Count > 0)
-                            {
-                                foreach (var item in rkl)
-                                {
-                                    if (!String.IsNullOrWhiteSpace(item)) { releasedKeys.Add(item.Trim()); }
-                                }
-                            }
-                        }
-                    }
+                    return GetAllReleasedGenericButtons(kscea.raw);
                 }
             }
             return releasedKeys;
         }
 
-        public object GetGesture(System.EventArgs args)
+        /// <summary>Gets all released generic buttons.</summary>
+        /// <param name="raw">The raw event data.</param>
+        /// <returns>a list of released and interpreted generic buttons</returns>
+        override public List<String> GetAllReleasedGenericButtons(OrderedDictionary raw)
         {
-            throw new Exception("The method or operation is not implemented.");
-        }
+            List<String> releasedKeys = new List<String>();
 
-        public List<BrailleIO_DeviceButton> GetAllPressedGeneralButtons(EventArgs args)
-        {
-            List<BrailleIO_DeviceButton> pressedKeys = new List<BrailleIO_DeviceButton>();
-
-            if (args != null && args is BrailleIO_KeyStateChanged_EventArgs)
+            if (raw != null)
             {
-                BrailleIO_KeyStateChanged_EventArgs kscea = args as BrailleIO_KeyStateChanged_EventArgs;
-                if (kscea != null)
+                var keys = raw.Keys;
+                if (raw.Contains("releasedKeys"))
                 {
-                    if (kscea.keyCode != BrailleIO_DeviceButtonStates.None)
+                    List<String> rkl = raw["releasedKeys"] as List<String>;
+                    if (rkl != null && rkl.Count > 0)
                     {
-                        pressedKeys = GetAllPressedGeneralButtons(kscea.keyCode);
-                    }
-                }
-            }
-            return pressedKeys;
-        }
-
-        public List<BrailleIO_DeviceButton> GetAllReleasedGeneralButtons(EventArgs args)
-        {
-            List<BrailleIO_DeviceButton> releasedKeys = new List<BrailleIO_DeviceButton>();
-
-            if (args != null && args is BrailleIO_KeyStateChanged_EventArgs)
-            {
-                BrailleIO_KeyStateChanged_EventArgs kscea = args as BrailleIO_KeyStateChanged_EventArgs;
-                if (kscea != null)
-                {
-                    if (kscea.keyCode != BrailleIO_DeviceButtonStates.None)
-                    {
-                        releasedKeys = GetAllReleasedGeneralButtons(kscea.keyCode);
+                        foreach (var item in rkl)
+                        {
+                            if (!String.IsNullOrWhiteSpace(item)) { releasedKeys.Add(item.Trim()); }
+                        }
                     }
                 }
             }
@@ -131,7 +110,7 @@ namespace tud.mci.tangram.TangramLector
         /// <returns>
         /// a list of adapter class types this mediator is related to
         /// </returns>
-        public List<Type> GetRelatedAdapterTypes()
+        public override List<Type> GetRelatedAdapterTypes()
         {
             return new List<Type>(1) { typeof(BrailleIO.BrailleIOAdapter_ShowOff) };
         }

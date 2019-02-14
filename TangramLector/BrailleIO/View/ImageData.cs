@@ -1,15 +1,15 @@
-﻿using System;
+﻿using BrailleIO;
+using BrailleIO.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using BrailleIO;
-using BrailleIO.Interface;
 using TangramLector.OO;
 using tud.mci.LanguageLocalization;
+using tud.mci.tangram.audio;
 using tud.mci.tangram.controller.observer;
 using tud.mci.tangram.TangramLector.Control;
 using tud.mci.tangram.TangramLector.OO;
 using tud.mci.tangram.TangramLector.SpecializedFunctionProxies;
-using tud.mci.tangram.audio;
 
 namespace tud.mci.tangram.TangramLector
 {
@@ -47,7 +47,7 @@ namespace tud.mci.tangram.TangramLector
 
         private GUI_Menu gui_Menu;
         private string viewRangename = "imageDataView";
-        private Dictionary<string, string> propertiesDic = new Dictionary<string, string>() 
+        private Dictionary<string, string> propertiesDic = new Dictionary<string, string>()
             {
                 {"title",""},
                 {"description",""}
@@ -520,11 +520,23 @@ namespace tud.mci.tangram.TangramLector
             // open save dialog
             if (saveMenu == SaveDialog.NonActive)
             {
+                BrailleIODevice dev = null;
+                if (io != null && io.AdapterManager != null && io.AdapterManager.ActiveAdapter != null)
+                    dev = io.AdapterManager.ActiveAdapter.Device;
+
+                // inject pressing "Enter" key
                 ImageData.Instance.fire_ButtonCombinationReleased(null,
-                        new ButtonReleasedEventArgs(null, new List<BrailleIO_DeviceButton>(),
-                        new List<string>(),
-                        new List<BrailleIO_DeviceButton>(),
-                        new List<string>() { "crc" }));
+                        new ButtonReleasedEventArgs(
+                            dev,
+                            BrailleIO_DeviceButton.None,
+                            BrailleIO_BrailleKeyboardButton.None,
+                            null,
+                            new List<string>(),
+                            BrailleIO_DeviceButton.Enter,
+                            BrailleIO_BrailleKeyboardButton.None,
+                            null,
+                            new List<string>() { "crc" })
+                        );
             }
             // speak current selected option if save dialog is already open 
             else if (saveMenu == SaveDialog.Save) AudioRenderer.Instance.PlaySoundImmediately(LL.GetTrans("tangram.lector.oo_observer.selected", LL.GetTrans("tangram.lector.image_data.save")));
@@ -581,55 +593,57 @@ namespace tud.mci.tangram.TangramLector
         }
 
         protected override void im_ButtonCombinationReleased(object sender, ButtonReleasedEventArgs e)
+        { }
+
+        protected override void im_FunctionCall(object sender, FunctionCallInteractionEventArgs e)
         {
-            if ((e.ReleasedGenericKeys.Count == 1 && e.ReleasedGenericKeys[0] == "crc") ||
-                (e.ReleasedGenericKeys.Count == 2 && e.ReleasedGenericKeys.Contains("crc") &&
-                    (e.ReleasedGenericKeys.Contains("cru") || e.ReleasedGenericKeys.Contains("crl") || e.ReleasedGenericKeys.Contains("crr") || e.ReleasedGenericKeys.Contains("crd"))))
+            if (Active && e != null && !String.IsNullOrEmpty(e.Function))
             {
-                switch (saveMenu)
+                switch (e.Function)
                 {
-                    case SaveDialog.NonActive:
-                        //first call make save dialog visible
-                        //saveDialog = SaveDialog.Active;
-                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] open save dialog");
-                        saveMenu = SaveDialog.Save;
-                        showMenuDetailView();
-                        UnderLiningHook.selectedString = LL.GetTrans("tangram.lector.image_data.save");
-                        SaveBrailleInput(activeProperty, removeInputStr(activeProperty, Property.None));
-                        audioRenderer.PlaySoundImmediately(
-                            LL.GetTrans("tangram.lector.image_data.save_dialog.opend")
-                            + " " + LL.GetTrans("tangram.lector.image_data.save_dialog.entry_selected"
-                            , LL.GetTrans("tangram.lector.image_data.save")));
-                        break;
-                    case SaveDialog.Abort:
-                        //close save dialog
-                        saveMenu = SaveDialog.NonActive;
-                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] save menu aborted");
+                    case "confirm":
 
-                        detailViewDic[TITLE_DESC_SAVE_VIEW_NAME].SetVisibility(false);
-                        ShowImageDetailView(TITLE_DESC_VIEW_NAME, 15, 0, activeProperty);
-                        break;
-                    case SaveDialog.NotSave:
-                        // quit dialog without saving changes
-                        CloseImageDialog(false);
-                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] changes were not saved, dialog closed");
-                        break;
-                    case SaveDialog.Save:
-                        // quit dialog and save changes
-                        CloseImageDialog(true);
-                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] changes were saved, dialog closed");
-                        break;
-                }
-                e.Cancel = true;
-            }
+                        switch (saveMenu)
+                        {
+                            case SaveDialog.NonActive:
+                                //first call make save dialog visible
+                                //saveDialog = SaveDialog.Active;
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] open save dialog");
+                                saveMenu = SaveDialog.Save;
+                                showMenuDetailView();
+                                UnderLiningHook.selectedString = LL.GetTrans("tangram.lector.image_data.save");
+                                SaveBrailleInput(activeProperty, removeInputStr(activeProperty, Property.None));
+                                audioRenderer.PlaySoundImmediately(
+                                    LL.GetTrans("tangram.lector.image_data.save_dialog.opend")
+                                    + " " + LL.GetTrans("tangram.lector.image_data.save_dialog.entry_selected"
+                                    , LL.GetTrans("tangram.lector.image_data.save")));
+                                break;
+                            case SaveDialog.Abort:
+                                //close save dialog
+                                saveMenu = SaveDialog.NonActive;
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] save menu aborted");
 
-            // bei Verlassen des Dialoges
-            else if (e.ReleasedGenericKeys.Count == 1 && e.PressedGenericKeys.Count == 0)
-            {
-                switch (e.ReleasedGenericKeys[0])
-                {
+                                detailViewDic[TITLE_DESC_SAVE_VIEW_NAME].SetVisibility(false);
+                                ShowImageDetailView(TITLE_DESC_VIEW_NAME, 15, 0, activeProperty);
+                                break;
+                            case SaveDialog.NotSave:
+                                // quit dialog without saving changes
+                                CloseImageDialog(false);
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] changes were not saved, dialog closed");
+                                break;
+                            case SaveDialog.Save:
+                                // quit dialog and save changes
+                                CloseImageDialog(true);
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] changes were saved, dialog closed");
+                                break;
+                        }
+                        e.Cancel = true;
+                        e.Handled = true;
+                        break;
+
+
                     // scrolling through save, not saving and abort
-                    case "crr":
+                    case "changeRight":
                         //right scrolling through saveCommand
                         if (saveMenu != SaveDialog.NonActive)
                         {
@@ -641,8 +655,10 @@ namespace tud.mci.tangram.TangramLector
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] move caret to right");
                         }
                         e.Cancel = true;
+                        e.Handled = true;
                         break;
-                    case "crl":
+
+                    case "changeLeft":
                         if (saveMenu != SaveDialog.NonActive)
                         {
                             rotateThroughSaveDialog(-1);
@@ -653,20 +669,27 @@ namespace tud.mci.tangram.TangramLector
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] move caret to left");
                         }
                         e.Cancel = true;
+                        e.Handled = true;
                         break;
-                    case "cru":
+
+                    case "changeUp":
                         rotateThroughProperties();
                         e.Cancel = true;
+                        e.Handled = true;
                         break;
-                    case "crd":
+
+                    case "changeDown":
                         rotateThroughProperties();
                         e.Cancel = true;
+                        e.Handled = true;
                         break;
+
                     default:
                         break;
                 }
             }
         }
+
 
         void brailleKeybordCommandEvent(object sender, BrailleKeyboardCommandEventArgs e)
         {
@@ -835,7 +858,7 @@ namespace tud.mci.tangram.TangramLector
         {
             return;
         }
-        
+
         public void MoveCaret(int posX)
         {
             this.caretPosition = posX;
