@@ -16,7 +16,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
     /// </summary>
     /// <seealso cref="BrailleIO.Interface.BrailleIOHookableRendererBase" />
     /// <seealso cref="BrailleIO.Interface.IBrailleIOContentRenderer" />
-    class DrawRenderer : BrailleIOHookableRendererBase, IBrailleIOContentRenderer, ITouchableRenderer, IDisposable, IContrastThreshold // AbstractCachingRendererBase, ITouchableRenderer, IDisposable, IContrastThreshold
+    class DrawRenderer : BrailleIOHookableRendererBase, IBrailleIOContentRenderer, ITouchableRenderer, IDisposable, IContrastThreshold, IBrailleIOPanningRendererInterfaces // AbstractCachingRendererBase, ITouchableRenderer, IDisposable, IContrastThreshold
     {
         #region Members
         /// <summary>
@@ -33,7 +33,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         public DrawRenderer()
             : base()
         {
-            //DoesPanning = true;
+            DoesPanning = true;
         }
 
         #endregion
@@ -46,6 +46,25 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         bool[,] _lastResult = new bool[0,0];
 
         #region IBrailleIOContentRenderer
+
+        /// <summary>
+        /// Renders a content object into an boolean matrix;
+        /// while <c>true</c> values indicating raised pins and <c>false</c> values indicating lowered pins
+        /// </summary>
+        /// <param name="view">The frame to render in. This gives access to the space to render and other parameters. Normally this is a BrailleIOViewRange.</param>
+        /// <param name="matrix">The content to render.</param>
+        /// <returns>
+        /// A two dimensional boolean M x N matrix (bool[M,N]) where M is the count of rows (this is height)
+        /// and N is the count of columns (which is the width).
+        /// Positions in the Matrix are of type [i,j]
+        /// while i is the index of the row (is the y position)
+        /// and j is the index of the column (is the x position).
+        /// In the matrix <c>true</c> values indicating raised pins and <c>false</c> values indicating lowered pins
+        /// </returns>
+        public virtual bool[,] RenderMatrix(IViewBoxModel view, bool[,] matrix)
+        {
+            return _lastResult;
+        }
 
         /// <summary>
         /// Renders the real matrix.
@@ -258,5 +277,23 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         }
 
         #endregion
+
+        #region IBrailleIOPanningRendererInterfaces
+
+        bool _doesPanning = false;
+        /// <summary>
+        /// Indicates to the combining renderer if this renderer handles panning by its own or not.
+        /// <c>true</c> means the renderer has already handled panning (offsets) and returns the correct result.
+        /// <c>false</c> means the render does not handle panning (offset), returns the whole rendering result
+        /// and the combination renderer has to take care about the panning (offsets)
+        /// </summary>
+        public virtual bool DoesPanning
+        {
+            get { return _doesPanning; }
+            protected set { _doesPanning = value; }
+        }
+
+        #endregion
+
     }
 }
