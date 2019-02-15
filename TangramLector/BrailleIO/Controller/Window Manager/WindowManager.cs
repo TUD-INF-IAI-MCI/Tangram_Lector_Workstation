@@ -86,7 +86,7 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         private const float _PRINT_ZOOM_FACTOR = 0.10561666418313964f;
         #endregion
-        
+
         #region private
         InteractionManager InteractionManager = InteractionManager.Instance;
         AudioRenderer audioRenderer = AudioRenderer.Instance;
@@ -243,7 +243,7 @@ namespace tud.mci.tangram.TangramLector
         }
 
         #endregion
-        
+
         #region init methods
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 ((MatrixBrailleRenderer)renderer).RenderingProperties |= RenderingProperties.IGNORE_LAST_LINESPACE;
             }
-            
+
             mainScreen.AddViewRange(VR_CENTER_2_NAME, center2);
             mainScreen.AddViewRange(VR_CENTER_NAME, center);
             mainScreen.AddViewRange(VR_TOP_NAME, top);
@@ -725,7 +725,7 @@ namespace tud.mci.tangram.TangramLector
                     {
                         case LectorView.Drawing:
                             center.SetOtherContent(DrawAppModel, drawRenderer_Default);
-                            
+
                             // register grid hook
                             if (drawRenderer_Default != null && gridHook != null)
                             {
@@ -927,7 +927,7 @@ namespace tud.mci.tangram.TangramLector
         {
             if (DrawAppModel.ScreenObserver == null)
             {
-                DrawAppModel.ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
+                DrawAppModel.ScreenObserver = new ScreenObserver(100);
 
                 // so_Changed event handles the rendering of the bitmap
                 try { DrawAppModel.ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
@@ -943,11 +943,13 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="tud.mci.tangram.TangramLector.CaptureChangedEventArgs"/> instance containing the event data.</param>
         void so_Changed(object sender, CaptureChangedEventArgs e)
-        {            
-            Task t = new Task(()=>{
+        {
+            Task t = new Task(() =>
+            {
                 // add some delay so the other listeners can do their job (e.g. prerender)
                 Thread.Sleep(5);
-                io.RefreshDisplay(true);});
+                io.RefreshDisplay(true);
+            });
             t.Start();
         }
 
@@ -1194,6 +1196,10 @@ namespace tud.mci.tangram.TangramLector
                     setDetailRegionContent(GetCurrentDetailRegionContent());
                 }
             }
+
+            Task t = new Task(() => { Thread.Sleep(5); io.RefreshDisplay(true); });
+            t.Start();
+
         }
 
         /// <summary>
@@ -1253,7 +1259,7 @@ namespace tud.mci.tangram.TangramLector
         }
 
         #endregion
-        
+
         #region Enums
         /// <summary>
         /// View modes for the lector application.

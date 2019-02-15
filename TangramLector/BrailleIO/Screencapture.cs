@@ -733,8 +733,6 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-
-
         #region Configuration
 
         /// <summary>
@@ -785,8 +783,7 @@ namespace tud.mci.tangram.TangramLector
         #endregion
 
         #endregion
-
-
+        
         /// <summary>
         /// Helper class containing Gdi32 API functions
         /// </summary>

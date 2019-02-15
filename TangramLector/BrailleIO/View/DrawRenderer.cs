@@ -3,8 +3,6 @@ using BrailleIO.Interface;
 using BrailleIO.Renderer;
 using System;
 using System.Drawing;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Automation;
 using tud.mci.tangram.Accessibility;
 using tud.mci.tangram.TangramLector.BrailleIO.Model;
@@ -18,7 +16,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
     /// </summary>
     /// <seealso cref="BrailleIO.Interface.BrailleIOHookableRendererBase" />
     /// <seealso cref="BrailleIO.Interface.IBrailleIOContentRenderer" />
-    class DrawRenderer : AbstractCachingRendererBase, ITouchableRenderer, IDisposable, IContrastThreshold
+    class DrawRenderer : BrailleIOHookableRendererBase, IBrailleIOContentRenderer, ITouchableRenderer, IDisposable, IContrastThreshold // AbstractCachingRendererBase, ITouchableRenderer, IDisposable, IContrastThreshold
     {
         #region Members
         /// <summary>
@@ -35,62 +33,19 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         public DrawRenderer()
             : base()
         {
-            DoesPanning = true;
+            //DoesPanning = true;
         }
 
         #endregion
 
         #region Rendering
 
-        /// <summary>
-        /// Informs the renderer that the content the or view has changed.
-        /// You have to call the PrerenderMatrix function manually if you want to have a cached result.
-        /// </summary>
-        /// <param name="view">The view.</param>
-        /// <param name="content">The content.</param>
-        public override void ContentOrViewHasChanged(IViewBoxModel view, object content)
-        {
-            if (lastContent != content)
-            {
-                unregisterFromDrawModelEvents(lastContent as OoDrawModel);
-                lastContent = content;
-                registerToDrawModelEvents(lastContent as OoDrawModel);
-            }
-            base.ContentOrViewHasChanged(view, content);
-        }
+        IViewBoxModel _lastView = null;
+        
+        OoDrawModel lastContent = null;
+        bool[,] _lastResult = new bool[0,0];
 
-        /// <summary>
-        /// Gets the previously rendered and cached matrix.
-        /// </summary>
-        /// <returns>
-        /// The cached rendering result
-        /// </returns>
-        public override bool[,] GetCachedMatrix()
-        {
-            //int trys = 0;
-            //while (IsRendering && trys++ < 2) { Thread.Sleep(renderingWaitTimeout); }
-            return _cachedMatrix;
-        }
-
-        /// <summary>
-        /// Renders the current content
-        /// </summary>
-        /// <param name="view"></param>
-        /// <param name="content"></param>
-        public override void PrerenderMatrix(IViewBoxModel view, object content)
-        {
-            int trys = 0;
-            Task t = new Task(() =>
-            {
-                while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
-                this.IsRendering = true;
-                ContentChanged = false;
-                _cachedMatrix = _renderMatrix(view, content, CallHooksOnCacherendering);
-                LastRendered = DateTime.Now;
-                IsRendering = false;
-            });
-            t.Start();
-        }
+        #region IBrailleIOContentRenderer
 
         /// <summary>
         /// Renders the real matrix.
@@ -99,45 +54,63 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         /// <param name="content">The content.</param>
         /// <param name="CallHooksOnCacherendering">if set to <c>true</c> [call hooks on cache rendering].</param>
         /// <returns></returns>
-        protected virtual bool[,] _renderMatrix(global::BrailleIO.Interface.IViewBoxModel view, object content, bool CallHooksOnCacherendering)
+        public bool[,] RenderMatrix(IViewBoxModel view, object content)
         {
+            bool[,] result = new bool[0, 0];
+
+            callAllPreHooks(ref view, ref content, null);
+
             if (content is OoDrawModel)
             {
+                lastContent = content as OoDrawModel;
+
                 if (view is BrailleIOViewRange &&
                     ((BrailleIOViewRange)view).IsVisible() &&
                     ((BrailleIOViewRange)view).Parent != null &&
                     ((BrailleIOViewRange)view).Parent.IsVisible())
                 {
-
-                    // fix zoom -1 = fit to available space
-                    if (((OoDrawModel)content).LastScreenCapturing != null
-                        && view is IZoomable && ((IZoomable)view).GetZoom() < 0)
+                    using (Image capt = ((OoDrawModel)content).LastScreenCapturing)
                     {
-                        var Bounds = ((OoDrawModel)content).LastScreenCapturing.Size;
-                        var factor = Math.Min(
-                           (double)view.ContentBox.Height / (double)Bounds.Height + 0.000000001,
-                            (double)view.ContentBox.Width / (double)Bounds.Width + 0.000000001
-                            );
-                        ((IZoomable)view).SetZoom(factor);
+
+                        // fix zoom -1 = fit to available space
+                        if (capt != null
+                            && view is IZoomable && ((IZoomable)view).GetZoom() < 0)
+                        {
+                            var Bounds = capt.Size;
+                            var factor = Math.Min(
+                               view.ContentBox.Height / (double)Bounds.Height + 0.000000001,
+                                view.ContentBox.Width / (double)Bounds.Width + 0.000000001
+                                );
+                            ((IZoomable)view).SetZoom(factor);
+                        }
+
+                        // set the contrast threshold
+                        if (view is IContrastThreshold)
+                            ImageRenderer.SetThreshold(
+                                ((IContrastThreshold)view).GetContrastThreshold());
+
+                        result = ImageRenderer.RenderMatrix(view,
+                            capt);
                     }
-
-                    // set the contrast threshold
-                    if (view is IContrastThreshold)
-                        ImageRenderer.SetThreshold(
-                            ((IContrastThreshold)view).GetContrastThreshold());
-
-                    var result = ImageRenderer.RenderMatrix(view,
-                        ((OoDrawModel)content).LastScreenCapturing);
-
-                    return result;
-                }
-                else
-                {
-                    ContentChanged = true;
                 }
             }
-            return new bool[0, 0];
+
+            if(result.Length > 0)
+            {
+                _lastResult = result;
+            }
+            else // if something went wrong with the image rendering or capturing
+            {
+                // repeat the last result
+                result = _lastResult;
+            }
+
+            callAllPostHooks(view, content, ref result, null);
+
+            return result;
         }
+
+        #endregion
 
         #endregion
 
@@ -153,7 +126,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         /// </returns>
         public virtual object GetContentAtPosition(int x, int y)
         {
-            Point p = WindowManager.Instance.GetTapPositionOnScreen(x, x, lastView as BrailleIOViewRange);
+            Point p = WindowManager.Instance.GetTapPositionOnScreen(x, x, _lastView as BrailleIOViewRange);
 
             //check if a OpenOffice Window is presented
             if (lastContent is OoDrawModel &&
@@ -253,7 +226,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         {
             // ((OoDrawModel)lastContent).LastScreenCapturing.Save(@"C:\test\" + DateTime.Now.Ticks + "_capturing.png", System.Drawing.Imaging.ImageFormat.Png);
 
-            PrerenderMatrix(lastView, lastContent);
+            // PrerenderMatrix(_lastView, lastContent);
         }
 
         #endregion
@@ -271,6 +244,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         {
             return ImageRenderer.SetContrastThreshold(threshold);
         }
+
 
         /// <summary>
         /// Gets the contrast threshold.

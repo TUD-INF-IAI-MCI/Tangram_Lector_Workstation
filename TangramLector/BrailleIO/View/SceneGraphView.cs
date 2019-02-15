@@ -33,35 +33,39 @@ namespace tud.mci.tangram.TangramLector.View
                 } 
             }
         }
-        
-        /// <summary>
-        /// Renders the current content
-        /// </summary>
-        /// <param name="view"></param>
-        /// <param name="content"></param>
-        public virtual void PrerenderMatrix(IViewBoxModel view, object content)
+
+        ///// <summary>
+        ///// Renders the current content
+        ///// </summary>
+        ///// <param name="view"></param>
+        ///// <param name="content"></param>
+        //public virtual void PrerenderMatrix(IViewBoxModel view, object content)
+        //{
+        //    if (view != null && content != null && content is OoDrawModel)
+        //    {
+        //        int trys = 0;
+        //        Task t = new Task(() =>
+        //        {
+        //            while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
+        //            IsRendering = true;
+        //            ContentChanged = false;
+        //            _cachedMatrix = _renderMatrix(view, content as OoDrawModel, CallHooksOnCacherendering);
+        //            LastRendered = DateTime.Now;
+        //            IsRendering = false;
+        //        });
+        //        t.Start();
+        //    }
+        //}
+
+
+
+        protected override bool[,] renderMatrix(IViewBoxModel view, Object content, bool CallHooksOnCacherendering)
         {
-            if (view != null && content != null && content is OoDrawModel)
-            {
-                int trys = 0;
-                Task t = new Task(() =>
-                {
-                    while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
-                    IsRendering = true;
-                    ContentChanged = false;
-                    _cachedMatrix = _renderMatrix(view, content as OoDrawModel, CallHooksOnCacherendering);
-                    LastRendered = DateTime.Now;
-                    IsRendering = false;
-                });
-                t.Start();
-            }
-        }
-
-
-
-        private bool[,] _renderMatrix(IViewBoxModel view, OoDrawModel ooDrawModel, bool CallHooksOnCacherendering)
-        {
+            OoDrawModel ooDrawModel = content as OoDrawModel;            
             bool[,] m = new bool[0, 0];
+
+            if (ooDrawModel == null) return m;
+
             int w = view.ContentBox.Width;
             // go through all elements of the drawing
 
@@ -122,8 +126,6 @@ namespace tud.mci.tangram.TangramLector.View
             return m;
 
         }
-
-
 
 
         #region build scene graph
