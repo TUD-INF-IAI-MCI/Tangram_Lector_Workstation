@@ -282,6 +282,11 @@
     <mapping device="_default">k1,k2,k4,k5,k7</mapping>
   </function>
 
+  <function name="toggleGrid" description="Show or hide a referencing grid for drawing">
+    <mapping device="_default">k1,k2,k3,k5</mapping>
+  </function>
+  
+
   <!-- panning the detail area -->
 
   <function name="pannDetailLeft" description="Moves the viewPort of the detail are a step to the left">

@@ -718,6 +718,25 @@ namespace tud.mci.tangram.TangramLector
                             e.Handled = true;
                             return;
 
+                        case "toggleGrid":
+                            if(gridHook != null)
+                            {
+                                if(gridHook.Mode == BrailleIO.View.GridMode.Grid)
+                                {
+                                    gridHook.Mode = BrailleIO.View.GridMode.None;
+                                    gridHook.Active = false;
+                                }
+                                else
+                                {
+                                    gridHook.Mode = BrailleIO.View.GridMode.Grid;
+                                    gridHook.Active = true;
+                                }
+                                io.RenderDisplay();
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            break;
+
                         default:
                             break;
                     }
