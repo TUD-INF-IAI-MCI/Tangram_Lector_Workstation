@@ -974,7 +974,7 @@ namespace tud.mci.tangram.Accessibility
                              }
                              catch (System.Exception ex)
                              {
-                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant use the controller of document window: "/*, ex*/);
+                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant use the controller of document window: ", ex);
                              }
                          }
                          , "useControllerOfModel"

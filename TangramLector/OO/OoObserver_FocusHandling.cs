@@ -18,19 +18,21 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <summary>
         /// brailleDomFocusRenderer
         /// </summary>
+		/// <remarks> </remarks>
         public bool DrawSelectFocusHighlightMode = true;
         private volatile bool blinkStateOn = false;
         /// <summary>
         /// true if braille focus is blinking, false if braille focus is not blinking
         /// </summary>
+		/// <remarks> </remarks>
         private bool blinkFocusActive = false;
 
-        // original attributes of selected element to be restored on focus change / end of highlight
-        // TODO: have to be changed live when last observed shape attributes are changed by draw!
-        private int oLineTransparence = 0;
-        private int oLineColor = 0;
-        private int oFillTransparence = 0;
-        private int oFillColor = 0;
+        //// original attributes of selected element to be restored on focus change / end of highlight
+        //// TODO: have to be changed live when last observed shape attributes are changed by draw!
+        //private int oLineTransparence = 0;
+        //private int oLineColor = 0;
+        //private int oFillTransparence = 0;
+        //private int oFillColor = 0;
 
         private tud.mci.tangram.controller.observer.OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
         private tud.mci.tangram.controller.observer.OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
@@ -99,7 +101,7 @@ namespace tud.mci.tangram.TangramLector.OO
                             brailleDomFocusHighlightMode = true;
                             blinkFocusActive = true;
                         }
-                        catch (Exception ex) { }
+                        catch { }
                     }
                 }
             }

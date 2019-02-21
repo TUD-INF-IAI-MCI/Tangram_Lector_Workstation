@@ -17,7 +17,7 @@ namespace tud.mci.tangram.TangramLector.View
 
 
         MatrixBrailleRenderer brlRenderer = new MatrixBrailleRenderer(RenderingProperties.ADD_SPACE_FOR_SCROLLBARS | RenderingProperties.IGNORE_LAST_LINESPACE | RenderingProperties.RETURN_REAL_WIDTH);
-        OoDrawModel _lastDrawModel = null;
+        //OoDrawModel _lastDrawModel = null;
         SceneGraphDialogController _sgc = null;
         internal SceneGraphDialogController SgController
         {
@@ -69,7 +69,7 @@ namespace tud.mci.tangram.TangramLector.View
             int w = view.ContentBox.Width;
             // go through all elements of the drawing
 
-            int levelIndent = 2;
+            //int levelIndent = 2;
             int lvl = 0;
 
 

@@ -61,11 +61,12 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             set { _currentPolyPoint = value; }
         }
 
-        OoPolygonPointsObserver _relatedPolyPoint = null;
+        //OoPolygonPointsObserver _relatedPolyPoint = null;
 
         /// <summary>
         /// Gets the related polygon edge point to the <see cref="CurrentPolyPoint"/> if it is a Control point.
         /// </summary>
+		/// <remarks> </remarks>
         /// <value>
         /// The related polygon edge point.
         /// </value>
@@ -191,7 +192,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        static int boundingBoxPadding = 2;
+        static readonly int boundingBoxPadding = 2;
 
         virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] target)
         {

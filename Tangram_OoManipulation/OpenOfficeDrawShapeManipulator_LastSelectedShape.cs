@@ -203,7 +203,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 {
                     play(LL.GetTrans("tangram.oomanipulation.shape.deleted", LL.GetTrans("tangram.oomanipulation.shape")), true);
                 }
-                catch (Exception ex) { }
+                catch { }
 
                 resetSelectedShapeProperties(true);
                 LastSelectedShape = null;
