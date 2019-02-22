@@ -938,7 +938,6 @@ namespace tud.mci.tangram.controller.observer
     /// <summary>
     /// Selection of objects
     /// </summary>
-		/// <remarks> </remarks>
     public class OoAccessibilitySelection
     {
         #region private Member

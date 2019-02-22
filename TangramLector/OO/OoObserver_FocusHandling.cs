@@ -18,13 +18,11 @@ namespace tud.mci.tangram.TangramLector.OO
         /// <summary>
         /// brailleDomFocusRenderer
         /// </summary>
-		/// <remarks> </remarks>
         public bool DrawSelectFocusHighlightMode = true;
         private volatile bool blinkStateOn = false;
         /// <summary>
         /// true if braille focus is blinking, false if braille focus is not blinking
         /// </summary>
-		/// <remarks> </remarks>
         private bool blinkFocusActive = false;
 
         //// original attributes of selected element to be restored on focus change / end of highlight

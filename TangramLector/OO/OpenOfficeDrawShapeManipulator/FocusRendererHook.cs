@@ -66,7 +66,6 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
         /// <summary>
         /// Gets the related polygon edge point to the <see cref="CurrentPolyPoint"/> if it is a Control point.
         /// </summary>
-		/// <remarks> </remarks>
         /// <value>
         /// The related polygon edge point.
         /// </value>
