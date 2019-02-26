@@ -44,13 +44,15 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         /// </value>
         public virtual int GridOffset { set { GridOffsetHorizontal = GridOffsetVertical = value; } }
 
+
+        int _gsh = 1;
         /// <summary>
         /// Gets or sets the horizontal grid size = the distance between two horizontal grid lines.
         /// </summary>
         /// <value>
         /// The horizontal grid size.
         /// </value>
-        public virtual int GridSizeHorizontal { get; set; }
+        public virtual int GridSizeHorizontal { get { return _gsh; } set { _gsh = Math.Max(1, value); } }
 
         int _goh = 0;
         /// <summary>
@@ -64,7 +66,10 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             get { return _goh; }
             set
             {
-                if (value < 1)
+
+                if (GridSizeHorizontal <= 0) _goh = 0;
+
+                else if (value < 1)
                 {
                     _goh = (GridSizeHorizontal + ((value) % GridSizeHorizontal)) % GridSizeHorizontal;
                 }
@@ -76,13 +81,14 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             }
         }
 
+        int _gsv = 1;
         /// <summary>
         /// Gets or sets the vertical grid size = the distance between two vertical grid lines.
         /// </summary>
         /// <value>
         /// The vertical grid size.
         /// </value>
-        public virtual int GridSizeVertical { get; set; }
+        public virtual int GridSizeVertical { get { return _gsv; } set { _gsv = Math.Max(1, value); } }
 
         int _gov = 0;
         /// <summary>
@@ -96,7 +102,9 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             get { return _gov; }
             set
             {
-                if (value < 1)
+                if (GridSizeVertical <= 0) _goh = 0;
+
+                else if (value < 1)
                 {
                     _gov = (GridSizeVertical + ((value) % GridSizeVertical)) % GridSizeVertical;
                 }
@@ -198,16 +206,12 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         {
             Active = true;
 
-            loadParameterFromConfig();
 
             GridSize = 10;
             GridOffset = 0;
-           // Gap = false;
+            // Gap = false;
 
-            //GridLinePattern = new int[5] { 2, 2, 3, 3, 4 };
-            //GridVerticalLinesPattern = new int[2] { 3, 2 };
-
-            // GridLinePattern = new int[2] { 1, 4 };
+            GridLinePattern = new int[2] { 1, 4 };
             //GridLinePattern = new int[2] { 1, 1 };
 
 
@@ -217,6 +221,8 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             //GridHorizontalLinesPattern = new int[2] { 1, 1 };
             //GridVerticalLinesPattern= new int[2] { 1, 1 };
 
+            //GridLinePattern = new int[5] { 2, 2, 3, 3, 4 };
+            //GridVerticalLinesPattern = new int[2] { 3, 2 };
 
 
             ///************* 5 FULL ******************/
@@ -264,6 +270,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             //GridSize = 10;
             //GridLinePattern = new int[6] { 0, 1, 2, 5, 2, 0 };
 
+            loadParameterFromConfig();
         }
 
         #endregion
@@ -328,7 +335,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             {
                 // calculate pattern position based of grid offset
                 int o = 0;
-                int p1 = 0; // incrementP(0, GridOffsetVertical, GridHorizontalLinesPattern, out o);
+                int p1 = incrementP(0, GridOffsetVertical, GridHorizontalLinesPattern, out o);
                 for (int i = GridOffsetVertical - 1; i < m; i += GridSizeVertical) // row
                 {
                     int p = p1;
@@ -430,7 +437,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             {
                 // calculate pattern position based of grid offset
                 int o = 0;
-                int p1 = 0; // incrementP(0, GridOffsetHorizontal, GridVerticalLinesPattern, out o);
+                int p1 = incrementP(0, GridOffsetHorizontal, GridVerticalLinesPattern, out o);
 
                 for (int j = GridOffsetHorizontal - 1; j < n; j += GridSizeHorizontal) // col
                 {
@@ -524,12 +531,20 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
             #endregion
         }
 
+        /// <summary>
+        /// Increments the p (step counter in pattern parts) by the given pins offset to find the current active pattern definition part.
+        /// </summary>
+        /// <param name="p">The current p.</param>
+        /// <param name="j">The current offset in pins until the pattern gets visible.</param>
+        /// <param name="pattern">The line pattern with pins and gaps.</param>
+        /// <param name="rest">The rest left in the current pattern part.</param>
+        /// <returns>the new p offset</returns>
         private static int incrementP(int p, int j, int[] pattern, out int rest)
         {
             rest = 0;
             return 0;
 
-            // FIXME: make this work
+            //// FIXME: make this work
 
             if (pattern != null && pattern.Length > 0)
             {
@@ -678,50 +693,50 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
 
         private void _laodGridOffsetFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffset"))
-                 GridOffset = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffset", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffset"))
+                GridOffset = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffset", config);
         }
 
         private void _laodGridSizeFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSize"))
-            GridSize = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSize", config);
+                GridSize = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSize", config);
         }
 
         private void _laodGapFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Gap"))
-            Gap = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Gap", config);
+                Gap = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Gap", config);
         }
 
         private void _laodActiveFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Active"))
-                 Active = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Active", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Active"))
+                Active = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Active", config);
         }
 
         private void _laodGridSizeVerticalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeVertical"))
-                 GridSizeVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeVertical", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeVertical"))
+                GridSizeVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeVertical", config);
         }
 
         private void _laodGridSizeHorizontalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeHorizontal"))
-                 GridSizeHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeHorizontal", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeHorizontal"))
+                GridSizeHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeHorizontal", config);
         }
 
         private void _laodGridOffsetVerticalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetVertical"))
-                 GridOffsetVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetVertical", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetVertical"))
+                GridOffsetVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetVertical", config);
         }
 
         private void _laodGridOffsetHorizontalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-             if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetHorizontal"))
-                 GridOffsetHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetHorizontal", config);
+            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetHorizontal"))
+                GridOffsetHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetHorizontal", config);
         }
 
         #endregion
@@ -743,5 +758,5 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
         /// </summary>
         Grid
     }
-        
+
 }
