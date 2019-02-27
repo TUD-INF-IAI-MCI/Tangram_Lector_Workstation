@@ -1,4 +1,5 @@
 ﻿using BrailleIO;
+using BrailleIO.Interface;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +41,7 @@ namespace tud.mci.tangram.TangramLector
             registerTopMostSpFProxy();
         }
 
-        void AdapterManager_NewAdapterRegistered(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        void AdapterManager_NewAdapterRegistered(object sender, IBrailleIOAdapterEventArgs e)
         {
             if (e != null && e.Adapter != null && e.Adapter.Device != null)
             {
@@ -49,7 +50,7 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        void AdapterManager_ActiveAdapterChanged(object sender, BrailleIO.Interface.IBrailleIOAdapterEventArgs e)
+        void AdapterManager_ActiveAdapterChanged(object sender, IBrailleIOAdapterEventArgs e)
         {
             //CleanScreen();
             //BuildScreens();            
@@ -97,11 +98,11 @@ namespace tud.mci.tangram.TangramLector
                         Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[CONTROL]\t" + "recalibrate devices");
                         if (io != null)
                         {
-                            this.ScreenObserver.Stop();
+                            // this.ScreenObserver.Stop();
                             audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate"));
                             // bool res = io.Recalibrate();
                             bool res = io.RecalibrateAll();
-                            this.ScreenObserver.Start();
+                            // this.ScreenObserver.Start();
                             audioRenderer.PlaySound(LL.GetTrans("tangram.lector.wm.recalibrate.success", (res ? "" : LL.GetTrans("tangram.lector.not") + " ")));
                         }
                         Logger.Instance.Log(LogPriority.MIDDLE, this, "[INTERACTION] recalibrate the device");
@@ -717,6 +718,25 @@ namespace tud.mci.tangram.TangramLector
                             e.Handled = true;
                             return;
 
+                        case "toggleGrid":
+                            if(gridHook != null)
+                            {
+                                if(gridHook.Mode == BrailleIO.View.GridMode.Grid)
+                                {
+                                    gridHook.Mode = BrailleIO.View.GridMode.None;
+                                    gridHook.Active = false;
+                                }
+                                else
+                                {
+                                    gridHook.Mode = BrailleIO.View.GridMode.Grid;
+                                    gridHook.Active = true;
+                                }
+                                io.RenderDisplay();
+                            }
+                            e.Cancel = true;
+                            e.Handled = true;
+                            break;
+
                         default:
                             break;
                     }
@@ -806,9 +826,9 @@ namespace tud.mci.tangram.TangramLector
                             Point p = GetTapPositionOnScreen(e.Gesture.NodeParameters[0].X, e.Gesture.NodeParameters[0].Y, vr);
 
                             //check if a OpenOffice Window is presented
-                            if (ScreenObserver != null && ScreenObserver.Whnd != null)
+                            if (DrawAppModel.ScreenObserver != null && DrawAppModel.ScreenObserver.Whnd != null)
                             {
-                                var observed = isObservedOpebnOfficeDrawWindow(ScreenObserver.Whnd.ToInt32());
+                                var observed = isObservedOpebnOfficeDrawWindow(DrawAppModel.ScreenObserver.Whnd.ToInt32());
                                 if (observed != null)
                                 {
                                     handleSelectedOoAccItem(observed, p, e);

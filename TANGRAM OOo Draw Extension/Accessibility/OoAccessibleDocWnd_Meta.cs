@@ -157,13 +157,17 @@ namespace tud.mci.tangram.Accessibility
                         {
                             try
                             {
-                                var overwrite = new PropertyValue();
-                                overwrite.Name = "Overwrite";
-                                overwrite.Value = Any.Get(true);
+                                var overwrite = new PropertyValue
+                                {
+                                    Name = "Overwrite",
+                                    Value = Any.Get(true)
+                                };
 
-                                var filter = new PropertyValue();
-                                filter.Name = "FilterName";
-                                filter.Value = Any.Get(fileType);
+                                var filter = new PropertyValue
+                                {
+                                    Name = "FilterName",
+                                    Value = Any.Get(fileType)
+                                };
 
                                 PropertyValue[] arguments = new PropertyValue[2]{
                                     overwrite,
@@ -210,13 +214,17 @@ namespace tud.mci.tangram.Accessibility
                         {
                             try
                             {
-                                var overwrite = new PropertyValue();
-                                overwrite.Name = "Overwrite";
-                                overwrite.Value = Any.Get(true);
+                                var overwrite = new PropertyValue
+                                {
+                                    Name = "Overwrite",
+                                    Value = Any.Get(true)
+                                };
 
-                                var filter = new PropertyValue();
-                                filter.Name = "FilterName";
-                                filter.Value = Any.Get(fileType);
+                                var filter = new PropertyValue
+                                {
+                                    Name = "FilterName",
+                                    Value = Any.Get(fileType)
+                                };
 
                                 PropertyValue[] arguments = new PropertyValue[2]{
                                     overwrite,
@@ -450,8 +458,10 @@ namespace tud.mci.tangram.Accessibility
                 {
                     try
                     {
-                        xDocumentProperties.Language = new unoidl.com.sun.star.lang.Locale();
-                        xDocumentProperties.Language.Language = value;
+                        xDocumentProperties.Language = new unoidl.com.sun.star.lang.Locale
+                        {
+                            Language = value
+                        };
                     }
                     catch (Exception) { }
                 }

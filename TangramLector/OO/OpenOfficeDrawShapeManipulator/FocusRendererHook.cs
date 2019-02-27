@@ -61,7 +61,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             set { _currentPolyPoint = value; }
         }
 
-        OoPolygonPointsObserver _relatedPolyPoint = null;
+        //OoPolygonPointsObserver _relatedPolyPoint = null;
 
         /// <summary>
         /// Gets the related polygon edge point to the <see cref="CurrentPolyPoint"/> if it is a Control point.
@@ -191,13 +191,13 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             }
         }
 
-        static int boundingBoxPadding = 2;
+        static readonly int boundingBoxPadding = 2;
 
         virtual protected bool[,] paintBoundingBoxMarker(IViewBoxModel view, bool[,] target)
         {
             if (view is IZoomable && view is IPannable)
             {
-                double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                double zoom = ((IZoomable)view).GetZoom();
                 int xOffset = ((IPannable)view).GetXOffset();
                 int yOffset = ((IPannable)view).GetYOffset();
 
@@ -325,7 +325,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (view is IZoomable && view is IPannable)
                     {
                         //Rectangle pageBounds = getPageBounds();
-                        double zoom = ((BrailleIO.Interface.IZoomable)view).GetZoom();
+                        double zoom = ((IZoomable)view).GetZoom();
                         int xOffset = ((IPannable)view).GetXOffset();
                         int yOffset = ((IPannable)view).GetYOffset();
                         // coords of the shapes bounding box, relative to the whole captured image
@@ -444,7 +444,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
             Rectangle pageBounds = new Rectangle();
             if (WindowManager.Instance != null)
             {
-                ScreenObserver obs = WindowManager.Instance.ScreenObserver;
+                ScreenObserver obs = WindowManager.Instance.DrawAppModel.ScreenObserver;
                 if (obs != null)
                 {
                     Object scPos = obs.ScreenPos;

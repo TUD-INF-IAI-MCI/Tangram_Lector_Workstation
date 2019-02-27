@@ -942,8 +942,8 @@ namespace tud.mci.tangram.controller.observer
     {
         #region private Member
 
-        private OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
-        private OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
+        private readonly OoShapeObserver.BoundRectChangeEventHandler OnShapeBoundRectChange;
+        private readonly OoDrawPagesObserver.ViewOrZoomChangeEventHandler OnViewOrZoomChange;
 
         #endregion
 

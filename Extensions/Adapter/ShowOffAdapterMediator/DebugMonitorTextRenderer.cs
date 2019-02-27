@@ -59,10 +59,12 @@ namespace ShowOffAdapterMediator
             if (renderingThread == null || !renderingThread.IsAlive || renderingThread.ThreadState != ThreadState.Running)
             {
                 _run = false;
-                renderingThread = new Thread(renderText);
-                renderingThread.Name = "DebugMonitorTextRendering";
-                renderingThread.Priority = ThreadPriority.Normal;
-                renderingThread.IsBackground = true;
+                renderingThread = new Thread(renderText)
+                {
+                    Name = "DebugMonitorTextRendering",
+                    Priority = ThreadPriority.Normal,
+                    IsBackground = true
+                };
                 _run = true;
                 renderingThread.Start();
             }
@@ -123,7 +125,7 @@ namespace ShowOffAdapterMediator
                         monitor.SetPictureOverlay(im);
                     }
                 }
-                catch (System.Exception ex)
+                catch
                 {
                     // return;
                     continue;
@@ -225,9 +227,9 @@ namespace ShowOffAdapterMediator
 
         #region Image Rendering
 
-        static Font textFont = new Font(FontFamily.GenericMonospace, 14, FontStyle.Bold);
-        static SolidBrush textBrush = new SolidBrush(Color.FromArgb(255, 10, 10, 10));
-        static SolidBrush backgroundBrush = new SolidBrush(Color.FromArgb(180, 255, 255, 255));
+        static readonly Font textFont = new Font(FontFamily.GenericMonospace, 14, FontStyle.Bold);
+        static readonly SolidBrush textBrush = new SolidBrush(Color.FromArgb(255, 10, 10, 10));
+        static readonly SolidBrush backgroundBrush = new SolidBrush(Color.FromArgb(180, 255, 255, 255));
         static Pen dashedPen = new Pen(Color.FromArgb(200, 139, 0, 139));
 
         static void getImageOfRenderingElement(RenderElement e, ref Graphics g, int xOffset, int yOffset,
@@ -280,8 +282,10 @@ namespace ShowOffAdapterMediator
             Bitmap bmp = new Bitmap(img.Width, img.Height); // Determining Width and Height of Source Image
             using (Graphics graphics = Graphics.FromImage(bmp))
             {
-                ColorMatrix colormatrix = new ColorMatrix();
-                colormatrix.Matrix33 = opacityvalue;
+                ColorMatrix colormatrix = new ColorMatrix
+                {
+                    Matrix33 = opacityvalue
+                };
                 ImageAttributes imgAttribute = new ImageAttributes();
                 imgAttribute.SetColorMatrix(colormatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
                 graphics.DrawImage(img, new Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, img.Width, img.Height, GraphicsUnit.Pixel, imgAttribute);

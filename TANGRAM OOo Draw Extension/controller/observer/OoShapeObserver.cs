@@ -390,7 +390,7 @@ namespace tud.mci.tangram.controller.observer
 
                     if (_ppObs != null) { _ppObs.Update(); } // update polypolygon points
                 }
-                catch (Exception ex) { }
+                catch { }
                 finally
                 {
                     // TODO: update children
@@ -635,12 +635,31 @@ namespace tud.mci.tangram.controller.observer
                 // See <http://www.oooforum.org/forum/viewtopic.phtml?t=50783> 
                 // properties for the png export filter:
                 PropertyValue[] aFilterData = new PropertyValue[5];
-                aFilterData[0] = new PropertyValue(); aFilterData[0].Name = "PixelWidth"; aFilterData[0].Value = tud.mci.tangram.models.Any.Get(rectDom.Width); // bounding box width
-                aFilterData[1] = new PropertyValue(); aFilterData[1].Name = "PixelHeight"; aFilterData[1].Value = tud.mci.tangram.models.Any.Get(rectDom.Height);// bounding box height
-                aFilterData[2] = new PropertyValue(); aFilterData[2].Name = "Translucent"; aFilterData[2].Value = new uno.Any(true);    // png with translucent background
-                aFilterData[3] = new PropertyValue(); aFilterData[3].Name = "Compression"; aFilterData[3].Value = new uno.Any(0);    // png compression level 0..9 (set to 0 to be fastest, smallest files would be produced by 9)
-                aFilterData[4] = new PropertyValue(); aFilterData[4].Name = "Interlaced"; aFilterData[4].Value = new uno.Any(0);    // png interlacing (off=0)
-
+                aFilterData[0] = new PropertyValue
+                {
+                    Name = "PixelWidth",
+                    Value = tud.mci.tangram.models.Any.Get(rectDom.Width) // bounding box width
+                };
+                aFilterData[1] = new PropertyValue
+                {
+                    Name = "PixelHeight",
+                    Value = tud.mci.tangram.models.Any.Get(rectDom.Height)// bounding box height
+                };
+                aFilterData[2] = new PropertyValue
+                {
+                    Name = "Translucent",
+                    Value = new uno.Any(true)    // png with translucent background
+                };
+                aFilterData[3] = new PropertyValue
+                {
+                    Name = "Compression",
+                    Value = new uno.Any(0)    // png compression level 0..9 (set to 0 to be fastest, smallest files would be produced by 9)
+                };
+                aFilterData[4] = new PropertyValue
+                {
+                    Name = "Interlaced",
+                    Value = new uno.Any(0)    // png interlacing (off=0)
+                };
                 /* create com.sun.star.comp.MemoryStream, Debug.GetAllInterfacesOfObject(memoryOutStream) gets:
                     unoidl.com.sun.star.io.XStream
                     unoidl.com.sun.star.io.XSeekableInputStream
@@ -655,10 +674,21 @@ namespace tud.mci.tangram.controller.observer
 
                 // the filter media descriptor: media type, destination, and filterdata containing the export settings from above
                 PropertyValue[] aArgs = new PropertyValue[3];
-                aArgs[0] = new PropertyValue(); aArgs[0].Name = "MediaType"; aArgs[0].Value = tud.mci.tangram.models.Any.Get("image/png");
-                aArgs[1] = new PropertyValue(); aArgs[1].Name = "OutputStream"; aArgs[1].Value = tud.mci.tangram.models.Any.Get(memoryStream);   // filter to our memory stream
-                aArgs[2] = new PropertyValue(); aArgs[2].Name = "FilterData"; aArgs[2].Value = tud.mci.tangram.models.Any.GetAsOne(aFilterData);
-
+                aArgs[0] = new PropertyValue
+                {
+                    Name = "MediaType",
+                    Value = tud.mci.tangram.models.Any.Get("image/png")
+                };
+                aArgs[1] = new PropertyValue
+                {
+                    Name = "OutputStream",
+                    Value = tud.mci.tangram.models.Any.Get(memoryStream)   // filter to our memory stream
+                };
+                aArgs[2] = new PropertyValue
+                {
+                    Name = "FilterData",
+                    Value = tud.mci.tangram.models.Any.GetAsOne(aFilterData)
+                };
                 // create exporter service
                 XExporter exporter = (XExporter)OO.GetContext().getServiceManager().createInstanceWithContext("com.sun.star.drawing.GraphicExportFilter", OO.GetContext());
                 exporter.setSourceDocument((XComponent)Shape);

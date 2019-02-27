@@ -225,7 +225,7 @@
 
 
     <!--<function name="editTitleDesc" description="Opens the title and description edit dialog">
-      <mapping device="_default">k2,k3,k4,k5</mapping>
+      <mapping device="_default">k2,k3,k4,k5,k8</mapping>
     </function>-->
 
     <!-- focusing -->

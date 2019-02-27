@@ -229,7 +229,7 @@
 
 
   <function name="editTitleDesc" description="Opens the title and description edit dialog">
-    <mapping device="_default">k2,k3,k4,k5</mapping>
+    <mapping device="_default">k2,k3,k4,k5,k8</mapping>
   </function>
 
   <!-- focusing -->
@@ -281,6 +281,11 @@
   <function name="toggleGrouping" description="Toggles the mode for grouping elements">
     <mapping device="_default">k1,k2,k4,k5,k7</mapping>
   </function>
+
+  <function name="toggleGrid" description="Show or hide a referencing grid for drawing">
+    <mapping device="_default">k1,k2,k3,k5</mapping>
+  </function>
+  
 
   <!-- panning the detail area -->
 

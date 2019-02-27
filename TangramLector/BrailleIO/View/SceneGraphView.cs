@@ -1,171 +1,160 @@
-﻿//using BrailleIO.Dialogs;
-//using BrailleIO.Interface;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
+﻿using BrailleIO.Interface;
+using BrailleIO.Renderer;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using TangramLector.OO;
+using tud.mci.tangram.TangramLector.BrailleIO.Controller;
+using tud.mci.tangram.TangramLector.BrailleIO.Model;
 
-//namespace tud.mci.tangram.TangramLector.View
-//{
-//    class SceneGraphView
-//    {
-//        private Dialog buildSceneGraph()
-//        {
-//            string title = "Scene Graph"; // TODO: based on current document/page title?
-//            string id = "SCENE_GRAPH"; // TODO: multiple ids needed (each for every page)?
-//            Dialog sceneGraph = new Dialog(title, id);
-
-//            #region event registration
-//            sceneGraph.EntrySelected += new EventHandler<EntryEventArgs>(sceneGraph_EntrySelected);
-//            sceneGraph.EntryDeselected += new EventHandler<EntryEventArgs>(sceneGraph_EntryDeselected);
-//            sceneGraph.EntryActivated += new EventHandler<EntryEventArgs>(sceneGraph_EntryActivated);
-//            sceneGraph.EntryDeactivated += new EventHandler<EntryEventArgs>(sceneGraph_EntryDeactivated);
-//            sceneGraph.EntryChecked += new EventHandler<EntryEventArgs>(sceneGraph_EntryChecked);
-//            sceneGraph.EntryUnchecked += new EventHandler<EntryEventArgs>(sceneGraph_EntryUnchecked);
-//            sceneGraph.SwitchedToParentDialog += new EventHandler<DialogEventArgs>(sceneGraph_SwitchedToParentDialog);
-//            sceneGraph.SwitchedToChildDialog += new EventHandler<DialogEventArgs>(sceneGraph_SwitchedToChildDialog);
-//            sceneGraph.EntryAdded += new EventHandler<EntryEventArgs>(sceneGraph_EntryAdded);
-//            sceneGraph.EntryRemoved += new EventHandler<EntryEventArgs>(sceneGraph_EntryRemoved);
-//            #endregion
-
-//            return sceneGraph;
-//        }
-
-//        #region events
-
-//        void sceneGraph_EntryRemoved(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryAdded(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_SwitchedToChildDialog(object sender, DialogEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_SwitchedToParentDialog(object sender, DialogEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryUnchecked(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryChecked(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryDeactivated(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryActivated(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntryDeselected(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        void sceneGraph_EntrySelected(object sender, EntryEventArgs e)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        #endregion
-
-//        Dialog _sceneGraph = null;
-//        /// <summary>
-//        /// Gets or sets the scene graph.
-//        /// </summary>
-//        /// <value>
-//        /// The scene graph.
-//        /// </value>
-//        public Dialog SceneGraph
-//        {
-//            get
-//            {
-//                if (_sceneGraph == null) _sceneGraph = buildSceneGraph();
-//                return _sceneGraph;
-//            }
-//            set { _sceneGraph = value; }
-//        }
-
-//        /// <summary>
-//        /// Gets the selected entry.
-//        /// </summary>
-//        /// <returns></returns>
-//        public DialogEntry GetSelectedEntry()
-//        {
-//            if (SelectedEntry != null) return (SelectedEntry);
-//            else return null;
-//        }
-
-//        private DialogEntry _selectedEntry;
-//        /// <summary>
-//        /// Gets or sets the current selected entry.
-//        /// </summary>
-//        /// <value>
-//        /// The selected.
-//        /// </value>
-//        public DialogEntry SelectedEntry
-//        {
-//            get { return _selectedEntry; }
-//            private set
-//            {
-//                if (value == _selectedEntry) return;
-//                var oldVal = _selectedEntry;
-//                _selectedEntry = value;
-//                if (oldVal != null) fire_EntryDeselected(oldVal);
-//                if (_selectedEntry != null) fire_EntrySelected(_selectedEntry);
-//            }
-//        }
-
-//        private void fire_EntrySelected(DialogEntry _selectedEntry)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        private void fire_EntryDeselected(DialogEntry oldVal)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        #region DialogContentHandling
-
-//        /// <summary>
-//        /// Handles a Tab on a SceneGraph element.
-//        /// </summary>
-//        /// <param name="contentAtPosition">The content at position.</param>
-//        private void handleDialogContent(object contentAtPosition)
-//        {
-//            if (contentAtPosition != null && contentAtPosition is DialogEntry)
-//            {
-//                DialogEntry dialogEntryAtPosition = (DialogEntry)contentAtPosition;
-
-//                // TODO: handle tab
-//                //if (SceneGraph.GetSelectedEntry() != null)
-//                //{
-//                //        handleAudio("msg.audio.Read", ActiveDialog.GetSelectedEntry().Help);
-//                //}
-//                //io.RenderDisplay();
-//            }
-
-//        }
+namespace tud.mci.tangram.TangramLector.View
+{
+    class SceneGraphView : AbstractCachingRendererBase
+    {
 
 
-//        #endregion
+        MatrixBrailleRenderer brlRenderer = new MatrixBrailleRenderer(RenderingProperties.ADD_SPACE_FOR_SCROLLBARS | RenderingProperties.IGNORE_LAST_LINESPACE | RenderingProperties.RETURN_REAL_WIDTH);
+        //OoDrawModel _lastDrawModel = null;
+        SceneGraphDialogController _sgc = null;
+        internal SceneGraphDialogController SgController
+        {
+            get { return _sgc; }
+            set {
+                if (_sgc != value)
+                {
+                    var old = _sgc;
+                    _sgc = value;
+                    registerToEvents(_sgc);
+                    unregisterFromEvents(old);
+                    old.Dispose();
+                } 
+            }
+        }
 
-//    }
-//}
+        ///// <summary>
+        ///// Renders the current content
+        ///// </summary>
+        ///// <param name="view"></param>
+        ///// <param name="content"></param>
+        //public virtual void PrerenderMatrix(IViewBoxModel view, object content)
+        //{
+        //    if (view != null && content != null && content is OoDrawModel)
+        //    {
+        //        int trys = 0;
+        //        Task t = new Task(() =>
+        //        {
+        //            while (IsRendering && trys++ < maxRenderingWaitTrys) { Thread.Sleep(renderingWaitTimeout); }
+        //            IsRendering = true;
+        //            ContentChanged = false;
+        //            _cachedMatrix = _renderMatrix(view, content as OoDrawModel, CallHooksOnCacherendering);
+        //            LastRendered = DateTime.Now;
+        //            IsRendering = false;
+        //        });
+        //        t.Start();
+        //    }
+        //}
+
+
+
+        protected override bool[,] renderMatrix(IViewBoxModel view, Object content, bool CallHooksOnCacherendering)
+        {
+            OoDrawModel ooDrawModel = content as OoDrawModel;            
+            bool[,] m = new bool[0, 0];
+
+            if (ooDrawModel == null) return m;
+
+            int w = view.ContentBox.Width;
+            // go through all elements of the drawing
+
+            //int levelIndent = 2;
+            int lvl = 0;
+
+
+            if (ooDrawModel != null && ooDrawModel.OoObserver != null)
+            {
+                var doc = ooDrawModel.OoObserver.GetActiveDocument();
+                if (doc != null)
+                {
+                    var page = doc.GetActivePage();
+                    if (page != null && page.shapeList != null)
+                    {
+                        List<bool[,]> lines = new List<bool[,]>();
+
+
+                        // add Document title
+                        bool[,] t = brlRenderer.RenderMatrix(w, "Doc: " + doc.Title, true);
+                        lines.Add(t);
+
+                        // add page number
+                        bool[,] p = brlRenderer.RenderMatrix(w, "Page: " + page.GetPageNum(), true);
+                        lines.Add(p);
+
+
+                        lvl++;
+                        // get all elements
+                        var shapes = page.shapeList.ToArray();
+
+                        string indetString = "  ";
+
+                        foreach (var shape in shapes)
+                        {
+                            if (shape != null)
+                            {
+                                var shpText = indetString + OoElementSpeaker.GetElementDescriptionText(shape);
+                                bool[,] shpM = brlRenderer.RenderMatrix(w, shpText);
+                                lines.Add(shpM);
+                            }
+                        }
+
+
+
+                        // build result
+
+                        // check width and height
+
+
+
+
+
+                    }
+                }
+            }
+
+            return m;
+
+        }
+
+
+        #region build scene graph
+
+
+
+        #endregion
+
+
+
+
+
+
+
+
+
+        #region Events
+
+        private void unregisterFromEvents(SceneGraphDialogController old)
+        {
+            
+        }
+
+        private void registerToEvents(SceneGraphDialogController _sgc)
+        {
+
+        }
+
+        #endregion
+
+    }
+}

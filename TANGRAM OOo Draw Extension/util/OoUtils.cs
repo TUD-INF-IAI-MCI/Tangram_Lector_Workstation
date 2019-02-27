@@ -480,7 +480,7 @@ namespace tud.mci.tangram.util
                             return props;
                         }
                     }
-                    catch (Exception ex) { }
+                    catch { }
                 }
             }
             return null;
@@ -501,7 +501,7 @@ namespace tud.mci.tangram.util
                     ((XMultiPropertySet)obj).setPropertyValues(keys, vals);
                 }
             }
-            catch (Exception ex) { }
+            catch { }
 
             return false;
         }
@@ -536,9 +536,7 @@ namespace tud.mci.tangram.util
                 }
 
             }
-            catch (Exception ex)
-            {
-            }
+            catch { }
 
             return null;
         }
@@ -917,13 +915,16 @@ namespace tud.mci.tangram.util
                     var graphicProvider = msf.createInstanceWithContext(OO.Services.GRAPHIC_GRAPHICPROVIDER, OO.GetContext());
                     if (graphicProvider != null && graphicProvider is XGraphicProvider)
                     {
-                        PropertyValue val = new PropertyValue();
-                        val.Name = "URL";
-
-                        val.Value = Any.Get(CreateBitmapUrl(url));
-                        PropertyValue val2 = new PropertyValue();
-                        val2.Name = "MimeType";
-                        val2.Value = Any.Get(@"image/png");
+                        PropertyValue val = new PropertyValue
+                        {
+                            Name = "URL",
+                            Value = Any.Get(CreateBitmapUrl(url))
+                        };
+                        PropertyValue val2 = new PropertyValue
+                        {
+                            Name = "MimeType",
+                            Value = Any.Get(@"image/png")
+                        };
                         var graphic = ((XGraphicProvider)graphicProvider).queryGraphic(new PropertyValue[] { val });
                         return graphic;
                     }
@@ -1033,11 +1034,7 @@ namespace tud.mci.tangram.util
                     }
                 }
             }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            catch { throw; }
 
             return result;
         }
@@ -1153,10 +1150,14 @@ namespace tud.mci.tangram.util
         /// <param name="newValue">The new value.</param>
         public ParameterUndo(string title, Object target, String name, Object oldValue, Object newValue)
         {
-            Dictionary<String, Object> oldParams = new Dictionary<String, Object>();
-            oldParams.Add(name, oldValue);
-            Dictionary<String, Object> newParams = new Dictionary<String, Object>();
-            newParams.Add(name, newValue);
+            Dictionary<String, Object> oldParams = new Dictionary<String, Object>
+            {
+                { name, oldValue }
+            };
+            Dictionary<String, Object> newParams = new Dictionary<String, Object>
+            {
+                { name, newValue }
+            };
             Target = target;
             OldParameters = oldParams;
             NewParameters = newParams;

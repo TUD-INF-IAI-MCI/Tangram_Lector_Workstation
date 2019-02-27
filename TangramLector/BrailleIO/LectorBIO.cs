@@ -262,9 +262,7 @@ namespace tud.mci.tangram.TangramLector
                 Properties.Settings.Default.sound_volume = AudioRenderer.Volume;
                 Properties.Settings.Default.Save();
             }
-            catch (Exception ex) { }
-
-
+            catch { }
         }
 
         private void setTangramScreen()

@@ -449,7 +449,7 @@ namespace tud.mci.tangram.TangramLector.OO
             }
             catch (System.Exception ex)
             {
-                wm.ScreenObserver.ObserveScreen();
+                wm.DrawAppModel.ScreenObserver.ObserveScreen();
                 Logger.Instance.Log(LogPriority.DEBUG, ex);
             }
         }
@@ -469,7 +469,9 @@ namespace tud.mci.tangram.TangramLector.OO
             try
             {
                 tud.mci.tangram.TangramLector.WindowManager wm = tud.mci.tangram.TangramLector.WindowManager.Instance;
-                if (e != null && e.Window != null && wm != null && wm.ScreenObserver != null && wm.ScreenObserver.Whnd == e.Window.Whnd)
+                if (e != null && e.Window != null && wm != null && 
+                    wm.DrawAppModel.ScreenObserver != null && 
+                    wm.DrawAppModel.ScreenObserver.Whnd == e.Window.Whnd)
                 {
                     fireWindowClosedEvent(e);
                     if (windowManager != null)
@@ -478,7 +480,7 @@ namespace tud.mci.tangram.TangramLector.OO
                     }
 
                     //TODO: check for other windows
-                    wm.ScreenObserver.ObserveScreen();
+                    wm.DrawAppModel.ScreenObserver.ObserveScreen();
                 }
                 Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE] ooDraw wnd closed" + e.Window.ToString());
             }
@@ -595,7 +597,7 @@ namespace tud.mci.tangram.TangramLector.OO
                             }
 
                             DocumentBorderHook.Wnd = e.Window;
-                            wm.ScreenObserver.SetPartOfWhnd(bounds, whndl);
+                            wm.DrawAppModel.ScreenObserver.SetPartOfWhnd(bounds, whndl);
 
                         }
                         catch (System.Exception ex)
@@ -616,7 +618,8 @@ namespace tud.mci.tangram.TangramLector.OO
 
             if (wm != null)
             {
-                if (wm.ScreenObserver != null) wm.ScreenObserver.ObserveScreen();
+                if (wm.DrawAppModel != null && wm.DrawAppModel.ScreenObserver != null) 
+                    wm.DrawAppModel.ScreenObserver.ObserveScreen();
                 wm.SetTopRegionContent("");
             }
         }
@@ -629,12 +632,12 @@ namespace tud.mci.tangram.TangramLector.OO
             try
             {
                 Logger.Instance.Log(LogPriority.DEBUG, this, "ooDraw wnd opened " + e.Window.ToString());
-                wm.ScreenObserver.SetPartOfWhnd(e.Window.DocumentComponent.ScreenBounds, e.Window.Whnd);
+                wm.DrawAppModel.ScreenObserver.SetPartOfWhnd(e.Window.DocumentComponent.ScreenBounds, e.Window.Whnd);
                 DocumentBorderHook.Update();
             }
             catch (System.Exception ex)
             {
-                wm.ScreenObserver.ObserveScreen();
+                wm.DrawAppModel.ScreenObserver.ObserveScreen();
                 Logger.Instance.Log(LogPriority.DEBUG, ex);
             }
         }
@@ -890,7 +893,7 @@ namespace tud.mci.tangram.TangramLector.OO
             // return the document that is currently observed and therefor shown on the output device.
             if (WindowManager.Instance != null)
             {
-                ScreenObserver so = WindowManager.Instance.ScreenObserver;
+                ScreenObserver so = WindowManager.Instance.DrawAppModel.ScreenObserver;
                 if (so != null)
                 {
                     IntPtr whndl = so.Whnd;

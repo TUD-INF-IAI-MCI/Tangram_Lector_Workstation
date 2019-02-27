@@ -483,10 +483,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     AudioRenderer.Instance.PlaySoundImmediately(pattern);
                     sentTextFeedback(LL.GetTrans("tangram.oomanipulation.current_fill_pattern", pattern));
                 }
-                catch (Exception ex)
-                {
-
-                }
+                catch { }
             }
             else
             {

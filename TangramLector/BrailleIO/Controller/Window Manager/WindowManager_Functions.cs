@@ -505,7 +505,7 @@ namespace tud.mci.tangram.TangramLector
         /// <returns>true if it is visible</returns>
         private bool fullscreenVisible()
         {
-            var view = io.GetView(BS_FULLSCREEN_NAME) as BrailleIO.Interface.IViewable;
+            var view = io.GetView(BS_FULLSCREEN_NAME) as IViewable;
             if (view != null) return view.IsVisible();
             return false;
         }
@@ -517,7 +517,7 @@ namespace tud.mci.tangram.TangramLector
         {
             if (io.GetView(BS_FULLSCREEN_NAME) != null)
             {
-                var view = io.GetView(BS_FULLSCREEN_NAME) as BrailleIO.Interface.IViewable;
+                var view = io.GetView(BS_FULLSCREEN_NAME) as IViewable;
                 BrailleIOScreen ms = io.GetView(BS_MAIN_NAME) as BrailleIOScreen;
                 if (view != null && ms != null)
                 {
@@ -591,7 +591,8 @@ namespace tud.mci.tangram.TangramLector
                     BrailleIOViewRange vr = vs.GetViewRange(VR_CENTER_NAME);
                     if (vr != null)
                     {
-                        SetDetailRegionContent(LL.GetTrans("tangram.lector.wm.zooming.current.short", ((int)(vr.GetZoom() * 100)).ToString()));
+                        double zl = GetZoomPercentageBasedOnPrintZoom(vs.Name, vr.Name);
+                        SetDetailRegionContent(LL.GetTrans("tangram.lector.wm.zooming.current.short", (int)zl));
                     }
                 }
             }
@@ -913,6 +914,12 @@ namespace tud.mci.tangram.TangramLector
                     System.Diagnostics.Debug.WriteLine("----- [BRAILLE TEXT TOUCHED] : '" + touchedValue.ToString() + "'");
                     return touchedValue.ToString();
                 }
+
+                else // OoShapeObserver
+                {
+
+                }
+                // UIA element
 
             }
             return String.Empty;

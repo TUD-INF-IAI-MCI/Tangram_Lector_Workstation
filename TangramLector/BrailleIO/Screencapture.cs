@@ -542,7 +542,7 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="nXSrc">The x-coordinate, in logical units, of the upper-left corner of the source rectangle.</param>
         /// <param name="nYSrc">The y-coordinate, in logical units, of the upper-left corner of the source rectangle.</param>
         /// <returns></returns>
-        /// <remarks>There is aproblem with OpenGL and other high end rendering libraries. They can prvent from generating screenshots. Turn them off. </remarks>
+        /// <remarks>There is a problem with OpenGL and other high end rendering libraries. They can prevent from generating screen-shots. Turn them off. </remarks>
         public static Image CaptureWindow(IntPtr handle, int height, int width, int nXSrc = 0, int nYSrc = 0, int nXDest = 0, int nYDest = 0)
         {
 
@@ -733,8 +733,6 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-
-
         #region Configuration
 
         /// <summary>
@@ -785,8 +783,7 @@ namespace tud.mci.tangram.TangramLector
         #endregion
 
         #endregion
-
-
+        
         /// <summary>
         /// Helper class containing Gdi32 API functions
         /// </summary>

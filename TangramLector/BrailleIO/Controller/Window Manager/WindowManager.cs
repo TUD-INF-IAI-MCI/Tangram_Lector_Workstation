@@ -1,45 +1,97 @@
-﻿using System;
+﻿using BrailleIO;
+using BrailleIO.Interface;
+using BrailleIO.Renderer;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
 using System.Linq;
-using BrailleIO;
-using BrailleIO.Interface;
-using BrailleIO.Renderer;
+using System.Threading;
+using System.Threading.Tasks;
 using tud.mci.LanguageLocalization;
-using tud.mci.tangram.TangramLector.Window_Manager;
 using tud.mci.tangram.audio;
+using tud.mci.tangram.TangramLector.BrailleIO.Model;
+using tud.mci.tangram.TangramLector.BrailleIO.View;
+using tud.mci.tangram.TangramLector.Window_Manager;
 
 namespace tud.mci.tangram.TangramLector
 {
+    /// <summary>
+    /// Main class for handling views, screens and foci's.
+    /// </summary>
+    /// <seealso cref="tud.mci.tangram.TangramLector.SpecializedFunctionProxies.AbstractSpecializedFunctionProxyBase" />
+    /// <seealso cref="tud.mci.LanguageLocalization.ILocalizable" />
+    /// <seealso cref="System.IDisposable" />
     public partial class WindowManager : ILocalizable, IDisposable
     {
         #region Members
+
+        #region static
         /// <summary>
         /// Global timer triggering the blinkTimer_Tick event for blinking pins.
         /// </summary>
         public readonly static BlinkTimer blinkTimer = BlinkTimer.Instance;
-        /// <summary>
-        /// Timer-based value telling if blinking pins should be up or down.
-        /// </summary>
-        public bool blinkPinsUp = true;
-
         static readonly LL LL = new LL(Properties.Resources.Language);
+        #endregion
 
-        public InteractionManager InteractionManager = InteractionManager.Instance;
+        #region constants
+        /// <summary>
+        /// The standard brightness threshold for image renderer
+        /// </summary>
+        const int STANDARD_CONTRAST_THRESHOLD = 210;
+        /// <summary>
+        /// The step size for changing the brightness threshold of image renderer
+        /// </summary>
+        private const int THRESHOLD_STEP = 10;
+        /// <summary>
+        /// The name of the main screen containing the default drawing application views. 
+        /// </summary>
+        public const String BS_MAIN_NAME = "Mainscreen";
+        /// <summary>
+        /// The name of the screen containing the full screen view to the drawing application. 
+        /// </summary>
+        public const String BS_FULLSCREEN_NAME = "Fullscreen";
+        /// <summary>
+        /// The name of the main screen containing the minimap view to the drawing application. 
+        /// </summary>
+        public const String BS_MINIMAP_NAME = "Minimap";
+        /// <summary>
+        /// Name of the second large content region.
+        /// </summary>
+        public const String VR_CENTER_2_NAME = "ContentRegion2";
+        /// <summary>
+        /// Name of the primary large content region
+        /// </summary>
+        public const String VR_CENTER_NAME = "ContentRegion";
+        /// <summary>
+        /// Name of the top title region
+        /// </summary>
+        public const String VR_TOP_NAME = "Titleregion";
+        /// <summary>
+        /// Name of the top right status indexing region
+        /// </summary>
+        public const String VR_STATUS_NAME = "Statusregion";
+        /// <summary>
+        /// Name of the detail information region at the bottom of the screen.
+        /// </summary>
+        public const String VR_DETAIL_NAME = "Detailregion";
+        // TODO: maybe necessary to have a title for each screen (e.g. when multiple windows were filtered)
+        /// <summary>
+        /// The title of the main screen - title region content
+        /// </summary>
+        public const String MAINSCREEN_TITLE = "Tangram Lector"; // TODO: Name der Datei mit übergeben
+        /// <summary>
+        /// The factor between the 10 dpi pin device resolution and the 96 dpi resolution of the DRAW application.
+        /// </summary>
+        private const float _PRINT_ZOOM_FACTOR = 0.10561666418313964f;
+        #endregion
+
+        #region private
+        InteractionManager InteractionManager = InteractionManager.Instance;
         AudioRenderer audioRenderer = AudioRenderer.Instance;
         BrailleIOMediator io = BrailleIOMediator.Instance;
-        public ScreenObserver ScreenObserver { get; private set; }
         Size deviceSize;
-        const int STANDARD_CONTRAST_THRESHOLD = 210;
-        private const int THRESHOLD_STEP = 10;
-        public const String BS_MAIN_NAME = "Mainscreen", BS_FULLSCREEN_NAME = "Vollbildmodus", BS_MINIMAP_NAME = "Minimap";
-        public const String VR_CENTER_2_NAME = "Darstellungsbereich2", VR_CENTER_NAME = "Darstellungsbereich", VR_TOP_NAME = "Titelleiste", VR_STATUS_NAME = "Statusbereich", VR_DETAIL_NAME = "Detailbereich";
-
-
-        private const float _PRINT_ZOOM_FACTOR = 0.10561666418313964f;
-
         /// <summary>
         /// Screen that is shown in minimap mode.
         /// </summary>
@@ -52,8 +104,36 @@ namespace tud.mci.tangram.TangramLector
         /// Screen that was visible before minimap was activated.
         /// </summary>
         BrailleIOScreen screenBeforeMinimap = null;
+        #endregion
+
+        #region public
+        /// <summary>
+        /// Timer-based value telling if blinking pins should be up or down.
+        /// </summary>
+        public bool BlinkPinsUp = true;
+
+        /// <summary>
+        /// Gets the DRAW application model.
+        /// </summary>
+        /// <value>
+        /// The DRAW application model.
+        /// </value>
+        public OoDrawModel DrawAppModel { get; private set; }
+        DrawRenderer drawRenderer_Fullscreen = new DrawRenderer();
+        DrawRenderer drawRenderer_Minimap = new DrawRenderer();
+        DrawRenderer drawRenderer_Default = new DrawRenderer();
+        MinimapRendererHook minimapHook = new MinimapRendererHook();
+        GridRendererHook gridHook = new GridRendererHook();
+
+
 
         private FollowFocusModes _focusMode = FollowFocusModes.NONE;
+        /// <summary>
+        /// Gets or sets the focus mode of the application.
+        /// </summary>
+        /// <value>
+        /// The focus mode.
+        /// </value>
         public FollowFocusModes FocusMode
         {
             get { return _focusMode; }
@@ -67,26 +147,19 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        /// <summary>
-        /// Mode for tracking the focus automatically on the pin device. 
-        /// If true, view port of pin device is set to the selected element.
-        /// </summary>
-        //public bool FocusTrackingMode = false;
-        /// <summary>
-        /// Scaling factor for resizing original content to its size in minimap mode.
-        /// </summary>
-        public double MinimapScalingFactor { get; private set; }
-
         private ConcurrentBag<string> detailRegionHistory = new ConcurrentBag<string>();
         /// <summary>
         /// Get a list of all consistent messages shown in detail region
         /// </summary>
         /// <returns>list of all consistent messages</returns>
-        public ConcurrentBag<string> GetDetailRegionHistory()
+        public string[] GetDetailRegionHistory()
         {
-            return detailRegionHistory;
+            return detailRegionHistory.ToArray<String>();
         }
+        #endregion
 
+        #region Singleton
+        private static WindowManager instance = new WindowManager();
         /// <summary>
         /// Gets the singleton instance of the window manager.
         /// </summary>
@@ -101,27 +174,21 @@ namespace tud.mci.tangram.TangramLector
             set { instance = null; }
         }
 
-        private static WindowManager instance = new WindowManager();
-
-
-        // TODO: maybe necessary to have a title for each screen (e.g. when multiple windows were filtered)
-        public const String MAINSCREEN_TITLE = "Tangram Lector"; // TODO: Name der Datei mit übergeben
         /// <summary>
-        /// Title of the mainscreen window
+        /// Prevents a default instance of the <see cref="WindowManager"/> class from being created.
         /// </summary>
-        public String GetMainscreenTitle()
-        {
-            return MAINSCREEN_TITLE;
-        }
-
-        #endregion
-
         private WindowManager()
         {
+            DrawAppModel = new OoDrawModel();
             registerForEvents();
             initBlinkTimer();
             BuildScreens();
         }
+        #endregion
+
+        #endregion
+
+        #region screen handling
 
         internal void BuildScreens()
         {
@@ -141,7 +208,8 @@ namespace tud.mci.tangram.TangramLector
 
         internal void CleanScreen()
         {
-            try {
+            try
+            {
                 if (io != null)
                 {
                     io.RemoveView(BS_MAIN_NAME);
@@ -150,7 +218,6 @@ namespace tud.mci.tangram.TangramLector
                 }
             }
             catch { }
-
         }
 
         internal void UpdateScreens()
@@ -171,44 +238,11 @@ namespace tud.mci.tangram.TangramLector
                 updateMainScreen(deviceSize.Width, deviceSize.Height);
                 updateFullScreen(deviceSize.Width, deviceSize.Height);
                 updateMinimapScreen(deviceSize.Width, deviceSize.Height);
-
             }
             catch { }
-
         }
 
-
-        /// <summary>
-        /// View modes for the lector application.
-        /// Braille mode is for reading and writing Braille.
-        /// Drawing mode is for pixel based output.
-        /// </summary>
-        public enum LectorView
-        {
-            Braille = 1,
-            Drawing = 2
-        };
-
-        /// <summary>
-        /// Event of the blinking timer.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void blinkTimer_Tick(object sender, EventArgs e)
-        {
-            blinkPinsUp = !blinkPinsUp;
-
-            // Timer handling for temporary detail area messages
-            if (tempMessageShown)
-            {
-                if (messageTimerCount > 0) messageTimerCount--;
-                else
-                {
-                    tempMessageShown = false;
-                    setDetailRegionContent(GetCurrentDetailRegionContent());
-                }
-            }
-        }
+        #endregion
 
         #region init methods
 
@@ -241,10 +275,10 @@ namespace tud.mci.tangram.TangramLector
             center2.SetZoom(1);
 
             var top = getMainTopRegion(0, 0, width, 7);
-            var status = getMainStatusRegion(width -12, 0, 12, 5);
+            var status = getMainStatusRegion(width - 12, 0, 12, 5);
             status.SetText(LectorStateNames.STANDARD_MODE);
 
-            var detail = getMainDetailRegion(0, height-7, width, 7);
+            var detail = getMainDetailRegion(0, height - 7, width, 7);
             detail.ShowScrollbars = true; // make the region scrollable
             // make the BrailleRenderer to ignore the last line space
             detail.SetText(LL.GetTrans("tangram.lector.wm.no_element_selected")); // set text to enable the BrailleRenderer
@@ -345,6 +379,14 @@ namespace tud.mci.tangram.TangramLector
             center.SetBorder(0);
             center.SetContrastThreshold(STANDARD_CONTRAST_THRESHOLD);
             center.ShowScrollbars = true;
+            center.SetOtherContent(DrawAppModel, drawRenderer_Fullscreen);
+
+            // register grid hook
+            if (drawRenderer_Fullscreen != null && gridHook != null)
+            {
+                drawRenderer_Fullscreen.UnregisterHook(gridHook);
+                drawRenderer_Fullscreen.RegisterHook(gridHook);
+            }
 
             fullScreen.AddViewRange(VR_CENTER_NAME, center);
             if (io != null) io.AddView(BS_FULLSCREEN_NAME, fullScreen);
@@ -391,12 +433,21 @@ namespace tud.mci.tangram.TangramLector
 
             var center = getMainScreenCenterRegion(0, 0, width, height);
             var top = getMainTopRegion(0, 0, width, 7);
-            var detail = getMainDetailRegion(0, height-7, width, 7);
+            var detail = getMainDetailRegion(0, height - 7, width, 7);
 
             minimapScreen.AddViewRange(VR_CENTER_NAME, center); // TODO auch center2 nötig?
             minimapScreen.AddViewRange(VR_TOP_NAME, top);
             minimapScreen.AddViewRange(VR_DETAIL_NAME, detail);
 
+
+            // register minimap view frame renderer hook
+            if (drawRenderer_Minimap != null)
+            {
+                drawRenderer_Minimap.UnregisterHook(minimapHook);
+                drawRenderer_Minimap.RegisterHook(minimapHook);
+            }
+
+            center.SetOtherContent(DrawAppModel, drawRenderer_Minimap);
             setRegionContent(minimapScreen, VR_TOP_NAME, "Minimap");
             setRegionContent(minimapScreen, VR_DETAIL_NAME, LL.GetTrans("tangram.lector.wm.minimap.vr_detail"));
 
@@ -626,7 +677,7 @@ namespace tud.mci.tangram.TangramLector
                     {
                         setRegionContent(vs, VR_STATUS_NAME, LectorStateNames.BRAILLE_MODE);
                         return;
-                    }  
+                    }
                 }
                 FollowFocusModes mode = FocusMode;
                 switch (mode)
@@ -673,15 +724,35 @@ namespace tud.mci.tangram.TangramLector
                     switch (currentView)
                     {
                         case LectorView.Drawing:
+                            center.SetOtherContent(DrawAppModel, drawRenderer_Default);
+
+                            // register grid hook
+                            if (drawRenderer_Default != null && gridHook != null)
+                            {
+                                drawRenderer_Default.UnregisterHook(gridHook);
+                                drawRenderer_Default.RegisterHook(gridHook);
+                            }
+
                             setCaptureArea();
                             if (center2 != null)
                                 center2.SetVisibility(false);
+
+
                             break;
                         case LectorView.Braille:
                             String content = "Hallo Welt"; // TODO: set real content
                             setRegionContent(screen, VR_CENTER_2_NAME, content);
                             break;
                         default:
+                            center.SetOtherContent(DrawAppModel, drawRenderer_Default);
+
+                            // register grid hook
+                            if (drawRenderer_Default != null && gridHook != null)
+                            {
+                                drawRenderer_Default.UnregisterHook(gridHook);
+                                drawRenderer_Default.RegisterHook(gridHook);
+                            }
+
                             setCaptureArea();
                             break;
                     }
@@ -689,75 +760,75 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
-        /// <summary>
-        /// Set the content in minimap mode. Thereby the screen capturing bitmap is shown with blinking frame.
-        /// </summary>
-        /// <param name="vr">ViewRange in which minimap content should be shown.</param>
-        /// <param name="e">EventArgs of the screen capturing event.</param>
-        void setMinimapContent(BrailleIOViewRange vr, CaptureChangedEventArgs e)
-        {
-            int width = vr.ContentBox.Width;
-            int height = vr.ContentBox.Height;
-            Bitmap bmp = new Bitmap(width, height);
-            Graphics graph = Graphics.FromImage(bmp);
+        ///// <summary>
+        ///// Set the content in minimap mode. Thereby the screen capturing bitmap is shown with blinking frame.
+        ///// </summary>
+        ///// <param name="vr">ViewRange in which minimap content should be shown.</param>
+        ///// <param name="e">EventArgs of the screen capturing event.</param>
+        //void setMinimapContent(BrailleIOViewRange vr, CaptureChangedEventArgs e)
+        //{
+        //    int width = vr.ContentBox.Width;
+        //    int height = vr.ContentBox.Height;
+        //    Bitmap bmp = new Bitmap(width, height);
+        //    Graphics graph = Graphics.FromImage(bmp);
 
-            if (screenBeforeMinimap != null)
-            {
-                BrailleIOViewRange imgvr = screenBeforeMinimap.GetViewRange(VR_CENTER_NAME);
-                if (imgvr == null) return;
+        //    if (screenBeforeMinimap != null)
+        //    {
+        //        BrailleIOViewRange imgvr = screenBeforeMinimap.GetViewRange(VR_CENTER_NAME);
+        //        if (imgvr == null) return;
 
-                int xoffset = imgvr.GetXOffset();
-                int yoffset = imgvr.GetYOffset();
-                int imgWidth = imgvr.ContentWidth;
-                int imgHeight = imgvr.ContentHeight;
+        //        int xoffset = imgvr.GetXOffset();
+        //        int yoffset = imgvr.GetYOffset();
+        //        int imgWidth = imgvr.ContentWidth;
+        //        int imgHeight = imgvr.ContentHeight;
 
-                if (imgWidth > 0 && imgHeight > 0)
-                {
-                    // calculate image size for minimap (complete image has to fit into view range)
-                    int imgScaledWidth = imgWidth;
-                    int imgScaledHeight = imgHeight;
-                    double scaleFactorX = 1;
-                    double scaleFactorY = 1;
+        //        if (imgWidth > 0 && imgHeight > 0)
+        //        {
+        //            // calculate image size for minimap (complete image has to fit into view range)
+        //            int imgScaledWidth = imgWidth;
+        //            int imgScaledHeight = imgHeight;
+        //            double scaleFactorX = 1;
+        //            double scaleFactorY = 1;
 
-                    if (width != 0 && imgScaledWidth > width)
-                    {
-                        scaleFactorX = (double)imgWidth / (double)width;
-                        if (scaleFactorX != 0)
-                        {
-                            imgScaledWidth = width;
-                            imgScaledHeight = (int)(imgHeight / scaleFactorX);
-                        }
-                    }
-                    if (height != 0 && imgScaledHeight > height)
-                    {
-                        scaleFactorY = (double)imgScaledHeight / (double)height;
-                        if (scaleFactorY != 0)
-                        {
-                            imgScaledHeight = height;
-                            imgScaledWidth = (int)(imgScaledWidth / scaleFactorY);
-                        }
-                    }
+        //            if (width != 0 && imgScaledWidth > width)
+        //            {
+        //                scaleFactorX = (double)imgWidth / (double)width;
+        //                if (scaleFactorX != 0)
+        //                {
+        //                    imgScaledWidth = width;
+        //                    imgScaledHeight = (int)(imgHeight / scaleFactorX);
+        //                }
+        //            }
+        //            if (height != 0 && imgScaledHeight > height)
+        //            {
+        //                scaleFactorY = (double)imgScaledHeight / (double)height;
+        //                if (scaleFactorY != 0)
+        //                {
+        //                    imgScaledHeight = height;
+        //                    imgScaledWidth = (int)(imgScaledWidth / scaleFactorY);
+        //                }
+        //            }
 
-                    // calculate scaling factor from original image to minimap image size
-                    MinimapScalingFactor = 1 / (scaleFactorX * scaleFactorY);
-                    double zoom = imgvr.GetZoom();
-                    if (zoom > 0) MinimapScalingFactor = MinimapScalingFactor * zoom;
+        //            // calculate scaling factor from original image to minimap image size
+        //            MinimapScalingFactor = 1 / (scaleFactorX * scaleFactorY);
+        //            double zoom = imgvr.GetZoom();
+        //            if (zoom > 0) MinimapScalingFactor = MinimapScalingFactor * zoom;
 
-                    // calculate position and size of the blinking frame
-                    int x = Math.Abs(xoffset) * imgScaledWidth / imgWidth;
-                    int y = Math.Abs(yoffset) * imgScaledHeight / imgHeight;
-                    int frameWidth = width * imgScaledWidth / imgWidth;
-                    int frameHeigth = height * imgScaledHeight / imgHeight;
+        //            // calculate position and size of the blinking frame
+        //            int x = Math.Abs(xoffset) * imgScaledWidth / imgWidth;
+        //            int y = Math.Abs(yoffset) * imgScaledHeight / imgHeight;
+        //            int frameWidth = width * imgScaledWidth / imgWidth;
+        //            int frameHeigth = height * imgScaledHeight / imgHeight;
 
-                    // draw scaled image and blinking frame
-                    graph.DrawImage(e.Img, 0, 0, imgScaledWidth, imgScaledHeight);
-                    Color frameColor = Color.Black;
-                    if (!blinkPinsUp) frameColor = Color.White;
-                    graph.DrawRectangle(new Pen(frameColor, 2), x, y, frameWidth, frameHeigth);
-                    vr.SetBitmap(bmp);
-                }
-            }
-        }
+        //            // draw scaled image and blinking frame
+        //            graph.DrawImage(e.Img, 0, 0, imgScaledWidth, imgScaledHeight);
+        //            Color frameColor = Color.Black;
+        //            if (!blinkPinsUp) frameColor = Color.White;
+        //            graph.DrawRectangle(new Pen(frameColor, 2), x, y, frameWidth, frameHeigth);
+        //            vr.SetBitmap(bmp);
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Get the visible screen.
@@ -770,7 +841,7 @@ namespace tud.mci.tangram.TangramLector
             {
                 try
                 {
-                    var vs = views.First(x => (x is BrailleIO.Interface.IViewable && ((BrailleIO.Interface.IViewable)x).IsVisible()));
+                    var vs = views.First(x => (x is IViewable && ((IViewable)x).IsVisible()));
                     if (vs != null && vs is BrailleIOScreen)
                     {
                         return vs as BrailleIOScreen;
@@ -854,30 +925,16 @@ namespace tud.mci.tangram.TangramLector
         /// </summary>
         void setCaptureArea()
         {
-            if (ScreenObserver == null)
+            if (DrawAppModel.ScreenObserver == null)
             {
-                ScreenObserver = new ScreenObserver(blinkTimer.timer, 1);
+                DrawAppModel.ScreenObserver = new ScreenObserver(100);
 
                 // so_Changed event handles the rendering of the bitmap
-                try { ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
+                try { DrawAppModel.ScreenObserver.Changed -= new ScreenObserver.CaptureChangedEventHandler(so_Changed); }
                 catch (Exception) { }
-                ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
+                DrawAppModel.ScreenObserver.Changed += new ScreenObserver.CaptureChangedEventHandler(so_Changed);
             }
-            ScreenObserver.Start();
-        }
-
-        /// <summary>
-        /// Pause the screen capturing.
-        /// </summary>
-        void StopCapturing() { if (ScreenObserver != null) ScreenObserver.Stop(); }
-
-        /// <summary>
-        /// Restarts the screen capturing.
-        /// </summary>
-        void RestartCapturing()
-        {
-            if (ScreenObserver != null) ScreenObserver.Start();
-            else setCaptureArea();
+            DrawAppModel.ScreenObserver.Start();
         }
 
         /// <summary>
@@ -887,21 +944,13 @@ namespace tud.mci.tangram.TangramLector
         /// <param name="e">The <see cref="tud.mci.tangram.TangramLector.CaptureChangedEventArgs"/> instance containing the event data.</param>
         void so_Changed(object sender, CaptureChangedEventArgs e)
         {
-            if (currentView != LectorView.Drawing) return;
-            BrailleIOViewRange vr = getTargetViewRangeForScreenCapturing();
-            if (vr != null && e != null)
+            Task t = new Task(() =>
             {
-                BrailleIOScreen vs = GetVisibleScreen();
-                if (vs != null && vs.Name.Equals(BS_MINIMAP_NAME))
-                {
-                    setMinimapContent(vr, e);
-                }
-                else
-                {
-                    vr.SetBitmap(e.Img as Bitmap);
-                }
+                // add some delay so the other listeners can do their job (e.g. prerender)
+                Thread.Sleep(5);
                 io.RefreshDisplay(true);
-            }
+            });
+            t.Start();
         }
 
         #endregion
@@ -1030,9 +1079,9 @@ namespace tud.mci.tangram.TangramLector
                     int y_old = p.Y;
                     p = new Point((int)Math.Round(x_old / zoom), (int)Math.Round(y_old / zoom));
 
-                    if (ScreenObserver != null && ScreenObserver.ScreenPos is Rectangle)
+                    if (DrawAppModel.ScreenObserver != null && DrawAppModel.ScreenObserver.ScreenPos is Rectangle)
                     {
-                        Rectangle sp = (Rectangle)ScreenObserver.ScreenPos;
+                        Rectangle sp = (Rectangle)DrawAppModel.ScreenObserver.ScreenPos;
                         p.X += sp.X;
                         p.Y += sp.Y;
                     }
@@ -1129,6 +1178,31 @@ namespace tud.mci.tangram.TangramLector
         #region events
 
         /// <summary>
+        /// Event of the blinking timer.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void blinkTimer_Tick(object sender, EventArgs e)
+        {
+            BlinkPinsUp = !BlinkPinsUp;
+
+            // Timer handling for temporary detail area messages
+            if (tempMessageShown)
+            {
+                if (messageTimerCount > 0) messageTimerCount--;
+                else
+                {
+                    tempMessageShown = false;
+                    setDetailRegionContent(GetCurrentDetailRegionContent());
+                }
+            }
+
+            Task t = new Task(() => { Thread.Sleep(5); io.RefreshDisplay(true); });
+            t.Start();
+
+        }
+
+        /// <summary>
         /// Occurs when follow focus mode is changed.
         /// </summary>
         public event EventHandler<FocusModeChangedEventArgs> FollowFocusModeChange;
@@ -1184,6 +1258,19 @@ namespace tud.mci.tangram.TangramLector
             }
         }
 
+        #endregion
+
+        #region Enums
+        /// <summary>
+        /// View modes for the lector application.
+        /// Braille mode is for reading and writing Braille.
+        /// Drawing mode is for pixel based output.
+        /// </summary>
+        public enum LectorView
+        {
+            Braille = 1,
+            Drawing = 2
+        }
         #endregion
     }
 
