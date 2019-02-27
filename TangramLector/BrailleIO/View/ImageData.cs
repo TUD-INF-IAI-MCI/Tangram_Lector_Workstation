@@ -693,37 +693,40 @@ namespace tud.mci.tangram.TangramLector
 
         void brailleKeybordCommandEvent(object sender, BrailleKeyboardCommandEventArgs e)
         {
-            BrailleIOViewRange vr = detailViewDic["imageData"];
-            switch (e.Command)
+            if (Active)
             {
-                case BrailleCommand.CursorUp:
-                    scrollViewRange(vr, 5);
-                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor up");
-                    break;
-                case BrailleCommand.CursorDown:
-                    scrollViewRange(vr, -5);
-                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor down");
-                    break;
-                case BrailleCommand.Pos1:
-                    scrollViewRangeTo(vr, 0);
-                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor to pos 1");
-                    break;
-                case BrailleCommand.End:
-                    int diff = vr.ContentBox.Height - vr.ContentHeight + 1; // TODO: "+1" has to be removed when content height is adapted
-                    scrollViewRangeTo(vr, diff);
-                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor to end");
-                    break;
-                case BrailleCommand.Unkown:
-                    if (e.Character.Equals("l+lr")) OoConnector.Instance.Observer.HighlightBrailleFocusOnScreen();
-                    break;
-                default:
-                    break;
+                BrailleIOViewRange vr = detailViewDic != null && detailViewDic.ContainsKey("imageData") ? detailViewDic["imageData"] : null;
+                switch (e.Command)
+                {
+                    case BrailleCommand.CursorUp:
+                        scrollViewRange(vr, 5);
+                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor up");
+                        break;
+                    case BrailleCommand.CursorDown:
+                        scrollViewRange(vr, -5);
+                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor down");
+                        break;
+                    case BrailleCommand.Pos1:
+                        scrollViewRangeTo(vr, 0);
+                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor to pos 1");
+                        break;
+                    case BrailleCommand.End:
+                        int diff = vr.ContentBox.Height - vr.ContentHeight + 1; // TODO: "+1" has to be removed when content height is adapted
+                        scrollViewRangeTo(vr, diff);
+                        Logger.Instance.Log(LogPriority.MIDDLE, this, "[SHAPE EDIT DIALOG] cursor to end");
+                        break;
+                    case BrailleCommand.Unkown:
+                        if (e.Character.Equals("l+lr")) OoConnector.Instance.Observer.HighlightBrailleFocusOnScreen();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
         void bki_BrailleInputCaretMoved(object sender, CaretMovedEvent e)
         {
-            if (CaretHook != null)
+            if (Active && CaretHook != null)
             {
                 CaretHook.MoveCaret(e.CaretPosition);
             }

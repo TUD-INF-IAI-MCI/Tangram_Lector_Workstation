@@ -93,7 +93,7 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
 
                         // fix zoom -1 = fit to available space
                         if (capt != null
-                            && view is IZoomable && ((IZoomable)view).GetZoom() < 0)
+                            && ((IZoomable)view).GetZoom() < 0)
                         {
                             var Bounds = capt.Size;
                             var factor = Math.Min(
@@ -104,12 +104,13 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
                         }
 
                         // set the contrast threshold
-                        if (view is IContrastThreshold)
-                            ImageRenderer.SetThreshold(
+                        ImageRenderer.SetThreshold(
                                 ((IContrastThreshold)view).GetContrastThreshold());
 
-                        result = ImageRenderer.RenderMatrix(view,
-                            capt);
+                        ImageRenderer.Invert = ((BrailleIOViewRange)view).InvertImage;
+
+
+                        result = ImageRenderer.RenderMatrix(view, capt);
                     }
                 }
             }
