@@ -396,7 +396,7 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
 #if LIBRE
                 var foundDirs = Directory.GetDirectories(appData + "\\LibreOffice", "TangramToolbar_LO*.oxt", SearchOption.AllDirectories);
 #else
-                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_OO*.oxt", SearchOption.AllDirectories);
+                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_OO*.oxt\\bitmap-pattern", SearchOption.AllDirectories);
 #endif
 
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "directories inside application folder: " + (foundDirs != null ? foundDirs.Length.ToString() : "null"));
@@ -404,11 +404,11 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 {
                     var openOfficePath = foundDirs[foundDirs.Length - 1];
                     Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "used directory: " + openOfficePath);
-                    arrPatterns = Directory.GetFiles(openOfficePath, "*.png", SearchOption.AllDirectories);
+                    arrPatterns = Directory.GetFiles(openOfficePath + @"\bitmap-pattern", "*.png", SearchOption.AllDirectories);
                     //remove files named name_TS.png
                     foreach (string pattern in arrPatterns)
                     {
-                        if (!pattern.ToLower().EndsWith("_ts.png"))  // only files without _ts.png
+                        if (!pattern.ToLower().EndsWith("_ts.png") )  // only files without _ts.png
                         {
                             //add entry
                             patternName = Path.GetFileNameWithoutExtension(pattern);
