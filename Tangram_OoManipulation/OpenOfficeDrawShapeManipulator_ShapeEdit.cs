@@ -966,6 +966,24 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         }
                         sendTextNotification(msg);
                     }
+
+                    System.Threading.Tasks.Task T = new System.Threading.Tasks.Task(()=> {
+                        DateTime start = DateTime.Now;
+                        int i = 0;
+                        while (_shape.IsValid(true) || i++ < 20)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                        }
+
+                        TimeSpan runtime = DateTime.Now - start;
+                        // System.Diagnostics.Debug.WriteLine("------------------------------\r\n\t\tShape Deleted after:{0:mm\\:ss.\\fff}", runtime);
+
+                        if(!_shape.IsValid()) _shape.Dispose();
+
+                    });
+                    T.Start();
+
+
                 }
             }
 

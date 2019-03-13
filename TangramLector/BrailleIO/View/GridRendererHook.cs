@@ -659,84 +659,172 @@ namespace tud.mci.tangram.TangramLector.BrailleIO.View
 
         private void _laodGridLinePatternFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridLinePattern"))
+            try
             {
-                string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridLinePattern", config);
-                if (!String.IsNullOrWhiteSpace(pattern))
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridLinePattern", config))
                 {
-                    GridLinePattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridLinePattern", config);
+                    if (!String.IsNullOrWhiteSpace(pattern))
+                    {
+                        GridLinePattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridLinePattern", ex);
             }
         }
         private void _laodGridHorizontalLinesPatternFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridHorizontalLinesPattern"))
+            try
             {
-                string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridHorizontalLinesPattern", config);
-                if (!String.IsNullOrWhiteSpace(pattern))
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridHorizontalLinesPattern", config))
                 {
-                    GridHorizontalLinesPattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridHorizontalLinesPattern", config);
+                    if (!String.IsNullOrWhiteSpace(pattern))
+                    {
+                        GridHorizontalLinesPattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridHorizontalLinesPattern", ex);
             }
         }
         private void _laodGridVerticalLinesPatternFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridVerticalLinesPattern"))
+            try
             {
-                string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridVerticalLinesPattern", config);
-                if (!String.IsNullOrWhiteSpace(pattern))
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridVerticalLinesPattern", config))
                 {
-                    GridVerticalLinesPattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    string pattern = ConfigurationLoader.GetValueFromConfig(CONFIG_KEY + "GridVerticalLinesPattern", config);
+                    if (!String.IsNullOrWhiteSpace(pattern))
+                    {
+                        GridVerticalLinesPattern = pattern.Split(',').Select(n => Convert.ToInt32(n)).ToArray();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridVerticalLinesPattern", ex);
             }
         }
 
         private void _laodGridOffsetFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffset"))
-                GridOffset = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffset", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffset", config))
+                    GridOffset = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffset", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridOffset", ex);
+            }
         }
 
         private void _laodGridSizeFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSize"))
-                GridSize = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSize", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSize", config))
+                    GridSize = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSize", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridSize", ex);
+            }
         }
 
         private void _laodGapFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Gap"))
-                Gap = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Gap", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Gap", config))
+                    Gap = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Gap", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "Gap", ex);
+            }
         }
 
         private void _laodActiveFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Active"))
-                Active = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Active", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "Active", config))
+                    Active = ConfigurationLoader.GetValueFromConfig<bool>(CONFIG_KEY + "Active", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "Active", ex);
+            }
         }
 
         private void _laodGridSizeVerticalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeVertical"))
-                GridSizeVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeVertical", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeVertical", config))
+                    GridSizeVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeVertical", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridSizeVertical", ex);
+            }
         }
 
         private void _laodGridSizeHorizontalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeHorizontal"))
-                GridSizeHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeHorizontal", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridSizeHorizontal", config))
+                    GridSizeHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridSizeHorizontal", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridSizeHorizontal", ex);
+            }
         }
 
         private void _laodGridOffsetVerticalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetVertical"))
-                GridOffsetVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetVertical", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetVertical", config))
+                    GridOffsetVertical = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetVertical", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridOffsetVertical", ex);
+            }
         }
 
         private void _laodGridOffsetHorizontalFromConfig(System.Collections.Specialized.NameValueCollection config)
         {
-            if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetHorizontal"))
-                GridOffsetHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetHorizontal", config);
+            try
+            {
+                if (ConfigurationLoader.ConfigContainsKey(CONFIG_KEY + "GridOffsetHorizontal", config))
+                    GridOffsetHorizontal = ConfigurationLoader.GetValueFromConfig<int>(CONFIG_KEY + "GridOffsetHorizontal", config);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance != null)
+                    Logger.Instance.Log(LogPriority.DEBUG, "[ERROR]\tCan't load config key " + CONFIG_KEY + "GridOffsetHorizontal", ex);
+            }
         }
 
         #endregion

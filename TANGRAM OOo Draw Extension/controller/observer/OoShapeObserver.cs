@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using tud.mci.tangram.Accessibility;
@@ -302,7 +301,7 @@ namespace tud.mci.tangram.controller.observer
         DateTime lastUpdateTime = new DateTime(1970, 1, 1);
         virtual public void Update()
         {
-            if (isUpdating || (DateTime.Now - lastUpdateTime).TotalMilliseconds < 100) 
+            if (isUpdating || (DateTime.Now - lastUpdateTime).TotalMilliseconds < 100)
                 return;
 
             lock (SynchLock)
@@ -927,21 +926,21 @@ namespace tud.mci.tangram.controller.observer
                             if (contrl != null && contrl is XDispatchProvider && contrl is unoidl.com.sun.star.view.XSelectionSupplier)
                             {
                                 OoDispatchHelper.ActionWithChangeAndResetSelection(
-                                                    new Action(() =>
-                                                    {
-                                                        try
-                                                        {
-                                                            success = OoDispatchHelper.CallDispatch(
-                                                                DispatchURLs.SID_DELETE,
-                                                                contrl as XDispatchProvider
-                                                                );
-                                                        }
-                                                        catch (Exception ex) { Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't finish DELET dispatch:", ex); }
-                                                    }),
-                                                    contrl as unoidl.com.sun.star.view.XSelectionSupplier,
-                                                    Shape
+                                    new Action(() =>
+                                    {
+                                        try
+                                        {
+                                            success = OoDispatchHelper.CallDispatch(
+                                                DispatchURLs.SID_DELETE,
+                                                contrl as XDispatchProvider
                                                 );
-                                Thread.Sleep(10);
+                                        }
+                                        catch (Exception ex) { Logger.Instance.Log(LogPriority.ALWAYS, this, "[FATAL ERROR] Can't finish DELET dispatch:", ex); }
+                                    }),
+                                    contrl as unoidl.com.sun.star.view.XSelectionSupplier,
+                                    Shape
+                                );
+                                Thread.Sleep(100);                                
                                 success = !IsValid();
                             }
                         }

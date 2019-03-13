@@ -215,9 +215,9 @@ namespace tud.mci.tangram.util
                     try
                     {
                         var oldSel = GetSelection(selectProv);
-                        Thread.Sleep(80);
+                        Thread.Sleep(100);
                         var succ = SetSelection(selectProv, selection);
-                        Thread.Sleep(80);
+                        Thread.Sleep(100);
                         if (succ && act != null)
                         {
                             act.Invoke();
