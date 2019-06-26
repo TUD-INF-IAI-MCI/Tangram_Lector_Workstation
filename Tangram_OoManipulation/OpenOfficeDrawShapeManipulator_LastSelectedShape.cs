@@ -256,15 +256,23 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                     if (_points != null)
                     {
                         Mode = ModificationMode.Move;
+                        IsPointSelected = true;
                     }
                     else
                     {
                         // reset mode
                         Mode = ModificationMode.Unknown;
+                        IsPointSelected = false;
                     }
                 }
             }
         }
+
+        bool _pointSelected = false;
+        /// <summary>
+        /// Checked if a shape is selected for manipulation.
+        /// </summary>
+        public bool IsPointSelected { get { return _pointSelected; } private set { _pointSelected = value; } }
 
         #endregion
 

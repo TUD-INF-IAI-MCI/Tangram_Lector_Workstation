@@ -37,25 +37,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         case "changeUp":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle up button");
                             e.Cancel = handleUP();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeRight":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle right button");
                             e.Cancel = handleRIGHT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeDown":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle down button");
                             e.Cancel = handleDOWN();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeLeft":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle left button");
                             e.Cancel = handleLEFT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         #region Diagonal Interactions
@@ -63,25 +63,25 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         case "changeUpRight":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle top right");
                             e.Cancel = handleUP_RIGHT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeUpLeft":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle top left");
                             e.Cancel = handleUP_LEFT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeDownRight":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle down right");
                             e.Cancel = handleDOWN_RIGHT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         case "changeDownLeft":
                             Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] handle down left");
                             e.Cancel = handleDOWN_LEFT();
-                            e.Handled = true;
+                            e.Handled = e.Cancel;
                             break;
 
                         #endregion
@@ -143,57 +143,71 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                         #region Z-Order
 
                         case "sendToBackground":
-                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] send element to background");
-                            if (sentToBackground()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toBackground")); }
-                            else { playError(); }
-                            e.Cancel = true;
-                            e.Handled = true;
+                            if (this.IsShapeSelected)
+                            {
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] send element to background");
+                                if (sentToBackground()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toBackground")); }
+                                else { playError(); }
+                                e.Cancel = true;
+                                e.Handled = true;
+                            }
                             break;
 
                         case "sendToForeground":
-                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] bring element to front");
-                            if (bringToFront()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toFront")); }
-                            else { playError(); }
-                            e.Cancel = true;
-                            e.Handled = true;
+                            if (this.IsShapeSelected)
+                            {
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] bring element to front");
+                                if (bringToFront()) { sendAudioFeedback(LL.GetTrans("tangram.oomanipulation.zOrder.toFront")); }
+                                else { playError(); }
+                                e.Cancel = true;
+                                e.Handled = true;
+                            }
                             break;
 
                         #endregion
 
                         case "confirm":
-
-                            if (_group != null)
+                            if (this.IsShapeSelected)
                             {
-                                Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "start grouping");
-                                grouping();
+                                if (_group != null)
+                                {
+                                    Logger.Instance.Log(LogPriority.DEBUG, this, "[NOTICE]\t[INTERACTION]\t[MANIPULATION]\t" + "start grouping");
+                                    grouping();
+                                }
+                                else
+                                {
+                                    Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
+                                    RotateThroughModes();
+                                }
+                                e.Cancel = true;
+                                e.Handled = true;
+                                //TODO: open element manipulation dialog
                             }
-                            else
-                            {
-                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] rotate element manipulation dialog");
-                                RotateThroughModes();
-                            }
-                            e.Cancel = true;
-                            e.Handled = true;
-                            //TODO: open element manipulation dialog
                             break;
 
                         case "getDescription":
-                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] speak description");
-                            string desc = OoElementSpeaker.GetElementDescriptionText(LastSelectedShape);
-                            if (!String.IsNullOrEmpty(desc))
+                            if (this.IsShapeSelected)
                             {
-                                sendTextNotification(desc);
-                                sendAudioFeedback(desc);
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] speak description");
+                                string desc = OoElementSpeaker.GetElementDescriptionText(LastSelectedShape);
+                                if (!String.IsNullOrEmpty(desc))
+                                {
+                                    sendTextNotification(desc);
+                                    sendAudioFeedback(desc);
+                                }
+                                e.Cancel = true;
+                                e.Handled = true;
                             }
-                            e.Cancel = true;
-                            e.Handled = true;
                             break;
 
                         case "deleteElement":
-                            Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] delete selected shape");
-                            deleteSelectedObject();
-                            e.Cancel = true;
-                            e.Handled = true;
+                            if (this.IsShapeSelected || IsPointSelected)
+                            {
+                                Logger.Instance.Log(LogPriority.MIDDLE, this, "[DRAW INTERACTION] delete selected shape");
+                                deleteSelectedObject();
+                                e.Cancel = true;
+                                e.Handled = true;
+                            }
                             break;
 
                         case "toggleGrouping":
