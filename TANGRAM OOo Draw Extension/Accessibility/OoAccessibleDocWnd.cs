@@ -987,6 +987,84 @@ namespace tud.mci.tangram.Accessibility
             finally { _gettingPageID = false; }
         }
 
+        /// <summary>
+        /// Sets the current active page to the given page number.
+        /// </summary>
+        /// <param name="newPageNumber">The new page number.</param>
+        /// <returns></returns>
+        public bool SetCurrentActivePageId(int newPageNumber)
+        {
+            bool success = false;
+
+            if(Controller != null && newPageNumber <= GetPageCount() && newPageNumber > 0)
+            {
+                // get the controller of the Draw application
+                XController contr = Controller as XController;
+                XDrawPages pages = ((XDrawPagesSupplier)DrawPageSupplier).getDrawPages();
+
+                if (pages != null)
+                {
+                    XDrawPage newPage = OoDrawUtils.GetDrawPageByIndex(pages, newPageNumber -1);
+                    if (newPage != null)
+                    {
+                        success = SetCurrentActivePageId(contr, newPage);
+                    }
+                }
+            }
+
+            return success;
+        }
+
+
+            internal bool SetCurrentActivePageId(XController contr, XDrawPage newPage)
+        {
+            if (_gettingPageID)
+                return false;
+            int pid = -1;
+            try
+            {
+
+                _gettingPageID = true;
+
+                lock (SynchLock)
+                {
+                    bool success = TimeLimitExecutor.WaitForExecuteWithTimeLimit(100,
+                         () =>
+                         {
+                             try
+                             {
+                                 if (contr != null && contr is XDrawView)
+                                 {
+                                     ((XDrawView)contr).setCurrentPage(newPage);
+                                     // get the current page
+                                     var page = ((XDrawView)contr).getCurrentPage();
+                                     // get the number
+                                     pid = util.OoUtils.GetIntProperty(page, "Number");
+                                 }
+                             }
+                             catch (DisposedException)
+                             {
+                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] Controller seems to be already disposed");
+                                 this.Dispose();
+                             }
+                             catch (System.Exception ex)
+                             {
+                                 Logger.Instance.Log(LogPriority.IMPORTANT, this, "[ERROR] cant use the controller of document window: ", ex);
+                             }
+                         }
+                         , "useControllerOfModel"
+                         );
+                    if (!success) return false;
+                }
+                CachedCurrentPid = pid;
+                return true;
+            }
+            finally { _gettingPageID = false; }
+        }
+
+
+
+
         #endregion
 
         #endregion

@@ -253,7 +253,7 @@ namespace tud.mci.tangram.util
             Object drawPage = drawDocXDrawPages != null ? drawDocXDrawPages.getByIndex(pageIndex) : new Object();
 
             // Get the right interface to the page.
-            var drawPageXDrawPage = drawPage as XDrawPage;
+            var drawPageXDrawPage = drawPage is Any ? ((Any)drawPage).Value as XDrawPage : null;
 
             return drawPageXDrawPage;
         }
