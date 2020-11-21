@@ -271,7 +271,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(ProjectDir)\..\EXT"
-XCOPY "$(ProjectDir)\..\EXT" "$(TargetDir)Extensions" /H /S /Y /C /I /Q /R</PostBuildEvent>
+XCOPY "$(ProjectDir)\..\EXT" "$(TargetDir)Extensions" /H /S /Y /C /I /Q /R
+XCOPY "$(ProjectDir)\..\EXT" "$(TargetDir)EXT" /H /S /Y /C /I /Q /R</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

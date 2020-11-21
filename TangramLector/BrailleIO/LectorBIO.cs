@@ -294,7 +294,8 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// sub directory in which all extensions are stored
         /// </summary>
-        public const string EXTENSION_DIR_NAME = "Extensions";
+        //public const string EXTENSION_DIR_NAME = "Extensions";
+        public const string EXTENSION_DIR_NAME = "EXT";
 
         /// <summary>
         /// Gets the absolute path to the directory where all extensions are stored.
@@ -340,7 +341,7 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// sub directory in which all adapters are stored
         /// </summary>
-        public const string ADAPTER_DIR_NAME = EXTENSION_DIR_NAME + "\\Adapter";
+        public const string ADAPTER_DIR_NAME = EXTENSION_DIR_NAME + "\\ADPT";
 
 
         /// <summary>
@@ -508,7 +509,7 @@ namespace tud.mci.tangram.TangramLector
         /// <summary>
         /// sub directory in which all adapters are stored
         /// </summary>
-        public const string SSFP_DIR_NAME = EXTENSION_DIR_NAME + "\\SpecializedScriptFunctionProxies";
+        public const string SSFP_DIR_NAME = EXTENSION_DIR_NAME + "\\SSFP";
 
         private void initializeSSFPExtensions()
         {

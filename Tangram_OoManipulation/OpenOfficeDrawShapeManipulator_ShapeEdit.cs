@@ -394,9 +394,9 @@ namespace tud.mci.tangram.TangramLector.SpecializedFunctionProxies
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "Application folder: " + appData);
 #if LIBRE
-                var foundDirs = Directory.GetDirectories(appData + "\\LibreOffice", "TangramToolbar_LO*.oxt", SearchOption.AllDirectories);
+                var foundDirs = Directory.GetDirectories(appData + "\\LibreOffice", "TangramToolbar_*.oxt", SearchOption.AllDirectories);
 #else
-                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_OO*.oxt\\bitmap-pattern", SearchOption.AllDirectories);
+                var foundDirs = Directory.GetDirectories(appData + "\\OpenOffice", "TangramToolbar_*.oxt", SearchOption.AllDirectories);
 #endif
 
                 Logger.Instance.Log(LogPriority.DEBUG, "Pattern loader", "directories inside application folder: " + (foundDirs != null ? foundDirs.Length.ToString() : "null"));
